@@ -169,6 +169,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **CLAUDE.md** - Project instructions file for Claude Code
+  - Mandatory changelog update requirement before pushing
+  - Project context and directory structure
+  - Commit style guidelines
+- **Claude Code Slash Commands** - Native slash commands for GDS workflows
+  - `/story` - Run full story pipeline
+  - `/develop` - Run development phase
+  - `/review` - Run code review
+  - `/adversarial` - Run critical code review
+  - `/agent` - Invoke a specific agent
+  - `/bugfix` - Fix a bug
+  - `/gds` - Run any GDS command
+
+### Changed
+- **Simplified zsh autocomplete** - Replaced complex interactive menu with native zsh completion
+  - Short aliases: `g`, `gs`, `ga`, `gr`, `gd`, `gc`, `go`
+  - Quick functions: `gds.`, `gds.s`, `gds.a`, `gds.r`, `gds.d`
+  - Cleaner implementation (~130 lines vs ~450 lines)
+
 ### Planned
 - GitHub Actions integration
 - VS Code extension
