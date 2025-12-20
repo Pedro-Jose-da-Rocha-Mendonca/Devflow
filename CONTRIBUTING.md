@@ -107,23 +107,13 @@ cd tooling/scripts
 **High Priority**:
 - [ ] Windows compatibility (WSL/PowerShell)
 - [ ] Additional project type support
-- [ ] GitHub Actions integration
 - [ ] Cost tracking improvements
 - [ ] Error handling edge cases
 
 **Medium Priority**:
 - [ ] Additional agent personas
 - [ ] Custom persona builder
-- [ ] VS Code extension
-- [ ] Web UI for monitoring
-- [ ] Checkpoint cloud backup
 
-**Documentation**:
-- [ ] Video tutorials
-- [ ] More examples
-- [ ] Troubleshooting guides
-- [ ] Best practices guide
-- [ ] Cost optimization tips
 
 ## 🐛 Debugging
 
@@ -236,10 +226,6 @@ Contributors will be:
 - Focus on constructive feedback
 - Help others learn
 - Follow open source etiquette
-
-## ❓ Questions?
-
-Not sure where to start? Open a [Discussion](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/discussions) and we'll help you get started!
 
 ---
 
