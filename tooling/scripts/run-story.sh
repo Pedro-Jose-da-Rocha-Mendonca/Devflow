@@ -67,29 +67,45 @@ print_header() {
 }
 
 print_usage() {
-    echo "Usage: ./run-story.sh <story-key> [options]"
+    echo "Usage: ./run-story.sh <key> [options]"
     echo ""
-    echo "Options:"
+    echo "GREENFIELD MODES (New Features):"
+    echo "  (default)       Run full pipeline (context + dev + review + commit)"
     echo "  --develop       Run development phase only"
     echo "  --review        Run review phase only"
+    echo "  --adversarial   Run adversarial review (critical, finds problems)"
     echo "  --context       Create story context only"
-    echo "  --no-commit     Disable auto-commit after development"
+    echo ""
+    echo "BROWNFIELD MODES (Existing Codebase):"
+    echo "  --bugfix        Fix a bug (key = bug ID or description)"
+    echo "  --refactor      Refactor code (key = refactor target or ID)"
+    echo "  --investigate   Investigate codebase (key = topic to explore)"
+    echo "  --quickfix      Quick, minimal change (key = description)"
+    echo "  --migrate       Run a migration (key = migration ID)"
+    echo "  --tech-debt     Resolve technical debt (key = debt ID)"
+    echo ""
+    echo "OPTIONS:"
+    echo "  --no-commit     Disable auto-commit after changes"
     echo "  --with-pr       Enable auto-PR creation (requires gh CLI)"
     echo "  --model <name>  Use specific Claude model (sonnet|opus|haiku)"
-    echo "  (default)       Run full pipeline with auto-commit"
     echo ""
     echo "Environment Variables:"
     echo "  AUTO_COMMIT=true|false    Enable/disable auto-commit (default: true)"
     echo "  AUTO_PR=true|false        Enable/disable auto-PR (default: false)"
     echo "  CLAUDE_MODEL=<name>       Set Claude model (default: sonnet)"
     echo ""
-    echo "Examples:"
-    echo "  ./run-story.sh 3-5                    # Full pipeline with auto-commit"
-    echo "  ./run-story.sh 3-5 --develop          # Development only with auto-commit"
-    echo "  ./run-story.sh 3-5 --no-commit        # Disable auto-commit"
-    echo "  ./run-story.sh 3-5 --with-pr          # Enable auto-PR creation"
+    echo "GREENFIELD EXAMPLES:"
+    echo "  ./run-story.sh 3-5                    # Full story pipeline"
+    echo "  ./run-story.sh 3-5 --develop          # Development only"
     echo "  ./run-story.sh 3-5 --model opus       # Use Claude Opus"
-    echo "  AUTO_COMMIT=false ./run-story.sh 3-5  # Disable via env var"
+    echo ""
+    echo "BROWNFIELD EXAMPLES:"
+    echo "  ./run-story.sh login-crash --bugfix           # Fix bug"
+    echo "  ./run-story.sh auth-service --refactor        # Refactor code"
+    echo "  ./run-story.sh payment-flow --investigate     # Investigate code"
+    echo "  ./run-story.sh 'fix typo in header' --quickfix # Quick fix"
+    echo "  ./run-story.sh react-18 --migrate             # Run migration"
+    echo "  ./run-story.sh legacy-api --tech-debt         # Fix tech debt"
     echo ""
 }
 
@@ -110,6 +126,7 @@ main() {
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
+            # Greenfield modes
             "--develop"|"--dev")
                 mode="develop"
                 ;;
@@ -119,6 +136,29 @@ main() {
             "--context")
                 mode="context"
                 ;;
+            "--adversarial"|"--adv")
+                mode="adversarial"
+                ;;
+            # Brownfield modes
+            "--bugfix"|"--bug")
+                mode="bugfix"
+                ;;
+            "--refactor")
+                mode="refactor"
+                ;;
+            "--investigate"|"--explore")
+                mode="investigate"
+                ;;
+            "--quickfix"|"--quick")
+                mode="quickfix"
+                ;;
+            "--migrate"|"--migration")
+                mode="migrate"
+                ;;
+            "--tech-debt"|"--debt")
+                mode="tech-debt"
+                ;;
+            # Options
             "--no-commit")
                 AUTO_COMMIT="false"
                 ;;
@@ -176,6 +216,9 @@ main() {
     fi
 
     case "$mode" in
+        # ═══════════════════════════════════════════════════════════════
+        # GREENFIELD MODES - New feature development
+        # ═══════════════════════════════════════════════════════════════
         "develop")
             echo -e "${YELLOW}▶ Running development phase...${NC}"
             echo ""
@@ -203,12 +246,88 @@ main() {
             invoke_sm_code_review "$story_key"
             exit_code=$?
             ;;
+        "adversarial")
+            echo -e "${YELLOW}▶ Running adversarial review (Opus)...${NC}"
+            echo ""
+            invoke_adversarial_review "$story_key"
+            exit_code=$?
+            ;;
         "context")
             echo -e "${YELLOW}▶ Creating story context...${NC}"
             echo ""
             invoke_sm_story_context "$story_key"
             exit_code=$?
             ;;
+
+        # ═══════════════════════════════════════════════════════════════
+        # BROWNFIELD MODES - Existing codebase maintenance
+        # ═══════════════════════════════════════════════════════════════
+        "bugfix")
+            echo -e "${YELLOW}▶ Running bug fix workflow...${NC}"
+            echo ""
+            invoke_bugfix "$story_key"
+            exit_code=$?
+
+            # Auto-commit after bugfix if enabled
+            if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
+                auto_commit_changes "$story_key"
+            fi
+            ;;
+        "refactor")
+            echo -e "${YELLOW}▶ Running refactoring workflow...${NC}"
+            echo ""
+            invoke_refactor "$story_key"
+            exit_code=$?
+
+            # Auto-commit after refactor if enabled
+            if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
+                auto_commit_changes "$story_key"
+            fi
+            ;;
+        "investigate")
+            echo -e "${YELLOW}▶ Running investigation workflow...${NC}"
+            echo ""
+            invoke_investigate "$story_key"
+            exit_code=$?
+            # No auto-commit for investigation (read-only)
+            ;;
+        "quickfix")
+            echo -e "${YELLOW}▶ Running quick fix...${NC}"
+            echo ""
+            invoke_quickfix "$story_key"
+            exit_code=$?
+
+            # Auto-commit after quickfix if enabled
+            if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
+                auto_commit_changes "$story_key"
+            fi
+            ;;
+        "migrate")
+            echo -e "${YELLOW}▶ Running migration workflow...${NC}"
+            echo ""
+            invoke_migrate "$story_key"
+            exit_code=$?
+
+            # Auto-commit after migration if enabled
+            if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
+                auto_commit_changes "$story_key"
+            fi
+            ;;
+        "tech-debt")
+            echo -e "${YELLOW}▶ Running technical debt resolution...${NC}"
+            echo ""
+            invoke_tech_debt "$story_key"
+            exit_code=$?
+
+            # Auto-commit after tech-debt resolution if enabled
+            if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
+                auto_commit_changes "$story_key"
+            fi
+            ;;
+
+        # ═══════════════════════════════════════════════════════════════
+        # DEFAULT - Full greenfield pipeline
+        # ═══════════════════════════════════════════════════════════════
         *)
             echo -e "${YELLOW}▶ Running full pipeline...${NC}"
             echo ""

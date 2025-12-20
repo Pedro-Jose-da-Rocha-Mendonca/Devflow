@@ -1,0 +1,149 @@
+#compdef gds
+
+# Zsh completion for the gds CLI wrapper
+# Provides completions for all GDS automation commands
+
+_gds_get_story_keys() {
+    local project_root="${GDS_PROJECT_ROOT:-$(pwd)}"
+    local sprint_status="$project_root/tooling/docs/sprint-status.yaml"
+
+    [[ -f "$sprint_status" ]] || sprint_status="$project_root/docs/sprint-status.yaml"
+
+    if [[ -f "$sprint_status" ]]; then
+        grep -E "^  [0-9]+-[0-9]+" "$sprint_status" 2>/dev/null | \
+            sed 's/:.*//' | sed 's/^[[:space:]]*//' | \
+            sed 's/^\([0-9]*-[0-9]*\).*/\1/' | sort -u
+    fi
+}
+
+_gds_get_agents() {
+    local project_root="${GDS_PROJECT_ROOT:-$(pwd)}"
+    local agents_dir="$project_root/tooling/.automation/agents"
+
+    if [[ -d "$agents_dir" ]]; then
+        ls "$agents_dir" 2>/dev/null | sed 's/\.md$//'
+    fi
+}
+
+_gds_get_overrides() {
+    local project_root="${GDS_PROJECT_ROOT:-$(pwd)}"
+    local overrides_dir="$project_root/tooling/.automation/overrides"
+
+    if [[ -d "$overrides_dir" ]]; then
+        ls "$overrides_dir" 2>/dev/null | sed 's/\.override\.yaml$//' | sed 's/\.yaml$//'
+    fi
+}
+
+_gds() {
+    local curcontext="$curcontext" state line
+    typeset -A opt_args
+
+    local -a commands
+    commands=(
+        # Story commands
+        'story:Run story automation (context, dev, review)'
+        'develop:Run development phase for a story'
+        'review:Run code review for a story'
+        'adversarial:Run adversarial (critical) review'
+        'context:Create story context'
+
+        # Brownfield commands
+        'bugfix:Fix a bug'
+        'refactor:Refactor code'
+        'investigate:Investigate codebase'
+        'quickfix:Make a quick fix'
+        'migrate:Run a migration'
+        'tech-debt:Resolve technical debt'
+
+        # Agent commands
+        'agent:Invoke a specific agent'
+        'agents:List available agents'
+
+        # Override commands
+        'override:Manage agent overrides'
+        'profile:Edit user profile'
+        'memory:Manage agent memories'
+
+        # Utility commands
+        'status:Show sprint status'
+        'logs:View automation logs'
+        'help:Show help'
+    )
+
+    local -a global_options
+    global_options=(
+        '--model[Claude model]:model:(sonnet opus haiku)'
+        '--no-commit[Disable auto-commit]'
+        '--with-pr[Enable auto-PR creation]'
+        '--verbose[Verbose output]'
+        '-v[Verbose output]'
+    )
+
+    _arguments -C \
+        $global_options \
+        '1:command:->command' \
+        '*::arg:->args'
+
+    case "$state" in
+        command)
+            _describe -t commands 'gds command' commands
+            ;;
+        args)
+            case "${words[1]}" in
+                story|develop|review|adversarial|context)
+                    local -a story_keys
+                    story_keys=("${(@f)$(_gds_get_story_keys)}")
+                    _describe -t stories 'story key' story_keys
+                    ;;
+                agent)
+                    local -a agents
+                    agents=("${(@f)$(_gds_get_agents)}")
+                    _describe -t agents 'agent' agents
+                    ;;
+                override)
+                    local -a override_cmds
+                    override_cmds=(
+                        'edit:Edit an override file'
+                        'list:List all overrides'
+                        'create:Create a new override'
+                        'delete:Delete an override'
+                    )
+                    if [[ $CURRENT -eq 2 ]]; then
+                        _describe -t override-cmds 'override command' override_cmds
+                    else
+                        local -a overrides
+                        overrides=("${(@f)$(_gds_get_overrides)}")
+                        _describe -t overrides 'override' overrides
+                    fi
+                    ;;
+                memory)
+                    local -a memory_cmds
+                    memory_cmds=(
+                        'show:Show agent memory'
+                        'add:Add memory entry'
+                        'clear:Clear agent memory'
+                    )
+                    if [[ $CURRENT -eq 2 ]]; then
+                        _describe -t memory-cmds 'memory command' memory_cmds
+                    else
+                        local -a agents
+                        agents=("${(@f)$(_gds_get_agents)}")
+                        _describe -t agents 'agent' agents
+                    fi
+                    ;;
+                logs)
+                    local -a log_cmds
+                    log_cmds=(
+                        'tail:Tail current log'
+                        'list:List log files'
+                        'view:View a specific log'
+                        'clean:Clean old logs'
+                    )
+                    _describe -t log-cmds 'logs command' log_cmds
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_gds "$@"

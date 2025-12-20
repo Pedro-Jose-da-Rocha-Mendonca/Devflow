@@ -1,0 +1,64 @@
+# User Profile - Global Personalization Settings
+# This file contains user preferences that apply to all agents
+# Edit this file to personalize your automation experience
+
+user:
+  # Your name (agents will address you by this name)
+  name: "User"
+
+  # Your preferred language for agent communication
+  # Options: en, es, pt, fr, de, zh, ja
+  preferred_language: "en"
+
+  # Your technical experience level
+  # Options: junior, mid, senior, principal
+  technical_level: "senior"
+
+  # Communication style preference
+  # Options: concise, detailed, verbose
+  communication_style: "concise"
+
+preferences:
+  # Code style preferences (agents will follow these)
+  code_style:
+    - "Prefer explicit types over var/dynamic"
+    - "Use const constructors where possible"
+    - "Prefer named parameters for 2+ arguments"
+    - "Avoid nested ternaries"
+
+  # Review preferences
+  review_depth: "thorough"  # Options: quick, standard, thorough
+
+  # Testing preferences
+  testing:
+    - "Write unit tests for business logic"
+    - "Integration tests for API calls"
+    - "Widget tests for UI components"
+
+# Project-specific context that all agents should know
+context:
+  # Technology stack
+  stack:
+    - "Flutter/Dart for mobile app"
+    - "Provider for state management"
+    - "GoRouter for navigation"
+    - "Firebase for backend"
+
+  # Project conventions
+  conventions:
+    - "Feature-based folder structure"
+    - "Repository pattern for data access"
+    - "BLoC/Provider for state management"
+
+  # Important project paths
+  paths:
+    app_root: "app"
+    lib_path: "app/lib"
+    test_path: "app/test"
+    features_path: "app/lib/features"
+
+# Memories - persistent facts agents should always remember
+memories:
+  - "Always run flutter analyze before committing"
+  - "Tests must pass before marking story complete"
+  - "Use freezed for immutable data classes"

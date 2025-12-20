@@ -18,6 +18,7 @@ source "$SCRIPT_DIR/session-manager.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/track-tokens.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/context-monitor.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/checkpoint-integration.sh" 2>/dev/null || true
+source "$SCRIPT_DIR/override-loader.sh" 2>/dev/null || true
 
 # Claude CLI path
 CLAUDE_CLI="${CLAUDE_CLI:-claude}"
@@ -72,6 +73,56 @@ build_prompt() {
 ## Current Task
 
 $task_description"
+}
+
+# Get agent prompt with overrides applied
+# Usage: get_agent_prompt "dev" -> returns agent + user profile + overrides + memory
+get_agent_prompt() {
+    local agent_name="$1"
+
+    # Try to use override loader if available
+    if type load_agent_with_overrides &>/dev/null; then
+        load_agent_with_overrides "$agent_name"
+    else
+        # Fallback to basic agent loading
+        cat "$AGENTS_DIR/${agent_name}.md" 2>/dev/null
+    fi
+}
+
+# Get model for agent (with override support)
+# Usage: get_agent_model "dev" "opus" -> returns override model or fallback
+get_agent_model() {
+    local agent_name="$1"
+    local default_model="$2"
+
+    # Check for override
+    if type get_agent_model_override &>/dev/null; then
+        local override=$(get_agent_model_override "$agent_name")
+        if [[ -n "$override" ]]; then
+            echo "$override"
+            return
+        fi
+    fi
+
+    # Use default or global CLAUDE_MODEL
+    echo "${default_model:-$CLAUDE_MODEL}"
+}
+
+# Get budget for agent (with override support)
+get_agent_budget() {
+    local agent_name="$1"
+    local default_budget="$2"
+
+    # Check for override
+    if type get_agent_budget_override &>/dev/null; then
+        local override=$(get_agent_budget_override "$agent_name")
+        if [[ -n "$override" ]]; then
+            echo "$override"
+            return
+        fi
+    fi
+
+    echo "$default_budget"
 }
 
 ################################################################################
@@ -147,11 +198,11 @@ After creating the context file, update sprint-status.yaml to set this story to 
     (
         cd "$PROJECT_ROOT" || exit 1
         echo "$prompt" | $CLAUDE_CLI -p \
-            --model "$model" \
+            --model "$(get_agent_model "sm" "$model")" \
             $(get_permission_flags) \
-            --append-system-prompt "$(cat "$AGENTS_DIR/sm.md" 2>/dev/null)" \
+            --append-system-prompt "$(get_agent_prompt "sm")" \
             --tools "Read,Write,Edit,Grep,Glob,Bash" \
-            --max-budget-usd 3.00
+            --max-budget-usd "$(get_agent_budget "sm" "3.00")"
     ) 2>&1 | tee "$log_file"
 
     return ${PIPESTATUS[0]}
@@ -227,11 +278,11 @@ DO NOT explain or ask questions. Just implement the code."
     (
         cd "$PROJECT_ROOT" || exit 1
         echo "$prompt" | $CLAUDE_CLI -p \
-            --model "$model" \
+            --model "$(get_agent_model "dev" "$model")" \
             $(get_permission_flags) \
-            --append-system-prompt "$(cat "$AGENTS_DIR/dev.md" 2>/dev/null)" \
+            --append-system-prompt "$(get_agent_prompt "dev")" \
             --tools "Read,Write,Edit,Grep,Glob,Bash" \
-            --max-budget-usd 15.00
+            --max-budget-usd "$(get_agent_budget "dev" "15.00")"
     ) 2>&1 | tee "$log_file"
 
     local exit_code=${PIPESTATUS[0]}
@@ -308,11 +359,11 @@ If CHANGES REQUESTED, update sprint-status.yaml to 'in-progress' and list requir
     (
         cd "$PROJECT_ROOT" || exit 1
         echo "$prompt" | $CLAUDE_CLI -p \
-            --model "$model" \
+            --model "$(get_agent_model "sm" "$model")" \
             $(get_permission_flags) \
-            --append-system-prompt "$(cat "$AGENTS_DIR/sm.md" 2>/dev/null)" \
+            --append-system-prompt "$(get_agent_prompt "sm")" \
             --tools "Read,Write,Edit,Grep,Glob,Bash" \
-            --max-budget-usd 5.00
+            --max-budget-usd "$(get_agent_budget "sm" "5.00")"
     ) 2>&1 | tee "$log_file"
 
     local exit_code=${PIPESTATUS[0]}
@@ -328,6 +379,66 @@ If CHANGES REQUESTED, update sprint-status.yaml to 'in-progress' and list requir
     fi
 
     return $exit_code
+}
+
+# Adversarial code review - uses the critical reviewer agent
+invoke_adversarial_review() {
+    local story_key="$1"
+    local story_file="$STORIES_DIR/${story_key}.md"
+    local review_file="$STORIES_DIR/${story_key}.adversarial-review.md"
+    local log_file="$LOGS_DIR/${story_key}-adversarial-review.log"
+    local model="opus"  # Adversarial reviews use Opus for deeper analysis
+
+    # Show persona switch
+    print_persona_banner "REVIEWER (Adversarial)" "Critical Code Analysis" "\033[1;31m" "$model"
+
+    echo "▶ Running adversarial review: $story_key"
+
+    if [[ ! -f "$story_file" ]]; then
+        echo "❌ Story file not found: $story_file"
+        return 1
+    fi
+
+    local story_content=$(cat "$story_file")
+
+    local prompt="CRITICALLY REVIEW this implementation. Your job is to FIND PROBLEMS.
+
+## Story Specification
+$story_content
+
+## Instructions
+1. Read all acceptance criteria carefully
+2. For EACH criterion, verify it is ACTUALLY met (not just superficially)
+3. Look for edge cases that aren't handled
+4. Check for security vulnerabilities
+5. Verify error handling is comprehensive
+6. Look for race conditions in async code
+7. Check that tests cover failure paths, not just happy paths
+8. Run 'cd app && flutter test' to verify tests pass
+
+Create your adversarial review at: $review_file
+
+BE CRITICAL. If you can't find issues, look harder. Every implementation has room for improvement.
+
+Verdict options:
+- APPROVED (rare - only for truly solid implementations)
+- CHANGES REQUIRED (most common - list specific issues)
+- BLOCKED (serious issues that must be addressed)"
+
+    # Create symlink to current.log for monitoring
+    ln -sf "$log_file" "$LOGS_DIR/current.log"
+
+    (
+        cd "$PROJECT_ROOT" || exit 1
+        echo "$prompt" | $CLAUDE_CLI -p \
+            --model "$(get_agent_model "reviewer" "$model")" \
+            $(get_permission_flags) \
+            --append-system-prompt "$(get_agent_prompt "reviewer")" \
+            --tools "Read,Write,Edit,Grep,Glob,Bash" \
+            --max-budget-usd "$(get_agent_budget "reviewer" "8.00")"
+    ) 2>&1 | tee "$log_file"
+
+    return ${PIPESTATUS[0]}
 }
 
 invoke_sm_draft_story() {
@@ -837,6 +948,346 @@ run_full_pipeline() {
     echo "═══════════════════════════════════════════════════════════════"
 
     return 0
+}
+
+################################################################################
+# BROWNFIELD WORKFLOWS - Bug fixes, refactoring, investigations, maintenance
+################################################################################
+
+invoke_bugfix() {
+    local bug_id="$1"
+    local bug_file="$STORIES_DIR/bugs/${bug_id}.md"
+    local log_file="$LOGS_DIR/${bug_id}-bugfix.log"
+    local model="${CLAUDE_MODEL_DEV:-opus}"
+
+    # Show persona switch
+    print_persona_banner "MAINTAINER" "Bug Investigation & Fix" "\033[1;31m" "$model"
+
+    echo "▶ Investigating and fixing bug: $bug_id"
+
+    # Build prompt based on whether bug file exists
+    local prompt=""
+    if [[ -f "$bug_file" ]]; then
+        local bug_content=$(cat "$bug_file")
+        prompt="FIX THIS BUG.
+
+## Bug Report
+$bug_content
+
+## Instructions
+1. First, understand the bug by reading the report carefully
+2. Explore the codebase to find the root cause
+3. Identify all affected files
+4. Implement the fix with minimal changes
+5. Add tests to prevent regression
+6. Run existing tests to ensure no regressions
+
+DO NOT over-engineer. Make the minimal change needed to fix the bug.
+After fixing, create a brief summary at: $STORIES_DIR/bugs/${bug_id}.fix-summary.md"
+    else
+        prompt="INVESTIGATE AND FIX BUG: $bug_id
+
+## Instructions
+1. Search the codebase for code related to: $bug_id
+2. Identify potential issues based on the bug description
+3. Explore related code paths and error handling
+4. Implement a fix with minimal changes
+5. Add tests to prevent regression
+6. Run existing tests to ensure no regressions
+
+Bug ID/Description: $bug_id
+
+After investigating, create:
+- $STORIES_DIR/bugs/${bug_id}.md (bug report if not exists)
+- $STORIES_DIR/bugs/${bug_id}.fix-summary.md (fix summary)"
+    fi
+
+    # Ensure bugs directory exists
+    mkdir -p "$STORIES_DIR/bugs"
+
+    # Create symlink to current.log for monitoring
+    ln -sf "$log_file" "$LOGS_DIR/current.log"
+
+    (
+        cd "$PROJECT_ROOT" || exit 1
+        echo "$prompt" | $CLAUDE_CLI -p \
+            --model "$model" \
+            $(get_permission_flags) \
+            --append-system-prompt "$(cat "$AGENTS_DIR/maintainer.md" 2>/dev/null || cat "$AGENTS_DIR/dev.md" 2>/dev/null)" \
+            --tools "Read,Write,Edit,Grep,Glob,Bash" \
+            --max-budget-usd 10.00
+    ) 2>&1 | tee "$log_file"
+
+    return ${PIPESTATUS[0]}
+}
+
+invoke_refactor() {
+    local refactor_id="$1"
+    local refactor_file="$STORIES_DIR/refactors/${refactor_id}.md"
+    local log_file="$LOGS_DIR/${refactor_id}-refactor.log"
+    local model="${CLAUDE_MODEL_DEV:-opus}"
+
+    # Show persona switch
+    print_persona_banner "MAINTAINER" "Code Refactoring & Improvement" "\033[1;35m" "$model"
+
+    echo "▶ Refactoring: $refactor_id"
+
+    local prompt=""
+    if [[ -f "$refactor_file" ]]; then
+        local refactor_content=$(cat "$refactor_file")
+        prompt="REFACTOR THIS CODE.
+
+## Refactoring Specification
+$refactor_content
+
+## Instructions
+1. Read and understand the refactoring goals
+2. Analyze the current code structure
+3. Plan the refactoring steps (smallest possible changes)
+4. Implement changes incrementally
+5. Run tests after each significant change
+6. Ensure all tests pass before completion
+
+IMPORTANT: Make changes incrementally. Ensure tests pass between changes.
+Create a summary at: $STORIES_DIR/refactors/${refactor_id}.summary.md"
+    else
+        prompt="REFACTOR: $refactor_id
+
+## Instructions
+1. Search the codebase for code related to: $refactor_id
+2. Analyze the current implementation
+3. Identify improvement opportunities (readability, performance, maintainability)
+4. Plan incremental refactoring steps
+5. Implement changes one at a time
+6. Run tests after each change
+
+Target: $refactor_id
+
+Create:
+- $STORIES_DIR/refactors/${refactor_id}.md (refactoring plan)
+- $STORIES_DIR/refactors/${refactor_id}.summary.md (what was changed)"
+    fi
+
+    # Ensure refactors directory exists
+    mkdir -p "$STORIES_DIR/refactors"
+
+    ln -sf "$log_file" "$LOGS_DIR/current.log"
+
+    (
+        cd "$PROJECT_ROOT" || exit 1
+        echo "$prompt" | $CLAUDE_CLI -p \
+            --model "$model" \
+            $(get_permission_flags) \
+            --append-system-prompt "$(cat "$AGENTS_DIR/maintainer.md" 2>/dev/null || cat "$AGENTS_DIR/dev.md" 2>/dev/null)" \
+            --tools "Read,Write,Edit,Grep,Glob,Bash" \
+            --max-budget-usd 12.00
+    ) 2>&1 | tee "$log_file"
+
+    return ${PIPESTATUS[0]}
+}
+
+invoke_investigate() {
+    local topic="$1"
+    local output_file="$STORIES_DIR/investigations/${topic}.md"
+    local log_file="$LOGS_DIR/${topic}-investigate.log"
+    local model="${CLAUDE_MODEL_PLANNING:-sonnet}"  # Use Sonnet for investigation (read-heavy)
+
+    # Show persona switch
+    print_persona_banner "MAINTAINER" "Codebase Investigation & Analysis" "\033[1;36m" "$model"
+
+    echo "▶ Investigating: $topic"
+
+    local prompt="INVESTIGATE AND DOCUMENT: $topic
+
+## Instructions
+1. Explore the codebase thoroughly to understand: $topic
+2. Trace code paths, data flows, and dependencies
+3. Document what you find in a comprehensive report
+4. Include:
+   - How the feature/component works
+   - Key files and their responsibilities
+   - Data flows and state management
+   - External dependencies
+   - Potential issues or technical debt
+   - Recommendations for improvements
+
+Create a detailed investigation report at: $output_file
+
+DO NOT make any code changes. This is a read-only investigation."
+
+    # Ensure investigations directory exists
+    mkdir -p "$STORIES_DIR/investigations"
+
+    ln -sf "$log_file" "$LOGS_DIR/current.log"
+
+    (
+        cd "$PROJECT_ROOT" || exit 1
+        echo "$prompt" | $CLAUDE_CLI -p \
+            --model "$model" \
+            $(get_permission_flags) \
+            --append-system-prompt "$(cat "$AGENTS_DIR/maintainer.md" 2>/dev/null || cat "$AGENTS_DIR/architect.md" 2>/dev/null)" \
+            --tools "Read,Grep,Glob" \
+            --max-budget-usd 5.00
+    ) 2>&1 | tee "$log_file"
+
+    return ${PIPESTATUS[0]}
+}
+
+invoke_quickfix() {
+    local description="$1"
+    local log_file="$LOGS_DIR/quickfix-$(date +%Y%m%d-%H%M%S).log"
+    local model="${CLAUDE_MODEL_PLANNING:-sonnet}"  # Use Sonnet for quick fixes
+
+    # Show persona switch
+    print_persona_banner "MAINTAINER" "Quick Fix" "\033[1;33m" "$model"
+
+    echo "▶ Quick fix: $description"
+
+    local prompt="QUICK FIX: $description
+
+## Instructions
+1. Make the requested change with minimal modifications
+2. Only change what is absolutely necessary
+3. Run tests if applicable
+4. Do not refactor unrelated code
+5. Do not add unnecessary comments or documentation
+
+This is a quick, focused change. Be efficient."
+
+    ln -sf "$log_file" "$LOGS_DIR/current.log"
+
+    (
+        cd "$PROJECT_ROOT" || exit 1
+        echo "$prompt" | $CLAUDE_CLI -p \
+            --model "$model" \
+            $(get_permission_flags) \
+            --append-system-prompt "$(cat "$AGENTS_DIR/maintainer.md" 2>/dev/null || cat "$AGENTS_DIR/dev.md" 2>/dev/null)" \
+            --tools "Read,Write,Edit,Grep,Glob,Bash" \
+            --max-budget-usd 3.00
+    ) 2>&1 | tee "$log_file"
+
+    return ${PIPESTATUS[0]}
+}
+
+invoke_migrate() {
+    local migration_id="$1"
+    local migration_file="$STORIES_DIR/migrations/${migration_id}.md"
+    local log_file="$LOGS_DIR/${migration_id}-migrate.log"
+    local model="${CLAUDE_MODEL_DEV:-opus}"
+
+    # Show persona switch
+    print_persona_banner "MAINTAINER" "Migration & Upgrade" "\033[1;34m" "$model"
+
+    echo "▶ Running migration: $migration_id"
+
+    local prompt=""
+    if [[ -f "$migration_file" ]]; then
+        local migration_content=$(cat "$migration_file")
+        prompt="EXECUTE THIS MIGRATION.
+
+## Migration Specification
+$migration_content
+
+## Instructions
+1. Read the migration plan carefully
+2. Back up any critical data/configuration if needed
+3. Execute the migration steps in order
+4. Run tests after each major step
+5. Document any issues encountered
+6. Verify the migration is complete
+
+Create a migration log at: $STORIES_DIR/migrations/${migration_id}.log.md"
+    else
+        prompt="PLAN AND EXECUTE MIGRATION: $migration_id
+
+## Instructions
+1. Analyze what needs to be migrated based on: $migration_id
+2. Create a migration plan
+3. Execute the migration with careful testing
+4. Document all changes made
+
+Create:
+- $STORIES_DIR/migrations/${migration_id}.md (migration plan)
+- $STORIES_DIR/migrations/${migration_id}.log.md (execution log)"
+    fi
+
+    # Ensure migrations directory exists
+    mkdir -p "$STORIES_DIR/migrations"
+
+    ln -sf "$log_file" "$LOGS_DIR/current.log"
+
+    (
+        cd "$PROJECT_ROOT" || exit 1
+        echo "$prompt" | $CLAUDE_CLI -p \
+            --model "$model" \
+            $(get_permission_flags) \
+            --append-system-prompt "$(cat "$AGENTS_DIR/maintainer.md" 2>/dev/null || cat "$AGENTS_DIR/architect.md" 2>/dev/null)" \
+            --tools "Read,Write,Edit,Grep,Glob,Bash" \
+            --max-budget-usd 15.00
+    ) 2>&1 | tee "$log_file"
+
+    return ${PIPESTATUS[0]}
+}
+
+invoke_tech_debt() {
+    local debt_id="$1"
+    local debt_file="$STORIES_DIR/tech-debt/${debt_id}.md"
+    local log_file="$LOGS_DIR/${debt_id}-tech-debt.log"
+    local model="${CLAUDE_MODEL_DEV:-opus}"
+
+    # Show persona switch
+    print_persona_banner "MAINTAINER" "Technical Debt Resolution" "\033[1;35m" "$model"
+
+    echo "▶ Resolving technical debt: $debt_id"
+
+    local prompt=""
+    if [[ -f "$debt_file" ]]; then
+        local debt_content=$(cat "$debt_file")
+        prompt="RESOLVE THIS TECHNICAL DEBT.
+
+## Technical Debt Item
+$debt_content
+
+## Instructions
+1. Understand the scope of the technical debt
+2. Identify all affected areas
+3. Plan incremental improvements
+4. Implement fixes while maintaining backwards compatibility
+5. Add tests where missing
+6. Run all tests to ensure no regressions
+
+Document resolution at: $STORIES_DIR/tech-debt/${debt_id}.resolved.md"
+    else
+        prompt="IDENTIFY AND RESOLVE TECHNICAL DEBT: $debt_id
+
+## Instructions
+1. Search for code related to: $debt_id
+2. Identify technical debt (poor patterns, missing tests, outdated code)
+3. Prioritize fixes by impact
+4. Implement improvements incrementally
+5. Run tests after each change
+
+Create:
+- $STORIES_DIR/tech-debt/${debt_id}.md (debt identification)
+- $STORIES_DIR/tech-debt/${debt_id}.resolved.md (resolution summary)"
+    fi
+
+    # Ensure tech-debt directory exists
+    mkdir -p "$STORIES_DIR/tech-debt"
+
+    ln -sf "$log_file" "$LOGS_DIR/current.log"
+
+    (
+        cd "$PROJECT_ROOT" || exit 1
+        echo "$prompt" | $CLAUDE_CLI -p \
+            --model "$model" \
+            $(get_permission_flags) \
+            --append-system-prompt "$(cat "$AGENTS_DIR/maintainer.md" 2>/dev/null || cat "$AGENTS_DIR/dev.md" 2>/dev/null)" \
+            --tools "Read,Write,Edit,Grep,Glob,Bash" \
+            --max-budget-usd 12.00
+    ) 2>&1 | tee "$log_file"
+
+    return ${PIPESTATUS[0]}
 }
 
 # Functions are available when this file is sourced
