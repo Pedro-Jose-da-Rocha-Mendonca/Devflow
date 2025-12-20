@@ -26,6 +26,18 @@ export MAX_BUDGET_CONTEXT=3.00
 export MAX_BUDGET_DEV=15.00
 export MAX_BUDGET_REVIEW=5.00
 
+# Cost tracking settings
+export COST_DISPLAY_CURRENCY="USD"          # Primary display currency
+export COST_WARNING_PERCENT=75              # Warning at 75% budget
+export COST_CRITICAL_PERCENT=90             # Critical at 90% budget
+export COST_AUTO_STOP="true"                # Auto-stop at 100% budget
+
+# Currency exchange rates (USD to target)
+# Update these for accurate multi-currency display
+export CURRENCY_RATE_EUR=0.92
+export CURRENCY_RATE_GBP=0.79
+export CURRENCY_RATE_BRL=6.10
+
 # Paths
 export AUTOMATION_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export PROJECT_ROOT="$(cd "$AUTOMATION_DIR/../.." && pwd)"

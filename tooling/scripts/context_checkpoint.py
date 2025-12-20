@@ -30,7 +30,9 @@ import signal
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 CHECKPOINT_DIR = PROJECT_ROOT / "tooling" / ".automation" / "checkpoints"
 LOGS_DIR = PROJECT_ROOT / "tooling" / ".automation" / "logs"
-CLAUDE_CLI = "claude"
+# Platform-specific CLI command
+import sys
+CLAUDE_CLI = "claude.cmd" if sys.platform == 'win32' else "claude"
 
 # Context thresholds
 CONTEXT_WARNING_THRESHOLD = 0.75  # 75% - Start warning
@@ -65,9 +67,11 @@ class ContextCheckpointManager:
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.logs_dir.mkdir(parents=True, exist_ok=True)
 
-        # Handle graceful shutdown
+        # Handle graceful shutdown (Windows-compatible)
         signal.signal(signal.SIGINT, self._signal_handler)
-        signal.signal(signal.SIGTERM, self._signal_handler)
+        # SIGTERM is not available on Windows
+        if sys.platform != 'win32':
+            signal.signal(signal.SIGTERM, self._signal_handler)
 
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully."""

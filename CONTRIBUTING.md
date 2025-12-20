@@ -105,9 +105,7 @@ cd tooling/scripts
 ### Areas for Contribution
 
 **High Priority**:
-- [ ] Windows compatibility (WSL/PowerShell)
 - [ ] Additional project type support
-- [ ] Cost tracking improvements
 - [ ] Error handling edge cases
 
 **Medium Priority**:

@@ -23,12 +23,19 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ### Prerequisites
 
+**macOS/Linux:**
 - [Claude Code CLI](https://claude.com/claude-code) - `brew install claude-code`
 - Python 3.8+
 - Git
 - zsh (default on macOS)
 
-### Installation
+**Windows:**
+- [Claude Code CLI](https://claude.com/claude-code) - `npm install -g @anthropic-ai/claude-code`
+- Python 3.8+ (from python.org or Microsoft Store)
+- Git for Windows
+- PowerShell 5.1+ (included with Windows 10/11)
+
+### Installation (macOS/Linux)
 
 **Option 1: Clone and Setup (Recommended)**
 
@@ -58,6 +65,40 @@ mv GDS_Automation-main/tooling /path/to/your/project/
 cd /path/to/your/project/tooling/.automation
 cp config.sh.template config.sh
 vim config.sh
+```
+
+### Installation (Windows)
+
+```powershell
+# Clone this repository
+git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation.git
+cd GDS_Automation
+
+# Copy to your project
+Copy-Item -Recurse tooling C:\path\to\your\project\
+
+# Set execution policy (first time only, run as Admin)
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+# Run setup wizard
+cd C:\path\to\your\project\tooling\scripts
+.\init-project-workflow.ps1
+```
+
+**Running Stories on Windows:**
+
+```powershell
+# Full pipeline with live monitoring
+.\run-story.ps1 -StoryKey "3-5"
+
+# Development only
+.\run-story.ps1 -StoryKey "3-5" -Develop
+
+# With specific model
+.\run-story.ps1 -StoryKey "3-5" -Model opus
+
+# Disable auto-commit
+.\run-story.ps1 -StoryKey "3-5" -NoCommit
 ```
 
 ## 📖 Documentation
@@ -111,6 +152,39 @@ export MAX_BUDGET_DEV=15.00      # Auto-abort at $15
 export MAX_BUDGET_REVIEW=5.00    # Auto-abort at $5
 ```
 
+### Cost Analysis System
+
+Real-time cost tracking with multi-currency display:
+
+```bash
+# Run with native cost tracking
+python run-story.py 3-5 --native --show-costs
+
+# View cost dashboard
+python cost_dashboard.py --summary           # 30-day summary
+python cost_dashboard.py --history 10        # Last 10 sessions
+python cost_dashboard.py --story 3-5         # Costs for specific story
+python cost_dashboard.py --export costs.csv  # Export to CSV
+```
+
+**Display Features:**
+- Real-time token counts (input/output)
+- Multi-currency display (USD, EUR, GBP, BRL)
+- Per-agent and per-model cost breakdown
+- Budget alerts (warning at 75%, critical at 90%)
+- Auto-stop at budget limit
+
+**Sample Output:**
+```
+╔══════════════════════════════════════════════════════════════════╗
+║                    COST MONITOR - Story: 3-5                     ║
+╠══════════════════════════════════════════════════════════════════╣
+║  Agent: DEV          Model: opus       Elapsed: 04:32            ║
+║  Tokens: 57,680      Cost: $1.77       Budget: 12% used          ║
+║  USD: $1.77 │ EUR: €1.63 │ GBP: £1.40 │ BRL: R$10.80            ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+
 ## 🔧 Configuration
 
 ### Basic Setup
@@ -138,33 +212,74 @@ export CHECKPOINT_THRESHOLDS="75,85,95"
 # See docs/CONFIGURATION.md for full options
 ```
 
-## 🛠️ Available Commands
-
-### Main Workflow
+### Cost Tracking Options
 
 ```bash
-./run-story.sh <key>              # Full pipeline
-./run-story.sh <key> --develop    # Development only
-./run-story.sh <key> --review     # Review only
-./run-story.sh <key> --context    # Context only
-./run-story.sh <key> --no-commit  # Skip auto-commit
-./run-story.sh <key> --with-pr    # Create PR (needs gh)
+# Cost display settings
+export COST_DISPLAY_CURRENCY="USD"   # Primary currency
+export COST_WARNING_PERCENT=75       # Warning threshold
+export COST_CRITICAL_PERCENT=90      # Critical threshold
+export COST_AUTO_STOP="true"         # Auto-stop at 100%
+
+# Currency exchange rates (for multi-currency display)
+export CURRENCY_RATE_EUR=0.92
+export CURRENCY_RATE_GBP=0.79
+export CURRENCY_RATE_BRL=6.10
+```
+
+## 🛠️ Available Commands
+
+### Cross-Platform (Works on Windows, macOS, Linux)
+
+```bash
+# Main workflow - auto-detects your OS
+python run-story.py <key>              # Full pipeline
+python run-story.py <key> --develop    # Development only
+python run-story.py <key> --review     # Review only
+python run-story.py <key> --context    # Context only
+python run-story.py <key> --native     # With cost tracking
+python run-story.py <key> --budget 20  # Custom budget limit
+
+# Cost dashboard
+python cost_dashboard.py               # Show latest session
+python cost_dashboard.py --summary     # 30-day summary
+python cost_dashboard.py --history 10  # Last 10 sessions
+python cost_dashboard.py --story 3-5   # Filter by story
+python cost_dashboard.py --export costs.csv  # Export data
+
+# Setup wizard
+python init-project-workflow.py
+
+# Checkpoint service
+python setup-checkpoint-service.py install
+python setup-checkpoint-service.py status
+
+# Documentation generator
+python new-doc.py --type guide --name "setup"
+```
+
+### Platform-Specific Commands
+
+**macOS/Linux:**
+```bash
+./run-story.sh <key>
+./checkpoint --list
+./new-doc.sh --type guide --name "setup"
+```
+
+**Windows PowerShell:**
+```powershell
+.\run-story.ps1 -StoryKey "<key>"
+python context_checkpoint.py --list
+.\new-doc.ps1 -Type guide -Name "setup"
 ```
 
 ### Checkpoint Management
 
 ```bash
-./checkpoint --list                # List all checkpoints
-./checkpoint --checkpoint          # Create manual checkpoint
-./checkpoint --resume <id>         # Resume from checkpoint
-```
-
-### Documentation
-
-```bash
-./new-doc.sh --type guide --name "setup"
-./new-doc.sh --type spec --name "epic-4"
-./new-doc.sh --type status --name "report"
+python context_checkpoint.py --list        # List all checkpoints
+python context_checkpoint.py --checkpoint  # Create manual checkpoint
+python context_checkpoint.py --resume <id> # Resume from checkpoint
 ```
 
 ## 🔒 Security & Privacy

@@ -1,0 +1,383 @@
+#!/usr/bin/env python3
+"""
+Cross-Platform Story Runner with Cost Tracking
+
+Automatically detects the operating system and runs the appropriate script.
+Works on Windows, macOS, and Linux. Includes real-time cost monitoring.
+
+Usage:
+    python run-story.py <story-key> [options]
+
+Options:
+    --develop, -d     Run development phase only
+    --review, -r      Run review phase only
+    --context, -c     Run context phase only
+    --no-commit       Disable auto-commit
+    --with-pr         Create PR after commit
+    --model MODEL     Model to use (sonnet, opus, haiku)
+    --budget AMOUNT   Budget limit in USD (default: 15.00)
+    --show-costs      Show cost dashboard after run
+    --native          Run natively with Python (enables cost tracking)
+
+Examples:
+    python run-story.py 3-5
+    python run-story.py 3-5 --develop
+    python run-story.py 3-5 --model opus --budget 20.00
+    python run-story.py 3-5 --native --show-costs
+"""
+
+import os
+import sys
+import subprocess
+import argparse
+import time
+import threading
+from pathlib import Path
+from datetime import datetime
+
+SCRIPT_DIR = Path(__file__).parent
+
+# Add lib directory for imports
+sys.path.insert(0, str(SCRIPT_DIR / "lib"))
+
+def get_platform():
+    """Detect the current platform."""
+    if sys.platform == 'win32':
+        return 'windows'
+    elif sys.platform == 'darwin':
+        return 'macos'
+    else:
+        return 'linux'
+
+def run_windows(args):
+    """Run PowerShell script on Windows."""
+    script = SCRIPT_DIR / 'run-story.ps1'
+
+    if not script.exists():
+        print(f"Error: PowerShell script not found: {script}")
+        return 1
+
+    # Convert args to PowerShell format
+    ps_args = []
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg.startswith('--'):
+            # Convert --develop to -Develop
+            param_name = arg[2:].title()
+            ps_args.append(f'-{param_name}')
+        elif arg.startswith('-') and len(arg) == 2:
+            ps_args.append(arg)
+        else:
+            ps_args.append(arg)
+        i += 1
+
+    cmd = ['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(script)] + ps_args
+    return subprocess.call(cmd)
+
+def run_unix(args):
+    """Run shell script on macOS/Linux."""
+    script = SCRIPT_DIR / 'run-story.sh'
+
+    if not script.exists():
+        print(f"Error: Shell script not found: {script}")
+        return 1
+
+    # Ensure script is executable
+    os.chmod(script, 0o755)
+
+    cmd = [str(script)] + args
+    return subprocess.call(cmd)
+
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Run story automation with cost tracking",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python run-story.py 3-5                     # Full pipeline
+  python run-story.py 3-5 --develop           # Development only
+  python run-story.py 3-5 --native            # Native Python with cost tracking
+  python run-story.py 3-5 --budget 20.00      # Custom budget
+        """
+    )
+
+    parser.add_argument('story_key', help='Story key (e.g., 3-5)')
+    parser.add_argument('--develop', '-d', action='store_true', help='Development phase only')
+    parser.add_argument('--review', '-r', action='store_true', help='Review phase only')
+    parser.add_argument('--context', '-c', action='store_true', help='Context phase only')
+    parser.add_argument('--no-commit', action='store_true', help='Disable auto-commit')
+    parser.add_argument('--with-pr', action='store_true', help='Create PR after commit')
+    parser.add_argument('--model', choices=['sonnet', 'opus', 'haiku'], default='sonnet', help='Model to use')
+    parser.add_argument('--budget', type=float, default=15.00, help='Budget limit in USD')
+    parser.add_argument('--show-costs', action='store_true', help='Show cost dashboard after run')
+    parser.add_argument('--native', action='store_true', help='Run natively with Python (enables cost tracking)')
+    parser.add_argument('--no-monitor', action='store_true', help='Disable live monitoring display')
+
+    return parser.parse_args()
+
+
+class NativeRunner:
+    """Native Python runner with cost tracking."""
+
+    def __init__(self, args):
+        self.args = args
+        self.tracker = None
+        self.display = None
+        self.monitor_thread = None
+        self.running = False
+
+        # Import cost modules
+        try:
+            from cost_tracker import CostTracker
+            from cost_display import CostDisplay, CompactCostDisplay
+            from currency_converter import get_converter
+
+            self.CostTracker = CostTracker
+            self.CostDisplay = CostDisplay
+            self.CompactCostDisplay = CompactCostDisplay
+            self.cost_available = True
+        except ImportError as e:
+            print(f"Warning: Cost tracking not available: {e}")
+            self.cost_available = False
+
+    def start_tracking(self):
+        """Initialize cost tracking."""
+        if not self.cost_available:
+            return
+
+        self.tracker = self.CostTracker(
+            story_key=self.args.story_key,
+            budget_limit_usd=self.args.budget
+        )
+        self.display = self.CompactCostDisplay(self.tracker)
+
+    def start_monitor(self):
+        """Start the monitoring display thread."""
+        if not self.cost_available or self.args.no_monitor:
+            return
+
+        self.running = True
+        self.monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
+        self.monitor_thread.start()
+
+    def _monitor_loop(self):
+        """Monitor loop for live display updates."""
+        while self.running:
+            if self.tracker:
+                self.display.print()
+            time.sleep(2)
+
+    def stop_monitor(self):
+        """Stop the monitoring display."""
+        self.running = False
+        if self.monitor_thread:
+            self.monitor_thread.join(timeout=1)
+
+    def run_claude(self, agent: str, model: str, prompt: str, timeout: int = 300) -> tuple:
+        """Run Claude CLI and capture output."""
+        cli = "claude.cmd" if sys.platform == 'win32' else "claude"
+
+        cmd = [cli, "--print", "--model", model, "-p", prompt]
+
+        # Set current agent for display
+        if self.tracker:
+            self.tracker.set_current_agent(agent, model)
+
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=timeout,
+                cwd=str(SCRIPT_DIR.parent.parent)  # Project root
+            )
+
+            output = result.stdout + result.stderr
+
+            # Parse token usage from output (if available)
+            if self.tracker:
+                tokens = self._parse_tokens(output)
+                if tokens:
+                    self.tracker.log_usage(agent, model, tokens[0], tokens[1])
+
+            return (result.returncode == 0, output)
+
+        except subprocess.TimeoutExpired:
+            return (False, "Timeout expired")
+        except Exception as e:
+            return (False, str(e))
+
+    def _parse_tokens(self, output: str) -> tuple:
+        """Parse token usage from Claude output."""
+        import re
+
+        # Try to find token patterns
+        # Pattern: "Token usage: X/Y"
+        match = re.search(r'Token usage:\s*(\d+)/(\d+)', output)
+        if match:
+            total = int(match.group(1))
+            return (int(total * 0.8), int(total * 0.2))
+
+        # Pattern: "X in / Y out"
+        match = re.search(r'(\d+)\s*in\s*/\s*(\d+)\s*out', output, re.IGNORECASE)
+        if match:
+            return (int(match.group(1)), int(match.group(2)))
+
+        # Default estimate based on output length
+        output_tokens = len(output.split()) * 1.3
+        input_tokens = output_tokens * 0.3
+        return (int(input_tokens), int(output_tokens))
+
+    def check_budget(self) -> bool:
+        """Check if budget is OK to continue."""
+        if not self.tracker:
+            return True
+
+        ok, level, msg = self.tracker.check_budget()
+
+        if level == "critical":
+            print(f"\n\033[91m{msg}\033[0m")
+        elif level == "warning":
+            print(f"\n\033[93m{msg}\033[0m")
+
+        return ok
+
+    def run(self) -> int:
+        """Run the story automation."""
+        print(f"Starting story: {self.args.story_key}")
+        print(f"Model: {self.args.model}")
+        print(f"Budget: ${self.args.budget:.2f}")
+        print()
+
+        self.start_tracking()
+        self.start_monitor()
+
+        try:
+            # Determine which phases to run
+            run_context = self.args.context or (not self.args.develop and not self.args.review)
+            run_develop = self.args.develop or (not self.args.context and not self.args.review)
+            run_review = self.args.review or (not self.args.context and not self.args.develop)
+
+            # Context phase
+            if run_context:
+                print("\n[1/3] Context Phase...")
+                success, output = self.run_claude(
+                    "SM",
+                    "sonnet",
+                    f"Analyze story {self.args.story_key} and prepare context for development"
+                )
+                if not success:
+                    print(f"Context phase failed: {output[:200]}")
+                    return 1
+
+                if not self.check_budget():
+                    return 1
+
+            # Development phase
+            if run_develop:
+                print("\n[2/3] Development Phase...")
+                success, output = self.run_claude(
+                    "DEV",
+                    self.args.model,
+                    f"Implement story {self.args.story_key} following the context and specifications"
+                )
+                if not success:
+                    print(f"Development phase failed: {output[:200]}")
+                    return 1
+
+                if not self.check_budget():
+                    return 1
+
+            # Review phase
+            if run_review and not self.args.context and not self.args.develop:
+                print("\n[3/3] Review Phase...")
+                success, output = self.run_claude(
+                    "SM",
+                    "sonnet",
+                    f"Review the implementation of story {self.args.story_key}"
+                )
+                if not success:
+                    print(f"Review phase failed: {output[:200]}")
+                    return 1
+
+            print("\n✓ Story automation complete!")
+
+            # Show final costs
+            if self.tracker:
+                print()
+                self.display.print()
+                print()
+
+                summary = self.tracker.get_session_summary()
+                print(f"Final Cost: ${summary['totals']['cost_usd']:.2f}")
+                print(f"Tokens Used: {summary['totals']['total_tokens']:,}")
+
+            return 0
+
+        finally:
+            self.stop_monitor()
+
+            # Save session
+            if self.tracker:
+                self.tracker.end_session()
+
+            # Show cost dashboard if requested
+            if self.args.show_costs:
+                print("\n" + "=" * 60)
+                try:
+                    from cost_dashboard import CostDashboard
+                    dashboard = CostDashboard()
+                    if self.tracker:
+                        dashboard.show_session(self.tracker.session)
+                except ImportError:
+                    print("Cost dashboard not available")
+
+
+def main():
+    if len(sys.argv) < 2:
+        print(__doc__)
+        print("\nDetected platform:", get_platform())
+        return 1
+
+    args = parse_args()
+    platform = get_platform()
+
+    print(f"Platform: {platform}")
+
+    # Use native runner if --native flag is set
+    if args.native:
+        print("Mode: Native Python with cost tracking")
+        print()
+        runner = NativeRunner(args)
+        return runner.run()
+
+    # Otherwise, delegate to platform-specific scripts
+    # Build args list for subprocess
+    script_args = [args.story_key]
+
+    if args.develop:
+        script_args.append('--develop')
+    if args.review:
+        script_args.append('--review')
+    if args.context:
+        script_args.append('--context')
+    if args.no_commit:
+        script_args.append('--no-commit')
+    if args.with_pr:
+        script_args.append('--with-pr')
+    if args.model != 'sonnet':
+        script_args.extend(['--model', args.model])
+
+    print(f"Running: run-story with args: {' '.join(script_args)}")
+    print()
+
+    if platform == 'windows':
+        return run_windows(script_args)
+    else:
+        return run_unix(script_args)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
