@@ -58,6 +58,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MAX_BUDGET_DEV: Default $15.00
 - MAX_BUDGET_REVIEW: Default $5.00
 
+## [1.3.1] - 2025-12-20
+
+### Added
+- **Interactive Visual Autocomplete** - Claude-style `/` command experience
+  - `Alt+.` triggers visual menu with arrow navigation
+  - `gds.` shell function for quick command menu
+  - `gds.story` and `gds.agent` for context-specific menus
+  - Fuzzy filtering by typing
+  - fzf integration when available
+  - Category-tagged commands (story, maint, agent)
+
+### Changed
+- `gds setup` now installs interactive completion
+- Updated completion documentation
+
+### Fixed
+- README: Removed references to non-existent Python scripts
+- README: Fixed agent count (now 8 with REVIEWER)
+- README: Updated version to 1.3.1
+- README: Added GDS CLI documentation
+- README: Simplified cost management section
+- CONTRIBUTING: Added override system contribution areas
+- CONTRIBUTING: Updated release process documentation
+
 ## [1.3.0] - 2025-12-20
 
 ### Added

@@ -20,6 +20,8 @@ This document defines the standard format, structure, and conventions for all do
 ```
 
 ### Types
+
+**Greenfield (New Features)**:
 - `GUIDE` - User-facing guides and tutorials
 - `SPEC` - Technical specifications
 - `STATUS` - Status reports and tracking documents
@@ -27,6 +29,13 @@ This document defines the standard format, structure, and conventions for all do
 - `REFERENCE` - Quick reference sheets
 - `EXAMPLE` - Code examples and patterns
 - `STORY` - Story specifications (numbered: `3-6-story-name.md`)
+
+**Brownfield (Maintenance)**:
+- `BUG` - Bug reports and fix summaries (in `bugs/`)
+- `REFACTOR` - Refactoring specifications (in `refactors/`)
+- `INVESTIGATION` - Codebase investigation reports (in `investigations/`)
+- `MIGRATION` - Migration plans and logs (in `migrations/`)
+- `DEBT` - Technical debt items (in `tech-debt/`)
 
 ### Examples
 ```
@@ -417,10 +426,35 @@ tooling/docs/
 │   ├── EXAMPLE-checkpoint-integration.md
 │   └── EXAMPLE-persona-switching.md
 │
-└── stories/
-    ├── 3-6-build-workout-frequency-chart.md
-    ├── 3-7-build-strength-progression-graph.md
-    └── ...
+├── stories/                       # Greenfield stories
+│   ├── 3-6-build-workout-frequency-chart.md
+│   ├── 3-7-build-strength-progression-graph.md
+│   └── ...
+│
+├── templates/                     # Task templates
+│   ├── bug-report.md
+│   ├── refactor-spec.md
+│   ├── migration-spec.md
+│   └── tech-debt.md
+│
+├── bugs/                          # Brownfield: Bug tracking
+│   ├── login-crash.md
+│   └── login-crash.fix-summary.md
+│
+├── refactors/                     # Brownfield: Refactoring
+│   ├── auth-service.md
+│   └── auth-service.summary.md
+│
+├── investigations/                # Brownfield: Code exploration
+│   └── payment-flow.md
+│
+├── migrations/                    # Brownfield: Upgrades
+│   ├── react-18-upgrade.md
+│   └── react-18-upgrade.log.md
+│
+└── tech-debt/                     # Brownfield: Technical debt
+    ├── legacy-api.md
+    └── legacy-api.resolved.md
 ```
 
 ---
@@ -607,7 +641,65 @@ When this standard changes:
 
 ---
 
-## Changelog
+## Project CHANGELOG Format
+
+The project-level `CHANGELOG.md` follows the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format with [Semantic Versioning](https://semver.org/).
+
+### Required Sections
+
+```markdown
+## [X.Y.Z] - YYYY-MM-DD
+
+### Added
+- New features
+
+### Changed
+- Changes to existing functionality
+
+### Deprecated
+- Soon-to-be removed features
+
+### Removed
+- Removed features
+
+### Fixed
+- Bug fixes
+
+### Security
+- Security improvements
+```
+
+### CHANGELOG Guidelines
+
+1. **Newest First**: Latest version at the top
+2. **Link Versions**: Each version links to GitHub comparison
+3. **Date Format**: ISO 8601 (YYYY-MM-DD)
+4. **Human Readable**: Write for users, not developers
+5. **Group Changes**: Use appropriate category headers
+6. **Breaking Changes**: Call out explicitly in Changed or Removed
+
+### Example Entry
+
+```markdown
+## [1.2.0] - 2025-12-20
+
+### Added
+- **Brownfield Workflow Support** - Full support for existing codebase maintenance
+  - `--bugfix` mode for bug investigation and fixing
+  - `--refactor` mode for code refactoring
+
+### Changed
+- Agent count increased from 6 to 7 (added MAINTAINER)
+- README updated with brownfield documentation
+```
+
+---
+
+## Document Changelog
+
+### 1.1 (2025-12-20)
+- Added Project CHANGELOG Format section
+- Updated with brownfield document types
 
 ### 1.0 (2025-12-20)
 - Initial standard created

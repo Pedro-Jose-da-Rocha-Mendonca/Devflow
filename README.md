@@ -11,13 +11,15 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ### Key Features
 
-- ✅ **Multi-Persona Agent System** - 6 specialized AI agents (SM, DEV, BA, ARCHITECT, PM, WRITER)
+- ✅ **Multi-Persona Agent System** - 8 specialized AI agents (SM, DEV, BA, ARCHITECT, PM, WRITER, MAINTAINER, REVIEWER)
 - ✅ **Smart Model Usage** - Opus for development, Sonnet for planning (40-60% cost savings)
 - ✅ **Context Preservation** - Automatic checkpoints prevent work loss from context limits
 - ✅ **Full Automation** - Context → Development → Testing → Review → Commit pipeline
+- ✅ **Greenfield + Brownfield** - Supports both new features AND existing codebase maintenance
+- ✅ **Agent Personalization** - BMAD-style overrides and persistent agent memory
+- ✅ **Interactive CLI** - Unified `gds` command with visual autocomplete
 - ✅ **Project Agnostic** - Works with Flutter, Node.js, Python, Rust, Go, Ruby, etc.
 - ✅ **Guided Setup** - Interactive wizard guides you through installation
-- ✅ **Documentation Standards** - Built-in templates and generators
 
 ## 📦 Quick Start
 
@@ -135,13 +137,16 @@ notepad config.ps1
 your-project/
 ├── tooling/                        # Add this to any project
 │   ├── .automation/
-│   │   ├── agents/                # 6 AI agent personas
+│   │   ├── agents/                # 8 AI agent personas
+│   │   ├── overrides/             # Agent personalization (survives updates)
+│   │   ├── memory/                # Persistent agent learning
 │   │   ├── checkpoints/           # Auto-created context saves
 │   │   ├── logs/                  # Execution logs
 │   │   └── config.sh              # Your configuration
 │   ├── scripts/
+│   │   ├── gds                    # Unified CLI with autocomplete
 │   │   ├── run-story.sh           # Main workflow runner
-│   │   ├── checkpoint             # Context management
+│   │   ├── completions/           # Zsh tab completion
 │   │   └── lib/                   # Core libraries
 │   └── docs/
 │       ├── sprint-status.yaml     # Sprint tracking
@@ -160,6 +165,8 @@ your-project/
 | **ARCHITECT** | Sonnet | Low | Design specs |
 | **PM** (Product Manager) | Sonnet | Low | Epic planning |
 | **WRITER** | Sonnet | Low | Documentation |
+| **MAINTAINER** | Opus/Sonnet | Varies | Bug fixes, refactoring, tech debt |
+| **REVIEWER** (Adversarial) | Opus | High | Critical code review, finds problems |
 
 ### Budget Controls
 
@@ -170,38 +177,22 @@ export MAX_BUDGET_DEV=15.00      # Auto-abort at $15
 export MAX_BUDGET_REVIEW=5.00    # Auto-abort at $5
 ```
 
-### Cost Analysis System
+### Cost Management
 
-Real-time cost tracking with multi-currency display:
+Claude Code CLI provides built-in cost tracking. The workflow scripts add budget controls:
 
 ```bash
-# Run with native cost tracking
-python run-story.py 3-5 --native --show-costs
-
-# View cost dashboard
-python cost_dashboard.py --summary           # 30-day summary
-python cost_dashboard.py --history 10        # Last 10 sessions
-python cost_dashboard.py --story 3-5         # Costs for specific story
-python cost_dashboard.py --export costs.csv  # Export to CSV
+# Budget controls abort if exceeded
+export MAX_BUDGET_CONTEXT=3.00   # Context creation: $3 max
+export MAX_BUDGET_DEV=15.00      # Development: $15 max
+export MAX_BUDGET_REVIEW=5.00    # Code review: $5 max
 ```
 
-**Display Features:**
-- Real-time token counts (input/output)
-- Multi-currency display (USD, EUR, GBP, BRL)
-- Per-agent and per-model cost breakdown
-- Budget alerts (warning at 75%, critical at 90%)
-- Auto-stop at budget limit
-
-**Sample Output:**
-```
-╔══════════════════════════════════════════════════════════════════╗
-║                    COST MONITOR - Story: 3-5                     ║
-╠══════════════════════════════════════════════════════════════════╣
-║  Agent: DEV          Model: opus       Elapsed: 04:32            ║
-║  Tokens: 57,680      Cost: $1.77       Budget: 12% used          ║
-║  USD: $1.77 │ EUR: €1.63 │ GBP: £1.40 │ BRL: R$10.80            ║
-╚══════════════════════════════════════════════════════════════════╝
-```
+**Cost Optimization:**
+- Opus for development and critical reviews (higher quality)
+- Sonnet for planning, context, documentation (cost-effective)
+- Average savings: 40-60% vs all-Opus approach
+- Typical story cost: $8-14 depending on complexity
 
 ## 🔧 Configuration
 
@@ -230,74 +221,130 @@ export CHECKPOINT_THRESHOLDS="75,85,95"
 # See docs/CONFIGURATION.md for full options
 ```
 
-### Cost Tracking Options
+## 🔧 Brownfield Workflows
+
+For existing codebases, use brownfield modes to fix bugs, refactor code, and manage technical debt.
+
+### Bug Fixes
 
 ```bash
-# Cost display settings
-export COST_DISPLAY_CURRENCY="USD"   # Primary currency
-export COST_WARNING_PERCENT=75       # Warning threshold
-export COST_CRITICAL_PERCENT=90      # Critical threshold
-export COST_AUTO_STOP="true"         # Auto-stop at 100%
+# Fix a bug with a documented report
+./run-story.sh login-crash --bugfix
 
-# Currency exchange rates (for multi-currency display)
-export CURRENCY_RATE_EUR=0.92
-export CURRENCY_RATE_GBP=0.79
-export CURRENCY_RATE_BRL=6.10
+# Fix a bug by description
+./run-story.sh "users can't logout on mobile" --bugfix
+```
+
+### Refactoring
+
+```bash
+# Refactor a specific component
+./run-story.sh auth-service --refactor
+
+# Refactor with a spec file
+# Create: tooling/docs/refactors/auth-service.md
+./run-story.sh auth-service --refactor
+```
+
+### Investigation (Read-Only)
+
+```bash
+# Investigate how a feature works
+./run-story.sh payment-flow --investigate
+
+# Explore architecture
+./run-story.sh database-layer --investigate
+```
+
+### Quick Fixes
+
+```bash
+# Make small, targeted changes
+./run-story.sh "fix typo in header" --quickfix
+./run-story.sh "update copyright year" --quickfix
+```
+
+### Migrations
+
+```bash
+# Run a planned migration
+./run-story.sh react-18-upgrade --migrate
+
+# Create: tooling/docs/migrations/react-18-upgrade.md
+```
+
+### Technical Debt
+
+```bash
+# Resolve technical debt
+./run-story.sh legacy-api-cleanup --tech-debt
+```
+
+### Brownfield Directory Structure
+
+```
+tooling/docs/
+├── bugs/              # Bug reports and fix summaries
+├── refactors/         # Refactoring specs and summaries
+├── investigations/    # Investigation reports
+├── migrations/        # Migration plans and logs
+└── tech-debt/         # Technical debt items
 ```
 
 ## 🛠️ Available Commands
 
-### Cross-Platform (Works on Windows, macOS, Linux)
+### GDS CLI (Recommended)
+
+The unified `gds` CLI provides all commands with autocomplete:
 
 ```bash
-# Main workflow - auto-detects your OS
-python run-story.py <key>              # Full pipeline
-python run-story.py <key> --develop    # Development only
-python run-story.py <key> --review     # Review only
-python run-story.py <key> --context    # Context only
-python run-story.py <key> --native     # With cost tracking
-python run-story.py <key> --budget 20  # Custom budget limit
+# Setup autocomplete (one-time)
+./tooling/scripts/gds setup
+source ~/.zshrc
 
-# Cost dashboard
-python cost_dashboard.py               # Show latest session
-python cost_dashboard.py --summary     # 30-day summary
-python cost_dashboard.py --history 10  # Last 10 sessions
-python cost_dashboard.py --story 3-5   # Filter by story
-python cost_dashboard.py --export costs.csv  # Export data
+# Story workflows
+gds story 3-5              # Full pipeline (context + dev + review)
+gds develop 3-5            # Development only
+gds review 3-5             # Standard code review
+gds adversarial 3-5        # Critical review (Opus, finds problems)
+gds context 3-5            # Create context only
 
-# Setup wizard
-python init-project-workflow.py
+# Brownfield workflows
+gds bugfix login-crash     # Fix a bug
+gds refactor auth-service  # Refactor code
+gds investigate payment    # Explore codebase (read-only)
+gds quickfix "fix typo"    # Quick change
 
-# Checkpoint service
-python setup-checkpoint-service.py install
-python setup-checkpoint-service.py status
+# Agent management
+gds agents                 # List all agents
+gds agent dev              # Invoke specific agent
 
-# Documentation generator
-python new-doc.py --type guide --name "setup"
+# Personalization
+gds profile                # Edit user preferences
+gds override dev           # Customize dev agent
+gds memory show dev        # View agent memory
+
+# Utilities
+gds status                 # Show sprint status
+gds logs tail              # Tail current log
+gds help                   # Show all commands
 ```
 
-### Platform-Specific Commands
+### Direct Script Usage
 
 **macOS/Linux:**
 ```bash
-./run-story.sh <key>
-./checkpoint --list
-./new-doc.sh --type guide --name "setup"
+./run-story.sh <key>                   # Full pipeline
+./run-story.sh <key> --develop         # Development only
+./run-story.sh <key> --adversarial     # Critical review
+./run-story.sh <key> --model opus      # Specify model
 ```
 
 **Windows PowerShell:**
 ```powershell
 .\run-story.ps1 -StoryKey "<key>"
-python context_checkpoint.py --list
-.\new-doc.ps1 -Type guide -Name "setup"
-```
-
-### Checkpoint Management
-
-```bash
-python context_checkpoint.py --list        # List all checkpoints
-python context_checkpoint.py --checkpoint  # Create manual checkpoint
-python context_checkpoint.py --resume <id> # Resume from checkpoint
+.\run-story.ps1 -StoryKey "<key>" -Develop
+.\run-story.ps1 -StoryKey "<key>" -Model opus
 ```
 
 ## 🔒 Security & Privacy
@@ -353,7 +400,7 @@ Free to use in commercial and personal projects.
 ## 🙏 Acknowledgments
 
 - Built for [Claude Code CLI](https://claude.com/claude-code)
-- Inspired by BMAD method
+- Agent override system inspired by [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD)
 - Agent-based architecture influenced by AutoGPT, CrewAI
 
 ## 📞 Support
@@ -368,8 +415,8 @@ If this project helps you, consider giving it a star!
 
 ---
 
-**Made with ❤️ for developers who want AI to helps**
+**Made with care for developers who want AI to help them ship faster.**
 
-**Version**: 1.0.0
+**Version**: 1.3.1
 **Status**: Production Ready
 **Last Updated**: 2025-12-20

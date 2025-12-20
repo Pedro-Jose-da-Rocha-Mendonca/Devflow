@@ -105,12 +105,28 @@ cd tooling/scripts
 ### Areas for Contribution
 
 **High Priority**:
-- [ ] Additional project type support
+- [ ] Additional project type support (e.g., Java, Swift, Kotlin)
 - [ ] Error handling edge cases
+- [ ] Brownfield workflow improvements
+- [ ] Windows PowerShell completion support
 
 **Medium Priority**:
 - [ ] Additional agent personas
-- [ ] Custom persona builder
+- [ ] Custom persona builder via CLI
+- [ ] Better migration tooling
+- [ ] Enhanced tech debt tracking
+
+**Override System**:
+- [ ] More override templates for common use cases
+- [ ] Override validation and linting
+- [ ] Memory summarization (prevent unbounded growth)
+- [ ] Cross-agent memory sharing
+
+**Brownfield-Specific**:
+- [ ] Better root cause analysis for bugs
+- [ ] Safer refactoring patterns
+- [ ] Migration rollback automation
+- [ ] Technical debt metrics/reporting
 
 
 ## 🐛 Debugging
@@ -161,9 +177,13 @@ docs/
 ├── USER-GUIDE.md        # How to use
 ├── CONFIGURATION.md     # Config options
 ├── AGENTS.md            # Agent system
-├── COST-OPTIMIZATION.md # Cost strategy
 ├── API.md               # Script reference
 └── TROUBLESHOOTING.md   # Common issues
+
+tooling/.automation/
+├── agents/              # Agent persona definitions
+├── overrides/           # User customizations (survives updates)
+└── memory/              # Persistent agent learning
 ```
 
 ## 🎨 Agent Persona Guidelines
@@ -199,11 +219,14 @@ When adding/modifying agent personas:
 
 ## 🔄 Release Process
 
-1. Update version in README.md
-2. Update CHANGELOG.md
-3. Create git tag: `v1.0.0`
-4. Push tag: `git push origin v1.0.0`
-5. Create GitHub release with notes
+1. **Update CHANGELOG.md** with new version section
+   - Document all changes since last release
+   - Use semantic versioning (major.minor.patch)
+2. Update version in README.md footer
+3. Commit all changes
+4. Create git tag: `git tag v1.3.1`
+5. Push with tags: `git push && git push --tags`
+6. Create GitHub release with notes from CHANGELOG
 
 ## 💬 Communication
 

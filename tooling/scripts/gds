@@ -435,11 +435,18 @@ export GDS_PROJECT_ROOT=\"$PROJECT_ROOT\"
 fpath=($completions_dir \$fpath)
 alias gds=\"$SCRIPT_DIR/gds\"
 alias run-story=\"$RUN_STORY\"
+source \"$completions_dir/gds-interactive.zsh\"
 "
 
     # Check if already installed
     if grep -q "GDS Automation CLI" "$zshrc" 2>/dev/null; then
         echo -e "${YELLOW}GDS completions already in .zshrc${NC}"
+        echo -e "${YELLOW}Updating to latest version...${NC}"
+        # Remove old block and add new
+        sed -i '' '/# GDS Automation CLI/,/gds-interactive.zsh/d' "$zshrc" 2>/dev/null || true
+        sed -i '' '/# GDS Automation CLI/,/run-story/d' "$zshrc" 2>/dev/null || true
+        echo "$setup_lines" >> "$zshrc"
+        echo -e "${GREEN}Updated GDS completions in .zshrc${NC}"
     else
         echo "$setup_lines" >> "$zshrc"
         echo -e "${GREEN}Added GDS completions to .zshrc${NC}"
@@ -451,11 +458,18 @@ alias run-story=\"$RUN_STORY\"
     echo "  source ~/.zshrc"
     echo "  autoload -Uz compinit && compinit"
     echo ""
-    echo -e "${CYAN}Then try:${NC}"
+    echo -e "${CYAN}Interactive completion:${NC}"
     echo ""
-    echo "  gds <TAB>              # See all commands"
-    echo "  gds story <TAB>        # See story keys"
-    echo "  gds develop 3-<TAB>    # Complete story key"
+    echo "  ${GREEN}Alt+.${NC}        Open visual command menu"
+    echo "  ${GREEN}gds.${NC}         Quick command menu"
+    echo "  ${GREEN}gds.story${NC}    Quick story selection"
+    echo "  ${GREEN}gds.agent${NC}    Quick agent selection"
+    echo ""
+    echo -e "${CYAN}Tab completion:${NC}"
+    echo ""
+    echo "  gds <TAB>              See all commands"
+    echo "  gds story <TAB>        See story keys"
+    echo "  gds develop 3-<TAB>    Complete story key"
     echo ""
 }
 

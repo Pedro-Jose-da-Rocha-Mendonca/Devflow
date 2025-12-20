@@ -103,14 +103,33 @@ detect_project_type() {
 
 setup_directory_structure() {
     local project_root="$1"
+    local workflow_mode="${2:-both}"  # greenfield, brownfield, or both
 
     echo -e "${BLUE}▶ Creating directory structure...${NC}"
 
+    # Core directories (always created)
     mkdir -p "$project_root/tooling/.automation/agents"
     mkdir -p "$project_root/tooling/.automation/checkpoints"
     mkdir -p "$project_root/tooling/.automation/logs"
+    mkdir -p "$project_root/tooling/.automation/costs"
     mkdir -p "$project_root/tooling/scripts/lib"
     mkdir -p "$project_root/tooling/docs"
+
+    # Greenfield directories (for new feature development)
+    if [[ "$workflow_mode" == "greenfield" || "$workflow_mode" == "both" ]]; then
+        # Stories directory is the main docs directory
+        echo -e "${BLUE}  Creating greenfield structure...${NC}"
+    fi
+
+    # Brownfield directories (for existing codebase maintenance)
+    if [[ "$workflow_mode" == "brownfield" || "$workflow_mode" == "both" ]]; then
+        mkdir -p "$project_root/tooling/docs/bugs"
+        mkdir -p "$project_root/tooling/docs/refactors"
+        mkdir -p "$project_root/tooling/docs/investigations"
+        mkdir -p "$project_root/tooling/docs/migrations"
+        mkdir -p "$project_root/tooling/docs/tech-debt"
+        echo -e "${BLUE}  Creating brownfield structure...${NC}"
+    fi
 
     echo -e "${GREEN}  ✅ Directories created${NC}"
 }
@@ -300,6 +319,46 @@ You are a Software Architect designing technical solutions.
 - Technical and precise
 - Diagram-driven when helpful
 - Consider trade-offs
+EOF
+
+    # MAINTAINER Agent (for brownfield work)
+    cat > "$project_root/tooling/.automation/agents/maintainer.md" << 'EOF'
+# Maintainer Agent
+
+You are a senior software maintainer specializing in existing codebase management.
+
+## Primary Focus
+Brownfield development - working with existing, production code.
+
+## Responsibilities
+- Bug investigation and root cause analysis
+- Minimal, targeted bug fixes
+- Code refactoring with safety nets
+- Technical debt resolution
+- Codebase investigation and documentation
+- Migration planning and execution
+
+## Core Principles
+
+### Understand Before Changing
+- ALWAYS explore the codebase before making changes
+- Trace code paths to understand impact
+- Read related tests to understand expected behavior
+
+### Minimal Changes
+- Make the smallest change that fixes the issue
+- Avoid "while I'm here" improvements
+- One concern per change
+
+### Safety First
+- Run existing tests before and after changes
+- Add regression tests for bugs
+- Ensure backwards compatibility
+
+## Communication Style
+- Precise and technical
+- Focus on what changed and why
+- Clear about risks and tradeoffs
 EOF
 
     echo -e "${GREEN}  ✅ Agent personas created${NC}"
@@ -547,6 +606,36 @@ main() {
         project_type=$(prompt_input "Enter project type manually:" "$project_type")
     fi
 
+    # STEP 1.5: Workflow Mode Selection
+    echo ""
+    echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${CYAN}  WORKFLOW MODE${NC}"
+    echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "${BLUE}Select your primary workflow mode:${NC}"
+    echo ""
+    echo -e "  ${YELLOW}1. Greenfield${NC} - New project development"
+    echo -e "     Best for: Starting fresh, new features, full sprint workflow"
+    echo ""
+    echo -e "  ${YELLOW}2. Brownfield${NC} - Existing codebase maintenance"
+    echo -e "     Best for: Bug fixes, refactoring, tech debt, migrations"
+    echo ""
+    echo -e "  ${YELLOW}3. Both${NC} - Full workflow support (recommended)"
+    echo -e "     Best for: Teams doing both new features and maintenance"
+    echo ""
+
+    local mode_choice=$(prompt_input "Enter choice (1-3):" "3")
+
+    local workflow_mode="both"
+    case "$mode_choice" in
+        1) workflow_mode="greenfield" ;;
+        2) workflow_mode="brownfield" ;;
+        3) workflow_mode="both" ;;
+        *) workflow_mode="both" ;;
+    esac
+
+    echo -e "${GREEN}  Selected: $workflow_mode${NC}"
+
     # STEP 2: Model Configuration
     print_step "2" "Claude Model Configuration"
 
@@ -587,7 +676,7 @@ main() {
     # STEP 3: Directory Structure
     print_step "3" "Directory Structure"
 
-    setup_directory_structure "$project_root"
+    setup_directory_structure "$project_root" "$workflow_mode"
 
     # STEP 4: Copy Scripts
     print_step "4" "Core Scripts"
