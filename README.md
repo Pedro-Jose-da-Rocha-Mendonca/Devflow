@@ -16,7 +16,7 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 - ✅ **Context Preservation** - Automatic checkpoints prevent work loss from context limits
 - ✅ **Full Automation** - Context → Development → Testing → Review → Commit pipeline
 - ✅ **Project Agnostic** - Works with Flutter, Node.js, Python, Rust, Go, Ruby, etc.
-- ✅ **BMAD-Style Setup** - Interactive wizard guides you through installation
+- ✅ **Guided Setup** - Interactive wizard guides you through installation
 - ✅ **Documentation Standards** - Built-in templates and generators
 
 ### What It Does
@@ -401,7 +401,7 @@ Free to use in commercial and personal projects.
 ## 🙏 Acknowledgments
 
 - Built for [Claude Code CLI](https://claude.com/claude-code)
-- Inspired by BMAD (Business Model Analysis & Design) methodology
+- Inspired by BMAD method
 - Agent-based architecture influenced by AutoGPT, CrewAI
 
 ## 📞 Support
