@@ -1,0 +1,38 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test directories
+test-project/
+demo-project/
+tmp/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Logs (examples for documentation)
+*.log
+
+# Environment variables
+.env
+.env.local
+
+# Archives generated during development
+*.tar.gz
+*.zip
+
+# Documentation build artifacts
+docs/_build/
+site/

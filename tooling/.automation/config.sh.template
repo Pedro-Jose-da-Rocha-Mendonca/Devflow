@@ -1,0 +1,36 @@
+#!/bin/zsh
+################################################################################
+# Automation Configuration Template
+# Copy to config.sh and customize for your project
+################################################################################
+
+# Project settings
+export PROJECT_NAME="your-project-name"
+export PROJECT_TYPE="generic"  # node, flutter, python, rust, etc.
+
+# Claude Code CLI settings
+export CLAUDE_CLI="${CLAUDE_CLI:-claude}"
+export CLAUDE_MODEL_DEV="opus"
+export CLAUDE_MODEL_PLANNING="sonnet"
+export CLAUDE_MODEL="${CLAUDE_MODEL:-sonnet}"
+
+# Permission mode
+export PERMISSION_MODE="${PERMISSION_MODE:-dangerouslySkipPermissions}"
+
+# Auto-commit settings
+export AUTO_COMMIT="${AUTO_COMMIT:-true}"
+export AUTO_PR="${AUTO_PR:-false}"
+
+# Budget limits (USD)
+export MAX_BUDGET_CONTEXT=3.00
+export MAX_BUDGET_DEV=15.00
+export MAX_BUDGET_REVIEW=5.00
+
+# Paths
+export AUTOMATION_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export PROJECT_ROOT="$(cd "$AUTOMATION_DIR/../.." && pwd)"
+export SCRIPTS_DIR="$PROJECT_ROOT/tooling/scripts"
+export DOCS_DIR="$PROJECT_ROOT/tooling/docs"
+
+# Checkpoint thresholds (warning, critical, emergency)
+export CHECKPOINT_THRESHOLDS="75,85,95"

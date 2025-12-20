@@ -1,0 +1,12 @@
+# Automation artifacts
+.automation/logs/
+.automation/checkpoints/
+.automation/config.sh
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store
