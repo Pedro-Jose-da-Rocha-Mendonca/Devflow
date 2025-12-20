@@ -19,27 +19,6 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 - ✅ **Guided Setup** - Interactive wizard guides you through installation
 - ✅ **Documentation Standards** - Built-in templates and generators
 
-### What It Does
-
-```bash
-# You write a story specification
-vim tooling/docs/1-1-implement-login.md
-
-# Run one command
-./run-story.sh 1-1
-
-# The system:
-# ✓ Creates implementation plan (Sonnet - $0.50)
-# ✓ Implements all code (Opus - $8)
-# ✓ Writes tests
-# ✓ Runs tests
-# ✓ Reviews code quality (Opus - $2)
-# ✓ Commits to git
-# ✓ Updates sprint tracking
-#
-# Total: ~$10-12 per story, ~30 min automation time
-```
-
 ## 📦 Quick Start
 
 ### Prerequisites
@@ -81,29 +60,12 @@ cp config.sh.template config.sh
 vim config.sh
 ```
 
-### First Story
-
-```bash
-# 1. Create story specification
-cd tooling/docs
-vim 1-1-my-first-feature.md
-
-# 2. Add to sprint
-vim sprint-status.yaml
-# Add: 1-1-my-first-feature: backlog
-
-# 3. Run it!
-cd ../scripts
-./run-story.sh 1-1
-```
-
 ## 📖 Documentation
 
 - **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions
 - **[User Guide](docs/USER-GUIDE.md)** - How to use the workflow
 - **[Configuration](docs/CONFIGURATION.md)** - All configuration options
 - **[Agent Personas](docs/AGENTS.md)** - How the multi-agent system works
-- **[Cost Optimization](docs/COST-OPTIMIZATION.md)** - Model usage strategy
 - **[API Reference](docs/API.md)** - Script reference
 
 ## 🏗️ Architecture
@@ -129,15 +91,6 @@ your-project/
 └── ...
 ```
 
-### Workflow Pipeline
-
-```
-Story Spec → Context Creation → Development → Testing → Review → Commit
-    ↓              ↓                  ↓          ↓         ↓        ↓
-  1-1.md      1-1.context.xml    Code Files   Tests   Review   Git
-  (You)        (SM-Sonnet)      (DEV-Opus)   (DEV)   (SM-Opus) (Auto)
-```
-
 ### Agent Personas
 
 | Agent | Model | Cost | Use Case |
@@ -148,38 +101,6 @@ Story Spec → Context Creation → Development → Testing → Review → Commi
 | **ARCHITECT** | Sonnet | Low | Design specs |
 | **PM** (Product Manager) | Sonnet | Low | Epic planning |
 | **WRITER** | Sonnet | Low | Documentation |
-
-## 💰 Cost Optimization
-
-### Model Strategy
-
-**Opus** ($15/$75 per M tokens):
-- Development - Highest code quality
-- Code Review - Thorough quality assurance
-
-**Sonnet** ($3/$15 per M tokens):
-- Context Creation - Fast planning
-- Documentation - Efficient writing
-- Requirements - Rapid analysis
-
-### Real-World Costs
-
-**Per Story** (average):
-```
-Context (Sonnet):     $0.50 - $1.00
-Development (Opus):   $5.00 - $10.00
-Review (Opus):        $2.00 - $3.00
-─────────────────────────────────
-Total:                $8 - $14
-```
-
-**Per Sprint** (10 stories):
-```
-With optimization:    $80 - $140
-Without (all Opus):   $150 - $250
-─────────────────────────────────
-Savings:              $70 - $110 (40-60%)
-```
 
 ### Budget Controls
 
@@ -215,102 +136,6 @@ export CHECKPOINT_THRESHOLDS="75,85,95"
 
 # Tool permissions per agent
 # See docs/CONFIGURATION.md for full options
-```
-
-## 🎯 Use Cases
-
-### 1. Feature Development
-
-```bash
-# Implement complete features automatically
-./run-story.sh 2-5-add-user-profile
-# Creates UI, state management, API calls, tests
-```
-
-### 2. Bug Fixes
-
-```bash
-# Systematic bug resolution
-./run-story.sh 3-2-fix-login-timeout
-# Analyzes issue, implements fix, adds regression test
-```
-
-### 3. Refactoring
-
-```bash
-# Structured refactoring with safety
-./run-story.sh 4-1-migrate-to-new-api
-# Plans migration, updates code, maintains compatibility
-```
-
-### 4. Documentation
-
-```bash
-# Auto-generate documentation
-./run-story.sh 5-3-api-documentation
-# Creates comprehensive API docs from code
-```
-
-## 📊 Examples
-
-### Example 1: Flutter Mobile App
-
-```bash
-cd ~/my-flutter-app
-git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation.git
-mv GDS_Automation/tooling .
-cd tooling/scripts
-./init-project-workflow.sh
-# Select: Flutter, Opus/Sonnet, Yes to checkpoint service
-
-# Create user authentication feature
-vim ../docs/1-1-user-auth.md
-./run-story.sh 1-1
-# ✓ Supabase auth integration
-# ✓ Login/signup screens
-# ✓ Session management
-# ✓ Tests
-# ✓ Review passed
-```
-
-### Example 2: Node.js API
-
-```bash
-cd ~/my-api
-git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation.git
-mv GDS_Automation/tooling .
-cd tooling/scripts
-./init-project-workflow.sh
-# Select: Node, Opus/Sonnet, Yes
-
-# Add new endpoint
-vim ../docs/1-1-users-endpoint.md
-./run-story.sh 1-1
-# ✓ Express route created
-# ✓ Database migrations
-# ✓ Validation middleware
-# ✓ Integration tests
-```
-
-### Example 3: Python ML Project
-
-```bash
-cd ~/ml-project
-git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation.git
-mv GDS_Automation/tooling .
-cd tooling/scripts
-./init-project-workflow.sh
-
-# Higher budget for complex ML code
-vim ../.automation/config.sh
-# Set: MAX_BUDGET_DEV=30.00
-
-# Implement training pipeline
-./run-story.sh 1-1-train-model
-# ✓ Data preprocessing
-# ✓ Model architecture
-# ✓ Training loop
-# ✓ Evaluation metrics
 ```
 
 ## 🛠️ Available Commands
@@ -386,12 +211,6 @@ cd /tmp/test-project/tooling/scripts
 ./run-story.sh test-story
 ```
 
-### Reporting Issues
-
-- **Bug reports**: [GitHub Issues](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/issues)
-- **Feature requests**: [Discussions](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/discussions)
-- **Security issues**: Email security@yourproject.com
-
 ## 📜 License
 
 MIT License - see [LICENSE](LICENSE) for details.
@@ -410,24 +229,13 @@ Free to use in commercial and personal projects.
 - **Issues**: [GitHub Issues](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/discussions)
 
-## 🗺️ Roadmap
-
-- [ ] GitHub Actions integration
-- [ ] VS Code extension
-- [ ] Cloud backup for checkpoints
-- [ ] Web UI for monitoring
-- [ ] Multi-language support
-- [ ] Custom persona builder UI
-- [ ] Cost analytics dashboard
-- [ ] Team collaboration features
-
 ## ⭐ Star History
 
 If this project helps you, consider giving it a star!
 
 ---
 
-**Made with ❤️ for developers who want AI to handle the boring parts**
+**Made with ❤️ for developers who want AI to helps**
 
 **Version**: 1.0.0
 **Status**: Production Ready
