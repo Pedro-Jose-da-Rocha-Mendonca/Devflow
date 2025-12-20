@@ -69,6 +69,8 @@ vim config.sh
 
 ### Installation (Windows)
 
+**Option 1: Clone and Setup (Recommended)**
+
 ```powershell
 # Clone this repository
 git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation.git
@@ -83,6 +85,22 @@ Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 # Run setup wizard
 cd C:\path\to\your\project\tooling\scripts
 .\init-project-workflow.ps1
+```
+
+**Option 2: Direct Copy**
+
+```powershell
+# Download latest release
+Invoke-WebRequest -Uri "https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/archive/main.zip" -OutFile main.zip
+Expand-Archive main.zip -DestinationPath .
+
+# Move to your project
+Move-Item GDS_Automation-main\tooling C:\path\to\your\project\
+
+# Manual config
+cd C:\path\to\your\project\tooling\.automation
+Copy-Item config.ps1.template config.ps1
+notepad config.ps1
 ```
 
 **Running Stories on Windows:**

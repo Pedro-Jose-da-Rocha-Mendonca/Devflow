@@ -165,7 +165,8 @@ function New-ConfigFile {
         [string]$ProjectName,
         [string]$ProjectType,
         [string]$ModelDev,
-        [string]$ModelPlanning
+        [string]$ModelPlanning,
+        [string]$DisplayCurrency = "USD"
     )
 
     Write-Host ">> Creating configuration file..." -ForegroundColor Blue
@@ -205,6 +206,12 @@ function New-ConfigFile {
 `$env:MAX_BUDGET_CONTEXT = "3.00"
 `$env:MAX_BUDGET_DEV = "15.00"
 `$env:MAX_BUDGET_REVIEW = "5.00"
+
+# Cost display settings
+`$env:COST_DISPLAY_CURRENCY = "$DisplayCurrency"
+`$env:COST_WARNING_PERCENT = "75"
+`$env:COST_CRITICAL_PERCENT = "90"
+`$env:COST_AUTO_STOP = "true"
 
 # Paths
 `$script:AutomationDir = `$PSScriptRoot
@@ -528,6 +535,33 @@ function Main {
     $modelDev = Read-PromptInput -Prompt "Model for development/review:" -Default "opus"
     $modelPlanning = Read-PromptInput -Prompt "Model for planning/context:" -Default "sonnet"
 
+    # Currency Selection
+    Write-Host ""
+    Write-Host "Select your preferred currency for cost display:" -ForegroundColor Blue
+    Write-Host "  1. USD - US Dollar ($)" -ForegroundColor White
+    Write-Host "  2. EUR - Euro (€)" -ForegroundColor White
+    Write-Host "  3. GBP - British Pound (£)" -ForegroundColor White
+    Write-Host "  4. BRL - Brazilian Real (R$)" -ForegroundColor White
+    Write-Host "  5. CAD - Canadian Dollar (C$)" -ForegroundColor White
+    Write-Host "  6. AUD - Australian Dollar (A$)" -ForegroundColor White
+    Write-Host ""
+
+    $currencyChoice = Read-PromptInput -Prompt "Enter choice (1-6):" -Default "1"
+
+    $currencyMap = @{
+        "1" = "USD"
+        "2" = "EUR"
+        "3" = "GBP"
+        "4" = "BRL"
+        "5" = "CAD"
+        "6" = "AUD"
+    }
+
+    $displayCurrency = $currencyMap[$currencyChoice]
+    if (-not $displayCurrency) { $displayCurrency = "USD" }
+
+    Write-Host "  Selected: $displayCurrency" -ForegroundColor Green
+
     # STEP 3: Directory Structure
     Write-Step -StepNum 3 -StepTitle "Directory Structure"
 
@@ -541,7 +575,7 @@ function Main {
     # STEP 5: Configuration
     Write-Step -StepNum 5 -StepTitle "Configuration Files"
 
-    New-ConfigFile -ProjectRoot $projectRoot -ProjectName $projectName -ProjectType $projectType -ModelDev $modelDev -ModelPlanning $modelPlanning
+    New-ConfigFile -ProjectRoot $projectRoot -ProjectName $projectName -ProjectType $projectType -ModelDev $modelDev -ModelPlanning $modelPlanning -DisplayCurrency $displayCurrency
     New-AgentPersonas -ProjectRoot $projectRoot
     New-SprintStatus -ProjectRoot $projectRoot -ProjectName $projectName
 

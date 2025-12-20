@@ -145,6 +145,7 @@ create_config_file() {
     local project_type="$3"
     local model_dev="$4"
     local model_planning="$5"
+    local display_currency="${6:-USD}"
 
     echo -e "${BLUE}▶ Creating configuration file...${NC}"
 
@@ -178,6 +179,12 @@ export AUTO_PR="\${AUTO_PR:-false}"
 export MAX_BUDGET_CONTEXT=3.00
 export MAX_BUDGET_DEV=15.00
 export MAX_BUDGET_REVIEW=5.00
+
+# Cost display settings
+export COST_DISPLAY_CURRENCY="$display_currency"
+export COST_WARNING_PERCENT=75
+export COST_CRITICAL_PERCENT=90
+export COST_AUTO_STOP="true"
 
 # Paths
 export AUTOMATION_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
@@ -551,6 +558,32 @@ main() {
     local model_dev=$(prompt_input "Model for development/review:" "opus")
     local model_planning=$(prompt_input "Model for planning/context:" "sonnet")
 
+    # Currency Selection
+    echo ""
+    echo -e "${BLUE}Select your preferred currency for cost display:${NC}"
+    echo -e "  1. USD - US Dollar (\$)"
+    echo -e "  2. EUR - Euro (€)"
+    echo -e "  3. GBP - British Pound (£)"
+    echo -e "  4. BRL - Brazilian Real (R\$)"
+    echo -e "  5. CAD - Canadian Dollar (C\$)"
+    echo -e "  6. AUD - Australian Dollar (A\$)"
+    echo ""
+
+    local currency_choice=$(prompt_input "Enter choice (1-6):" "1")
+
+    local display_currency="USD"
+    case "$currency_choice" in
+        1) display_currency="USD" ;;
+        2) display_currency="EUR" ;;
+        3) display_currency="GBP" ;;
+        4) display_currency="BRL" ;;
+        5) display_currency="CAD" ;;
+        6) display_currency="AUD" ;;
+        *) display_currency="USD" ;;
+    esac
+
+    echo -e "${GREEN}  Selected: $display_currency${NC}"
+
     # STEP 3: Directory Structure
     print_step "3" "Directory Structure"
 
@@ -565,7 +598,7 @@ main() {
     # STEP 5: Configuration
     print_step "5" "Configuration Files"
 
-    create_config_file "$project_root" "$project_name" "$project_type" "$model_dev" "$model_planning"
+    create_config_file "$project_root" "$project_name" "$project_type" "$model_dev" "$model_planning" "$display_currency"
     create_agent_personas "$project_root"
     create_sprint_status "$project_root" "$project_name"
     create_documentation_standard "$project_root" "$source_dir"

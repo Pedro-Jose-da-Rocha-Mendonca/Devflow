@@ -88,7 +88,8 @@ class CostDisplay:
         tracker: CostTracker,
         converter: Optional[CurrencyConverter] = None,
         width: int = 70,
-        compact: bool = False
+        compact: bool = False,
+        display_currency: Optional[str] = None
     ):
         """
         Initialize display.
@@ -98,6 +99,8 @@ class CostDisplay:
             converter: CurrencyConverter for multi-currency display
             width: Display width in characters
             compact: Use compact display mode
+            display_currency: Single currency to display (e.g., "USD", "EUR")
+                            If None, shows all currencies
         """
         self.tracker = tracker
         self.converter = converter or get_converter()
@@ -105,6 +108,9 @@ class CostDisplay:
         self.compact = compact
         self.start_time = datetime.now()
         self.last_refresh = None
+
+        # Get display currency from environment or parameter
+        self.display_currency = display_currency or os.environ.get('COST_DISPLAY_CURRENCY')
 
     def _box_line(self, left: str, right: str, fill: str = BOX_HORIZONTAL) -> str:
         """Create a box line."""
@@ -277,10 +283,17 @@ class CostDisplay:
         elif level == "warning":
             lines.append(self._content_line(f"{Colors.YELLOW}{msg}{Colors.RESET}"))
 
-        # Multi-currency
+        # Currency display
         lines.append(self._empty_line())
-        lines.append(self._section_header("MULTI-CURRENCY"))
-        lines.append(self._content_line(self.converter.format_all(session.total_cost_usd, " │ ")))
+        if self.display_currency:
+            # Show single selected currency
+            lines.append(self._section_header("COST"))
+            formatted = self.converter.format(session.total_cost_usd, self.display_currency)
+            lines.append(self._content_line(f"Total: {Colors.BOLD_GREEN}{formatted}{Colors.RESET}"))
+        else:
+            # Show all currencies
+            lines.append(self._section_header("MULTI-CURRENCY"))
+            lines.append(self._content_line(self.converter.format_all(session.total_cost_usd, " │ ")))
 
         # Footer
         lines.append(self._empty_line())
@@ -317,9 +330,16 @@ class CostDisplay:
 class CompactCostDisplay:
     """Compact single-line cost display for inline monitoring."""
 
-    def __init__(self, tracker: CostTracker, converter: Optional[CurrencyConverter] = None):
+    def __init__(
+        self,
+        tracker: CostTracker,
+        converter: Optional[CurrencyConverter] = None,
+        display_currency: Optional[str] = None
+    ):
         self.tracker = tracker
         self.converter = converter or get_converter()
+        # Get display currency from environment or parameter
+        self.display_currency = display_currency or os.environ.get('COST_DISPLAY_CURRENCY', 'USD')
 
     def render(self) -> str:
         """Render compact display."""
@@ -335,7 +355,7 @@ class CompactCostDisplay:
             color = Colors.GREEN
 
         tokens = f"{session.total_tokens:,}"
-        cost = self.converter.format(session.total_cost_usd, "USD")
+        cost = self.converter.format(session.total_cost_usd, self.display_currency)
         budget = f"{pct:.0f}%"
 
         return (
