@@ -6,21 +6,25 @@
 
 **CRITICAL**: Before pushing ANY changes to GitHub, you MUST update `CHANGELOG.md`:
 
-1. Add a new entry under the appropriate version section
+1. Add entries to the **current version section** at the top of the changelog
 2. Use the format: `- **Category**: Description of change`
 3. Categories: `Added`, `Changed`, `Fixed`, `Removed`, `Security`, `Deprecated`
-4. If no unreleased section exists, create one
-5. **NEVER remove or modify existing changelog entries** - only add new ones
+4. **ALWAYS use a proper version number** (e.g., `[1.5.0]`) - NEVER use `[Unreleased]`
+5. Check the latest version in the changelog and increment appropriately:
+   - Patch (1.5.1): Bug fixes, minor corrections
+   - Minor (1.6.0): New features, enhancements
+   - Major (2.0.0): Breaking changes
+6. **NEVER remove or modify existing changelog entries** - only add new ones
 
 Example entry:
 ```markdown
-## [Unreleased]
+## [1.6.0] - 2025-12-21
 
 ### Added
-- New feature description
+- **New Feature** - Description of the new feature
 
 ### Fixed
-- Bug fix description
+- **Bug Fix** - Description of what was fixed
 ```
 
 This applies to ALL commits being pushed, not just major releases.
