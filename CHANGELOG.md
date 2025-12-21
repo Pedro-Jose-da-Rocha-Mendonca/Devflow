@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed references to `[Unreleased]` sections
   - Added semantic versioning guidance (patch/minor/major)
   - Updated example to show proper versioned entry format
+- **README.md** - Updated version number to 1.5.1
 
 ## [1.5.0] - 2025-12-21
 

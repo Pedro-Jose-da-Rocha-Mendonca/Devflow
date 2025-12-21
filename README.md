@@ -331,6 +331,6 @@ Free to use in commercial and personal projects.
 
 ---
 
-**Version**: 1.4.0
+**Version**: 1.5.1
 **Status**: Production Ready
 **Last Updated**: 2025-12-21
