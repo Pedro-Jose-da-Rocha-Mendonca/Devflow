@@ -36,3 +36,8 @@ __pycache__/
 # Documentation build artifacts
 docs/_build/
 site/
+
+# User-created override files (keep templates, ignore personal configs)
+tooling/.automation/overrides/*.yaml
+tooling/.automation/overrides/*.override.yaml
+!tooling/.automation/overrides/templates/

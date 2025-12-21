@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.2] - 2025-12-21
+
+### Changed
+- **Override system cleanup** - Removed example override files in favor of templates
+  - Users now copy from `templates/` to create their override files
+  - Added `user-profile.template.yaml` as starting point
+  - Updated templates README with clearer instructions
+  - Added `.gitignore` rules to keep user overrides private
+
+### Removed
+- `tooling/.automation/overrides/dev.override.yaml` - Use templates instead
+- `tooling/.automation/overrides/reviewer.override.yaml` - Use templates instead
+- `tooling/.automation/overrides/sm.override.yaml` - Use templates instead
+- `tooling/.automation/overrides/user-profile.yaml` - Use templates instead
+
 ## [1.5.1] - 2025-12-21
 
 ### Changed

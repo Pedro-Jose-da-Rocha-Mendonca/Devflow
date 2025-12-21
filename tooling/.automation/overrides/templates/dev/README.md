@@ -1,6 +1,6 @@
 # Dev Agent Persona Templates
 
-Pre-built personas for the Developer agent. Copy one to `../dev.override.yaml` and customize.
+Pre-built personas for the Developer agent. Copy one to create your override file.
 
 ## Available Personas
 
@@ -15,10 +15,10 @@ Pre-built personas for the Developer agent. Copy one to `../dev.override.yaml` a
 ## How to Use
 
 ```bash
-# Copy the persona you want
+# From the overrides/templates directory:
 cp dev/senior-fullstack.yaml ../dev.override.yaml
 
-# Or merge multiple aspects manually
+# Then customize the copied file for your project
 ```
 
 ## Creating Custom Personas

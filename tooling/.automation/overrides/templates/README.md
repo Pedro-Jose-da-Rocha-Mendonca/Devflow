@@ -1,16 +1,26 @@
 # Override Templates
 
-Pre-configured override templates for common project types and agent personas. Copy the appropriate template to customize your agent behavior.
+Pre-configured templates for customizing agent behavior. **No override files exist by default** - you create them by copying templates from this directory.
 
-## Project Type Templates
+## Quick Start
 
-| Template | Best For |
-|----------|----------|
-| `web-frontend.override.yaml` | React, Vue, Angular, Svelte web apps |
-| `backend-api.override.yaml` | Node.js, Python, Go, Rust, Java APIs |
-| `data-science.override.yaml` | ML, data analysis, Jupyter notebooks |
-| `devops.override.yaml` | Infrastructure, CI/CD, Kubernetes |
-| `mobile-native.override.yaml` | iOS (Swift), Android (Kotlin/Java) |
+```bash
+# 1. Create your user profile (applies to all agents)
+cp templates/user-profile.template.yaml user-profile.yaml
+
+# 2. Copy an agent persona template
+cp templates/dev/senior-fullstack.yaml dev.override.yaml
+
+# 3. Edit the copied files to customize for your project
+```
+
+## User Profile Template
+
+The `user-profile.template.yaml` configures global settings for all agents:
+- Your name and preferred language
+- Technical experience level
+- Code style preferences
+- Project-specific context
 
 ## Agent Persona Templates
 
@@ -40,17 +50,21 @@ python3 tooling/scripts/personalize_agent.py [agent]
 
 ## How to Use
 
-1. **Copy the template** to your overrides directory:
+1. **Copy the template** to the overrides directory (one level up):
    ```bash
-   cp templates/web-frontend.override.yaml ../dev.override.yaml
+   # From the templates directory:
+   cp user-profile.template.yaml ../user-profile.yaml
+   cp dev/senior-fullstack.yaml ../dev.override.yaml
    ```
 
 2. **Customize** the copied file:
-   - Uncomment sections relevant to your framework
+   - Update your name, preferences, and project context
    - Add project-specific memories
    - Adjust rules to match your conventions
 
 3. **Test** by running a story or invoking an agent
+
+**Note**: Override files are git-ignored by default to keep your personal settings private.
 
 ## Template Structure
 
