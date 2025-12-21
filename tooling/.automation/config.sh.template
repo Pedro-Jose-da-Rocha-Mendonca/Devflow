@@ -18,7 +18,7 @@ export CLAUDE_MODEL="${CLAUDE_MODEL:-sonnet}"
 export PERMISSION_MODE="${PERMISSION_MODE:-dangerouslySkipPermissions}"
 
 # Auto-commit settings
-export AUTO_COMMIT="${AUTO_COMMIT:-true}"
+export AUTO_COMMIT="${AUTO_COMMIT:-false}"
 export AUTO_PR="${AUTO_PR:-false}"
 
 # Budget limits (USD)

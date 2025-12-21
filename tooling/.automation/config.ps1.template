@@ -17,7 +17,7 @@ $script:CLAUDE_MODEL = if ($env:CLAUDE_MODEL) { $env:CLAUDE_MODEL } else { "sonn
 $script:PERMISSION_MODE = if ($env:PERMISSION_MODE) { $env:PERMISSION_MODE } else { "dangerouslySkipPermissions" }
 
 # Auto-commit settings
-$script:AUTO_COMMIT = if ($env:AUTO_COMMIT) { $env:AUTO_COMMIT -eq "true" } else { $true }
+$script:AUTO_COMMIT = if ($env:AUTO_COMMIT) { $env:AUTO_COMMIT -eq "true" } else { $false }
 $script:AUTO_PR = if ($env:AUTO_PR) { $env:AUTO_PR -eq "true" } else { $false }
 
 # Budget limits (USD)
