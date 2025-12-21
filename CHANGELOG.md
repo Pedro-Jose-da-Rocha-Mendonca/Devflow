@@ -5,9 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.5.0] - 2025-12-21
 
 ### Added
+- **Agent Persona Templates** - Pre-built personality configurations for all 8 agents:
+  - DEV agent: senior-fullstack, junior-mentored, security-focused, performance-engineer, rapid-prototyper
+  - Reviewer agent: thorough-critic, mentoring-reviewer, quick-sanity
+  - SM agent: agile-coach, technical-lead, startup-pm
+  - Architect agent: enterprise-architect, cloud-native, pragmatic-minimalist
+  - BA agent: requirements-engineer, agile-storyteller, domain-expert
+  - PM agent: traditional-pm, agile-pm, hybrid-delivery
+  - Writer agent: api-documentarian, user-guide-author, docs-as-code
+  - Maintainer agent: oss-maintainer, legacy-steward, devops-maintainer
+- **Personalization Wizard** (`personalize_agent.py`) - Interactive tool for customizing agent behavior
+- **`/personalize` slash command** - Quick access to the personalization wizard from Claude Code
+- **Memory Summarization Utility** (`memory_summarize.py`) - Consolidate and categorize agent memory files
 - **Override Validation & Linting** - New tools to validate override YAML files
   - `validate-overrides.sh` - Shell script for validating YAML syntax, models, budgets
   - `validate-overrides.py` - Python version with JSON output support
@@ -41,31 +53,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 7 pre-built templates (developer, reviewer, architect, tester, security, devops, documentation)
   - Automatic override file generation
   - Persona validation
-
-### Changed
-- Enhanced `migration-spec.md` template with:
-  - Detailed pre-migration checklist
-  - Phase-based migration steps
-  - Rollback triggers and automation commands
-  - Communication plan template
-  - Lessons learned section
-- Improved `bug-report.md` template with structured root cause analysis
-
-## [1.5.0] - 2025-01-XX
-
-### Added
-- **Agent Persona Templates** - Pre-built personality configurations for all 8 agents:
-  - DEV agent: senior-fullstack, junior-mentored, security-focused, performance-engineer, rapid-prototyper
-  - Reviewer agent: thorough-critic, mentoring-reviewer, quick-sanity
-  - SM agent: agile-coach, technical-lead, startup-pm
-  - Architect agent: enterprise-architect, cloud-native, pragmatic-minimalist
-  - BA agent: requirements-engineer, agile-storyteller, domain-expert
-  - PM agent: traditional-pm, agile-pm, hybrid-delivery
-  - Writer agent: api-documentarian, user-guide-author, docs-as-code
-  - Maintainer agent: oss-maintainer, legacy-steward, devops-maintainer
-- **Personalization Wizard** (`personalize_agent.py`) - Interactive tool for customizing agent behavior
-- **`/personalize` slash command** - Quick access to the personalization wizard from Claude Code
-- **Memory Summarization Utility** (`memory_summarize.py`) - Consolidate and categorize agent memory files
 - **Additional Project Types** - Java, Kotlin, Swift, and Android project detection
 - **Project Override Templates** - Stack-specific configurations:
   - web-frontend.override.yaml
@@ -77,6 +64,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Expanded project type detection in initialization wizard
 - Enhanced override system with template-based customization
+- Enhanced `migration-spec.md` template with:
+  - Detailed pre-migration checklist
+  - Phase-based migration steps
+  - Rollback triggers and automation commands
+  - Communication plan template
+  - Lessons learned section
+- Improved `bug-report.md` template with structured root cause analysis
 
 ## [1.4.0] - 2025-12-21
 
