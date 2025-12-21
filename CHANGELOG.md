@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-12-21
+
+### Added
+- **Testing Infrastructure** - Comprehensive test suite for cost tracking
+  - pytest configuration in pyproject.toml
+  - Unit tests for cost_tracker.py (23KB test suite)
+  - Scenario-based integration tests
+  - Test fixtures and mocks via conftest.py
+  - 80% minimum code coverage requirement
+- **Enhanced Error Handling** - Structured error system for better debugging
+  - New errors.py module with error codes and context
+  - CostTrackingError, SessionError, BudgetError, CalculationError classes
+  - User-friendly error messages with suggested fixes
+  - Backward-compatible fallback for gradual adoption
+- **Cost Tracker Improvements** - Better validation and user experience
+  - Negative token count validation with clear error messages
+  - Unknown model warnings with fallback to sonnet pricing
+  - Enhanced budget status messages with emoji indicators
+  - Improved session save error handling (permission, disk space)
+  - Better session loading with validation and corruption detection
+  - Case-insensitive token usage parsing
+- **Setup Validation Tool** - User-friendly configuration verification
+  - validate_setup.py script for checking Devflow installation
+  - Checks for directories, config files, permissions
+  - Verbose mode and auto-fix capabilities
+  - Color-coded status output
+- **CI/CD Pipeline** - Automated testing and quality checks
+  - GitHub Actions workflow for multi-version Python testing (3.9-3.12)
+  - Ruff linting and formatting checks
+  - mypy type checking
+  - pytest with coverage reporting
+  - Codecov integration
+  - Integration test support
+- **Python Package Configuration** - Full project packaging support
+  - pyproject.toml with build system configuration
+  - requirements.txt and requirements-dev.txt
+  - Project metadata and dependencies
+  - CLI entry points (devflow-cost, devflow-validate)
+  - Development tools: pytest, mypy, ruff, coverage
+
+### Changed
+- **cost_tracker.py** - Enhanced with better error handling and validation
+  - calculate_cost() now validates token counts and warns on unknown models
+  - check_budget() returns emoji-enhanced status messages
+  - save_session() handles errors gracefully without disrupting workflow
+  - load_session() validates required fields and handles corruption
+
 ## [1.5.3] - 2025-12-21
 
 ### Changed

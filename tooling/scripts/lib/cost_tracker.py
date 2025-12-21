@@ -20,9 +20,29 @@ from pathlib import Path
 from dataclasses import dataclass, field, asdict
 from typing import List, Dict, Tuple, Optional
 import sys
+import warnings
 
 # Add parent directory for imports
 sys.path.insert(0, str(Path(__file__).parent))
+
+# Try to import enhanced error handling
+try:
+    from errors import (
+        CostTrackingError, SessionError, BudgetError, CalculationError,
+        ErrorCode, ErrorContext, create_error, log_warning, log_debug
+    )
+    ENHANCED_ERRORS = True
+except ImportError:
+    ENHANCED_ERRORS = False
+    # Fallback error classes
+    class CostTrackingError(Exception):
+        pass
+    class SessionError(Exception):
+        pass
+    class BudgetError(Exception):
+        pass
+    class CalculationError(Exception):
+        pass
 
 # Token pricing per 1M tokens (USD) - December 2024
 PRICING = {
@@ -187,19 +207,62 @@ class CostTracker:
         self.current_model = None
 
     def calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
-        """Calculate cost for a given usage."""
+        """
+        Calculate cost for a given usage.
+        
+        Args:
+            model: Model name (opus, sonnet, haiku, or full Claude model name)
+            input_tokens: Number of input tokens (must be >= 0)
+            output_tokens: Number of output tokens (must be >= 0)
+        
+        Returns:
+            Calculated cost in USD
+        
+        Raises:
+            CalculationError: If token counts are invalid
+        """
+        # Validate inputs
+        if input_tokens < 0:
+            error_msg = f"Invalid input_tokens: {input_tokens}. Token count cannot be negative."
+            if ENHANCED_ERRORS:
+                raise create_error(
+                    ErrorCode.INVALID_TOKENS,
+                    context=ErrorContext(operation="calculating cost", model=model),
+                    custom_message=error_msg
+                )
+            raise CalculationError(error_msg)
+        
+        if output_tokens < 0:
+            error_msg = f"Invalid output_tokens: {output_tokens}. Token count cannot be negative."
+            if ENHANCED_ERRORS:
+                raise create_error(
+                    ErrorCode.INVALID_TOKENS,
+                    context=ErrorContext(operation="calculating cost", model=model),
+                    custom_message=error_msg
+                )
+            raise CalculationError(error_msg)
+        
         model_lower = model.lower()
 
         # Find pricing
         pricing = None
+        matched_model = None
         for key, price in PRICING.items():
             if key in model_lower or model_lower in key:
                 pricing = price
+                matched_model = key
                 break
 
         if not pricing:
-            # Default to sonnet pricing if unknown
+            # Default to sonnet pricing if unknown, but warn user
             pricing = PRICING["sonnet"]
+            warning_msg = (
+                f"Unknown model '{model}'. Using sonnet pricing as default. "
+                f"Supported models: {', '.join(k for k in PRICING.keys() if not k.startswith('claude-'))}"
+            )
+            warnings.warn(warning_msg, UserWarning)
+            if ENHANCED_ERRORS:
+                log_warning(warning_msg)
 
         input_cost = (input_tokens / 1_000_000) * pricing["input"]
         output_cost = (output_tokens / 1_000_000) * pricing["output"]
@@ -261,44 +324,107 @@ class CostTracker:
             - message: Human-readable status message
         """
         if self.budget_limit_usd <= 0:
-            return (True, "ok", "No budget limit set")
+            return (True, "ok", "No budget limit set - tracking costs without enforcement")
 
         usage_pct = self.session.total_cost_usd / self.budget_limit_usd
+        remaining = self.session.budget_remaining
+        total_cost = self.session.total_cost_usd
 
         if usage_pct >= self.thresholds["stop"]:
             return (
                 False,
                 "stop",
-                f"BUDGET EXCEEDED - ${self.session.total_cost_usd:.2f} / ${self.budget_limit_usd:.2f}"
+                (
+                    f"🛑 BUDGET EXCEEDED - ${total_cost:.2f} spent of ${self.budget_limit_usd:.2f} limit. "
+                    f"Action required: Increase budget or stop operations. "
+                    f"Story: {self.story_key}"
+                )
             )
         elif usage_pct >= self.thresholds["critical"]:
             return (
                 True,
                 "critical",
-                f"CRITICAL: {usage_pct*100:.0f}% of budget used (${self.session.total_cost_usd:.2f})"
+                (
+                    f"🔴 CRITICAL: {usage_pct*100:.0f}% of budget used (${total_cost:.2f}). "
+                    f"Only ${remaining:.2f} remaining. Consider wrapping up soon."
+                )
             )
         elif usage_pct >= self.thresholds["warning"]:
             return (
                 True,
                 "warning",
-                f"WARNING: {usage_pct*100:.0f}% of budget used (${self.session.total_cost_usd:.2f})"
+                (
+                    f"🟡 WARNING: {usage_pct*100:.0f}% of budget used (${total_cost:.2f}). "
+                    f"${remaining:.2f} remaining of ${self.budget_limit_usd:.2f} budget."
+                )
             )
 
-        return (True, "ok", f"Budget OK: {usage_pct*100:.0f}% used")
+        return (
+            True, 
+            "ok", 
+            f"🟢 Budget OK: {usage_pct*100:.0f}% used (${total_cost:.2f}/${self.budget_limit_usd:.2f})"
+        )
 
     def get_session_summary(self) -> Dict:
         """Get session summary as dictionary."""
         return self.session.to_dict()
 
-    def save_session(self):
-        """Save session to disk."""
+    def save_session(self) -> bool:
+        """
+        Save session to disk.
+        
+        Returns:
+            True if save was successful, False otherwise
+        
+        Note:
+            Attempts to save session data to disk. On failure, prints an error
+            message but does not raise an exception to avoid disrupting workflow.
+        """
         self.session.end_time = datetime.now().isoformat()
 
         filename = f"{datetime.now().strftime('%Y-%m-%d')}_{self.session_id}.json"
         filepath = SESSIONS_DIR / filename
 
-        with open(filepath, 'w') as f:
-            json.dump(self.session.to_dict(), f, indent=2)
+        try:
+            # Ensure directory exists
+            SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+            
+            with open(filepath, 'w') as f:
+                json.dump(self.session.to_dict(), f, indent=2)
+            return True
+            
+        except PermissionError as e:
+            error_msg = (
+                f"Permission denied when saving session to {filepath}. "
+                f"Check directory permissions. Session data is preserved in memory."
+            )
+            if ENHANCED_ERRORS:
+                log_warning(error_msg)
+            else:
+                print(f"Error: {error_msg}", file=sys.stderr)
+            return False
+            
+        except OSError as e:
+            error_msg = (
+                f"Failed to save session to {filepath}: {e}. "
+                f"Check disk space and file system. Session data is preserved in memory."
+            )
+            if ENHANCED_ERRORS:
+                log_warning(error_msg)
+            else:
+                print(f"Error: {error_msg}", file=sys.stderr)
+            return False
+            
+        except Exception as e:
+            error_msg = (
+                f"Unexpected error saving session: {type(e).__name__}: {e}. "
+                f"Session data is preserved in memory."
+            )
+            if ENHANCED_ERRORS:
+                log_warning(error_msg)
+            else:
+                print(f"Error: {error_msg}", file=sys.stderr)
+            return False
 
     def end_session(self) -> Dict:
         """End session and save final state."""
@@ -308,10 +434,44 @@ class CostTracker:
 
     @staticmethod
     def load_session(session_file: Path) -> Optional[SessionCost]:
-        """Load a session from file."""
+        """
+        Load a session from file.
+        
+        Args:
+            session_file: Path to the session JSON file
+        
+        Returns:
+            SessionCost object if successful, None if file cannot be loaded
+        
+        Note:
+            Returns None instead of raising to allow graceful handling of
+            corrupted or missing files in bulk operations.
+        """
+        if not session_file.exists():
+            warning_msg = f"Session file not found: {session_file}"
+            if ENHANCED_ERRORS:
+                log_warning(warning_msg)
+            else:
+                print(f"Warning: {warning_msg}", file=sys.stderr)
+            return None
+        
         try:
             with open(session_file, 'r') as f:
                 data = json.load(f)
+
+            # Validate required fields
+            required_fields = ["session_id", "story_key", "start_time"]
+            missing_fields = [f for f in required_fields if f not in data]
+            if missing_fields:
+                warning_msg = (
+                    f"Session file {session_file.name} is missing required fields: "
+                    f"{', '.join(missing_fields)}. File may be corrupted."
+                )
+                if ENHANCED_ERRORS:
+                    log_warning(warning_msg)
+                else:
+                    print(f"Warning: {warning_msg}", file=sys.stderr)
+                return None
 
             entries = [CostEntry(**e) for e in data.get("entries", [])]
 
@@ -323,8 +483,35 @@ class CostTracker:
                 budget_limit_usd=data.get("budget_limit_usd", 15.00),
                 entries=entries,
             )
+        except json.JSONDecodeError as e:
+            error_msg = (
+                f"Failed to parse session file {session_file.name}: Invalid JSON at "
+                f"line {e.lineno}, column {e.colno}. The file may be corrupted or incomplete."
+            )
+            if ENHANCED_ERRORS:
+                log_warning(error_msg)
+            else:
+                print(f"Error: {error_msg}", file=sys.stderr)
+            return None
+        except TypeError as e:
+            error_msg = (
+                f"Failed to load session from {session_file.name}: Data structure mismatch. "
+                f"Expected fields may be missing or have wrong types. Details: {e}"
+            )
+            if ENHANCED_ERRORS:
+                log_warning(error_msg)
+            else:
+                print(f"Error: {error_msg}", file=sys.stderr)
+            return None
         except Exception as e:
-            print(f"Error loading session: {e}")
+            error_msg = (
+                f"Unexpected error loading session {session_file.name}: "
+                f"{type(e).__name__}: {e}"
+            )
+            if ENHANCED_ERRORS:
+                log_warning(error_msg)
+            else:
+                print(f"Error: {error_msg}", file=sys.stderr)
             return None
 
     @staticmethod
@@ -396,6 +583,7 @@ def parse_token_usage(output: str) -> Optional[Tuple[int, int]]:
     Looks for patterns like:
     - "Token usage: 45000/200000"
     - "Tokens: 45000 in / 12000 out"
+    - "Input: 30000, Output: 8000"
 
     Returns:
         Tuple of (input_tokens, output_tokens) or None if not found
@@ -403,7 +591,7 @@ def parse_token_usage(output: str) -> Optional[Tuple[int, int]]:
     import re
 
     # Pattern 1: "Token usage: X/Y" (total/limit)
-    match = re.search(r'Token usage:\s*(\d+)/(\d+)', output)
+    match = re.search(r'Token usage:\s*(\d+)/(\d+)', output, re.IGNORECASE)
     if match:
         total = int(match.group(1))
         # Estimate 80% input, 20% output
@@ -414,9 +602,9 @@ def parse_token_usage(output: str) -> Optional[Tuple[int, int]]:
     if match:
         return (int(match.group(1)), int(match.group(2)))
 
-    # Pattern 3: Input: X, Output: Y
-    input_match = re.search(r'[Ii]nput[:\s]+(\d+)', output)
-    output_match = re.search(r'[Oo]utput[:\s]+(\d+)', output)
+    # Pattern 3: Input: X, Output: Y (case-insensitive)
+    input_match = re.search(r'input[:\s]+(\d+)', output, re.IGNORECASE)
+    output_match = re.search(r'output[:\s]+(\d+)', output, re.IGNORECASE)
     if input_match and output_match:
         return (int(input_match.group(1)), int(output_match.group(1)))
 
