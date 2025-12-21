@@ -3,7 +3,6 @@
 # INIT-PROJECT-WORKFLOW - Claude Code Workflow Initialization
 #
 # Sets up automated development workflow for any project using Claude Code CLI
-# Inspired by BMAD (Business Model Analysis & Design) guided setup
 #
 # Usage:
 #   ./init-project-workflow.sh
@@ -95,6 +94,17 @@ detect_project_type() {
         project_type="python"
     elif [[ -f "Gemfile" ]]; then
         project_type="ruby"
+    elif [[ -f "pom.xml" ]] || [[ -f "build.gradle" ]] || [[ -f "build.gradle.kts" ]]; then
+        # Check if it's Android or pure Java/Kotlin
+        if [[ -d "app/src/main/java" ]] || [[ -d "app/src/main/kotlin" ]]; then
+            project_type="android"
+        else
+            project_type="java"
+        fi
+    elif [[ -f "Package.swift" ]] || [[ -d "*.xcodeproj" ]] || [[ -d "*.xcworkspace" ]]; then
+        project_type="swift"
+    elif [[ -f "settings.gradle.kts" ]] && [[ -f "build.gradle.kts" ]]; then
+        project_type="kotlin"
     fi
 
     echo -e "${GREEN}  Detected: $project_type${NC}"

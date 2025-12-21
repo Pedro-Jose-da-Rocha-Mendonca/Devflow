@@ -5,7 +5,7 @@
 
 # Project settings
 $script:PROJECT_NAME = "your-project-name"
-$script:PROJECT_TYPE = "generic"  # node, flutter, python, rust, etc.
+$script:PROJECT_TYPE = "generic"  # Supported: node, flutter, python, rust, go, ruby, java, kotlin, swift, android, generic
 
 # Claude Code CLI settings
 $script:CLAUDE_CLI = if ($env:CLAUDE_CLI) { $env:CLAUDE_CLI } else { "claude" }

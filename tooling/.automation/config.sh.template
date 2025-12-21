@@ -6,7 +6,7 @@
 
 # Project settings
 export PROJECT_NAME="your-project-name"
-export PROJECT_TYPE="generic"  # node, flutter, python, rust, etc.
+export PROJECT_TYPE="generic"  # Supported: node, flutter, python, rust, go, ruby, java, kotlin, swift, android, generic
 
 # Claude Code CLI settings
 export CLAUDE_CLI="${CLAUDE_CLI:-claude}"

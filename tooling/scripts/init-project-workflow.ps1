@@ -97,6 +97,21 @@ function Get-ProjectType {
     elseif (Test-Path "requirements.txt") { $projectType = "python" }
     elseif (Test-Path "pyproject.toml") { $projectType = "python" }
     elseif (Test-Path "Gemfile") { $projectType = "ruby" }
+    elseif ((Test-Path "pom.xml") -or (Test-Path "build.gradle") -or (Test-Path "build.gradle.kts")) {
+        # Check if it's Android or pure Java/Kotlin
+        if ((Test-Path "app\src\main\java") -or (Test-Path "app\src\main\kotlin")) {
+            $projectType = "android"
+        }
+        else {
+            $projectType = "java"
+        }
+    }
+    elseif ((Test-Path "Package.swift") -or (Get-ChildItem -Filter "*.xcodeproj" -ErrorAction SilentlyContinue) -or (Get-ChildItem -Filter "*.xcworkspace" -ErrorAction SilentlyContinue)) {
+        $projectType = "swift"
+    }
+    elseif ((Test-Path "settings.gradle.kts") -and (Test-Path "build.gradle.kts")) {
+        $projectType = "kotlin"
+    }
 
     Write-Host "  Detected: $projectType" -ForegroundColor Green
     return $projectType

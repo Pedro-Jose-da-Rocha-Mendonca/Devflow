@@ -11,15 +11,15 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ### Key Features
 
-- ✅ **Multi-Persona Agent System** - 8 specialized AI agents (SM, DEV, BA, ARCHITECT, PM, WRITER, MAINTAINER, REVIEWER)
-- ✅ **Smart Model Usage** - Opus for development, Sonnet for planning (40-60% cost savings)
-- ✅ **Context Preservation** - Automatic checkpoints prevent work loss from context limits
-- ✅ **Full Automation** - Context → Development → Testing → Review → Commit pipeline
-- ✅ **Greenfield + Brownfield** - Supports both new features AND existing codebase maintenance
-- ✅ **Agent Personalization** - BMAD-style overrides and persistent agent memory
-- ✅ **Interactive CLI** - Unified `gds` command with visual autocomplete
-- ✅ **Project Agnostic** - Works with Flutter, Node.js, Python, Rust, Go, Ruby, etc.
-- ✅ **Guided Setup** - Interactive wizard guides you through installation
+- **Multi-Persona Agent System** - 8 specialized AI agents (SM, DEV, BA, ARCHITECT, PM, WRITER, MAINTAINER, REVIEWER)
+- **Smart Model Usage** - Opus for development, Sonnet for planning (40-60% cost savings)
+- **Context Preservation** - Automatic checkpoints prevent work loss from context limits
+- **Full Automation** - Context → Development → Testing → Review → Commit pipeline
+- **Greenfield + Brownfield** - Supports both new features AND existing codebase maintenance
+- **Agent Personalization** - Agent overrides and persistent agent memory
+- **Claude Code Integration** - Native slash commands (`/story`, `/develop`, `/review`, etc.)
+- **Project Agnostic** - Works with Flutter, Node.js, Python, Rust, Go, Ruby, etc.
+- **Guided Setup** - Interactive wizard guides you through installation
 
 ## 📦 Quick Start
 
@@ -43,8 +43,8 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ```bash
 # Clone this repository
-git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation.git
-cd GDS_Automation
+git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow.git
+cd Devflow
 
 # Copy to your project
 cp -r tooling /path/to/your/project/
@@ -58,10 +58,10 @@ cd /path/to/your/project/tooling/scripts
 
 ```bash
 # Download latest release
-curl -L https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/archive/main.tar.gz | tar xz
+curl -L https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/archive/main.tar.gz | tar xz
 
 # Move to your project
-mv GDS_Automation-main/tooling /path/to/your/project/
+mv Devflow-main/tooling /path/to/your/project/
 
 # Manual config
 cd /path/to/your/project/tooling/.automation
@@ -75,8 +75,8 @@ vim config.sh
 
 ```powershell
 # Clone this repository
-git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation.git
-cd GDS_Automation
+git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow.git
+cd Devflow
 
 # Copy to your project
 Copy-Item -Recurse tooling C:\path\to\your\project\
@@ -93,11 +93,11 @@ cd C:\path\to\your\project\tooling\scripts
 
 ```powershell
 # Download latest release
-Invoke-WebRequest -Uri "https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/archive/main.zip" -OutFile main.zip
+Invoke-WebRequest -Uri "https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/archive/main.zip" -OutFile main.zip
 Expand-Archive main.zip -DestinationPath .
 
 # Move to your project
-Move-Item GDS_Automation-main\tooling C:\path\to\your\project\
+Move-Item Devflow-main\tooling C:\path\to\your\project\
 
 # Manual config
 cd C:\path\to\your\project\tooling\.automation
@@ -121,14 +121,6 @@ notepad config.ps1
 .\run-story.ps1 -StoryKey "3-5" -NoCommit
 ```
 
-## 📖 Documentation
-
-- **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions
-- **[User Guide](docs/USER-GUIDE.md)** - How to use the workflow
-- **[Configuration](docs/CONFIGURATION.md)** - All configuration options
-- **[Agent Personas](docs/AGENTS.md)** - How the multi-agent system works
-- **[API Reference](docs/API.md)** - Script reference
-
 ## 🏗️ Architecture
 
 ### Directory Structure
@@ -144,9 +136,7 @@ your-project/
 │   │   ├── logs/                  # Execution logs
 │   │   └── config.sh              # Your configuration
 │   ├── scripts/
-│   │   ├── gds                    # Unified CLI with autocomplete
 │   │   ├── run-story.sh           # Main workflow runner
-│   │   ├── completions/           # Zsh tab completion
 │   │   └── lib/                   # Core libraries
 │   └── docs/
 │       ├── sprint-status.yaml     # Sprint tracking
@@ -191,8 +181,6 @@ export MAX_BUDGET_REVIEW=5.00    # Code review: $5 max
 **Cost Optimization:**
 - Opus for development and critical reviews (higher quality)
 - Sonnet for planning, context, documentation (cost-effective)
-- Average savings: 40-60% vs all-Opus approach
-- Typical story cost: $8-14 depending on complexity
 
 ## 🔧 Configuration
 
@@ -206,19 +194,6 @@ export CLAUDE_MODEL_DEV="opus"       # Development model
 export CLAUDE_MODEL_PLANNING="sonnet" # Planning model
 export AUTO_COMMIT="true"            # Auto-commit after dev
 export AUTO_PR="false"               # Auto-create PR (needs gh CLI)
-```
-
-### Advanced Options
-
-```bash
-# Permission mode
-export PERMISSION_MODE="dangerouslySkipPermissions"
-
-# Checkpoint thresholds (%, warning/critical/emergency)
-export CHECKPOINT_THRESHOLDS="75,85,95"
-
-# Tool permissions per agent
-# See docs/CONFIGURATION.md for full options
 ```
 
 ## 🔧 Brownfield Workflows
@@ -293,59 +268,19 @@ tooling/docs/
 
 ## 🛠️ Available Commands
 
-### GDS CLI (Recommended)
+### Claude Code Slash Commands
 
-The unified `gds` CLI provides all commands with autocomplete:
+Use native Claude Code slash commands for all workflows:
 
-```bash
-# Setup autocomplete (one-time)
-./tooling/scripts/gds setup
-source ~/.zshrc
-
-# Story workflows
-gds story 3-5              # Full pipeline (context + dev + review)
-gds develop 3-5            # Development only
-gds review 3-5             # Standard code review
-gds adversarial 3-5        # Critical review (Opus, finds problems)
-gds context 3-5            # Create context only
-
-# Brownfield workflows
-gds bugfix login-crash     # Fix a bug
-gds refactor auth-service  # Refactor code
-gds investigate payment    # Explore codebase (read-only)
-gds quickfix "fix typo"    # Quick change
-
-# Agent management
-gds agents                 # List all agents
-gds agent dev              # Invoke specific agent
-
-# Personalization
-gds profile                # Edit user preferences
-gds override dev           # Customize dev agent
-gds memory show dev        # View agent memory
-
-# Utilities
-gds status                 # Show sprint status
-gds logs tail              # Tail current log
-gds help                   # Show all commands
-```
-
-### Direct Script Usage
-
-**macOS/Linux:**
-```bash
-./run-story.sh <key>                   # Full pipeline
-./run-story.sh <key> --develop         # Development only
-./run-story.sh <key> --adversarial     # Critical review
-./run-story.sh <key> --model opus      # Specify model
-```
-
-**Windows PowerShell:**
-```powershell
-.\run-story.ps1 -StoryKey "<key>"
-.\run-story.ps1 -StoryKey "<key>" -Develop
-.\run-story.ps1 -StoryKey "<key>" -Model opus
-```
+| Command | Description |
+|---------|-------------|
+| `/story <key>` | Run full story pipeline (context + dev + review) |
+| `/develop <key>` | Run development phase only |
+| `/review <key>` | Run standard code review |
+| `/adversarial <key>` | Run critical code review (Opus) |
+| `/bugfix <id>` | Fix a bug |
+| `/agent <name>` | Invoke a specific agent |
+| `/devflow <cmd>` | Run any workflow command |
 
 ## 🔒 Security & Privacy
 
@@ -376,21 +311,6 @@ export MAX_BUDGET_DEV=15.00
 
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-### Development Setup
-
-```bash
-git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation.git
-cd GDS_Automation
-
-# Make changes to tooling/scripts/*
-vim tooling/scripts/run-story.sh
-
-# Test locally
-cp -r tooling /tmp/test-project/
-cd /tmp/test-project/tooling/scripts
-./run-story.sh test-story
-```
-
 ## 📜 License
 
 MIT License - see [LICENSE](LICENSE) for details.
@@ -406,17 +326,11 @@ Free to use in commercial and personal projects.
 ## 📞 Support
 
 - **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/discussions)
-
-## ⭐ Star History
-
-If this project helps you, consider giving it a star!
+- **Issues**: [GitHub Issues](https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/discussions)
 
 ---
 
-**Made with care for developers who want AI to help them ship faster.**
-
-**Version**: 1.3.1
+**Version**: 1.4.0
 **Status**: Production Ready
-**Last Updated**: 2025-12-20
+**Last Updated**: 2025-12-21

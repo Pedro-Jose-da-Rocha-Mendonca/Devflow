@@ -3,6 +3,6 @@ description: Fix a bug
 argument-hint: <bug-id>
 ---
 
-Run the GDS bugfix automation for: $ARGUMENTS
+Run the Devflow bugfix automation for: $ARGUMENTS
 
-Execute: `gds bugfix $ARGUMENTS`
+Execute: `devflow bugfix $ARGUMENTS`

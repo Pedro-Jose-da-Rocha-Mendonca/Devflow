@@ -6,7 +6,7 @@ Thank you for your interest in contributing! This project aims to make AI-powere
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/issues)
 2. If not, create a new issue with:
    - Clear, descriptive title
    - Steps to reproduce
@@ -16,7 +16,7 @@ Thank you for your interest in contributing! This project aims to make AI-powere
 
 ### Suggesting Enhancements
 
-1. Open a [Discussion](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/discussions) first
+1. Open a [Discussion](https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/discussions) first
 2. Describe:
    - The problem you're trying to solve
    - Your proposed solution
@@ -27,8 +27,8 @@ Thank you for your interest in contributing! This project aims to make AI-powere
 
 1. **Fork the repository**
    ```bash
-   git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation.git
-   cd GDS_Automation
+   git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow.git
+   cd Devflow
    ```
 
 2. **Create a feature branch**
@@ -105,29 +105,17 @@ cd tooling/scripts
 ### Areas for Contribution
 
 **High Priority**:
-- [ ] Additional project type support (e.g., Java, Swift, Kotlin)
 - [ ] Error handling edge cases
 - [ ] Brownfield workflow improvements
-- [ ] Windows PowerShell completion support
 
 **Medium Priority**:
-- [ ] Additional agent personas
-- [ ] Custom persona builder via CLI
 - [ ] Better migration tooling
-- [ ] Enhanced tech debt tracking
 
 **Override System**:
-- [ ] More override templates for common use cases
-- [ ] Override validation and linting
-- [ ] Memory summarization (prevent unbounded growth)
 - [ ] Cross-agent memory sharing
 
 **Brownfield-Specific**:
-- [ ] Better root cause analysis for bugs
 - [ ] Safer refactoring patterns
-- [ ] Migration rollback automation
-- [ ] Technical debt metrics/reporting
-
 
 ## 🐛 Debugging
 
@@ -230,8 +218,8 @@ When adding/modifying agent personas:
 
 ## 💬 Communication
 
-- **Questions**: [Discussions](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/discussions)
-- **Bug Reports**: [Issues](https://github.com/Pedro-Jose-da-Rocha-Mendonca/GDS_Automation/issues)
+- **Questions**: [Discussions](https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/discussions)
+- **Bug Reports**: [Issues](https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/issues)
 - **Security**: Open an issue with `[SECURITY]` prefix
 
 ## 🏆 Recognition
