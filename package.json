@@ -1,5 +1,5 @@
 {
-  "name": "@pedrojosedarochamendonca/devflow",
+  "name": "@pjmendonca/devflow",
   "version": "1.9.0",
   "description": "Development workflow automation with Claude Code - agent-based development system with cost tracking",
   "keywords": [

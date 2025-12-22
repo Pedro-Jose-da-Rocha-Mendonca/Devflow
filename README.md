@@ -48,7 +48,7 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ```bash
 # Install globally via npm
-npm install -g @pedrojosedarochamendonca/devflow
+npm install -g @pjmendonca/devflow
 
 # Verify installation
 devflow-validate
