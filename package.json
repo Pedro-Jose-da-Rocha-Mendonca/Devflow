@@ -1,5 +1,5 @@
 {
-  "name": "devflow",
+  "name": "@pedrojosedarochamendonca/devflow",
   "version": "1.9.0",
   "description": "Development workflow automation with Claude Code - agent-based development system with cost tracking",
   "keywords": [
@@ -24,20 +24,20 @@
     "name": "Pedro Jose da Rocha Mendonca"
   },
   "bin": {
-    "devflow-cost": "./bin/devflow-cost.js",
-    "devflow-validate": "./bin/devflow-validate.js",
-    "devflow-story": "./bin/devflow-story.js",
-    "devflow-checkpoint": "./bin/devflow-checkpoint.js",
-    "devflow-memory": "./bin/devflow-memory.js",
-    "devflow-collab": "./bin/devflow-collab.js",
-    "devflow-create-persona": "./bin/devflow-create-persona.js",
-    "devflow-personalize": "./bin/devflow-personalize.js",
-    "devflow-validate-overrides": "./bin/devflow-validate-overrides.js",
-    "devflow-new-doc": "./bin/devflow-new-doc.js",
-    "devflow-tech-debt": "./bin/devflow-tech-debt.js",
-    "devflow-setup-checkpoint": "./bin/devflow-setup-checkpoint.js",
-    "devflow-init": "./bin/devflow-init.js",
-    "devflow-version": "./bin/devflow-version.js"
+    "devflow-cost": "bin/devflow-cost.js",
+    "devflow-validate": "bin/devflow-validate.js",
+    "devflow-story": "bin/devflow-story.js",
+    "devflow-checkpoint": "bin/devflow-checkpoint.js",
+    "devflow-memory": "bin/devflow-memory.js",
+    "devflow-collab": "bin/devflow-collab.js",
+    "devflow-create-persona": "bin/devflow-create-persona.js",
+    "devflow-personalize": "bin/devflow-personalize.js",
+    "devflow-validate-overrides": "bin/devflow-validate-overrides.js",
+    "devflow-new-doc": "bin/devflow-new-doc.js",
+    "devflow-tech-debt": "bin/devflow-tech-debt.js",
+    "devflow-setup-checkpoint": "bin/devflow-setup-checkpoint.js",
+    "devflow-init": "bin/devflow-init.js",
+    "devflow-version": "bin/devflow-version.js"
   },
   "files": [
     "bin/",

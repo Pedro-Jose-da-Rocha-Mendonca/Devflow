@@ -66,7 +66,7 @@ node --version
 Install Devflow globally to use from any directory:
 
 ```bash
-npm install -g devflow
+npm install -g @pedrojosedarochamendonca/devflow
 ```
 
 After installation, verify it works:
@@ -365,10 +365,10 @@ Both installation methods work identically. Choose based on your ecosystem prefe
 
 | Feature | npm | pip |
 |---------|-----|-----|
-| **Installation** | `npm install -g devflow` | `pip install devflow` |
+| **Installation** | `npm install -g @pedrojosedarochamendonca/devflow` | `pip install devflow` |
 | **Commands** | Same 14 commands | Same 14 commands |
-| **Updates** | `npm update -g devflow` | `pip install --upgrade devflow` |
-| **Uninstall** | `npm uninstall -g devflow` | `pip uninstall devflow` |
+| **Updates** | `npm update -g @pedrojosedarochamendonca/devflow` | `pip install --upgrade devflow` |
+| **Uninstall** | `npm uninstall -g @pedrojosedarochamendonca/devflow` | `pip uninstall devflow` |
 | **Requirements** | Python 3.9+ + Node.js 14+ | Python 3.9+ |
 | **Package Size** | ~600KB | ~500KB |
 | **Ecosystem** | Node.js/JavaScript | Python |
@@ -393,21 +393,21 @@ Both installation methods work identically. Choose based on your ecosystem prefe
 ### Global Uninstall
 
 ```bash
-npm uninstall -g devflow
+npm uninstall -g @pedrojosedarochamendonca/devflow
 ```
 
 ### Local Project Uninstall
 
 ```bash
 cd /path/to/your/project
-npm uninstall devflow
+npm uninstall @pedrojosedarochamendonca/devflow
 ```
 
 ### Clean Uninstall (Remove All Data)
 
 ```bash
 # Uninstall package
-npm uninstall -g devflow
+npm uninstall -g @pedrojosedarochamendonca/devflow
 
 # Remove configuration and data (optional)
 rm -rf ~/tooling/.automation/costs/
@@ -435,7 +435,7 @@ After installation:
 
 ```bash
 # Install
-npm install -g devflow
+npm install -g @pedrojosedarochamendonca/devflow
 
 # Validate
 devflow-validate
