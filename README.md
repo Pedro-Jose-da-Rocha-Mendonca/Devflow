@@ -581,7 +581,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.7.0
+**Version**: 1.8.0
 **Status**: Production Ready
 **Last Updated**: 2025-12-22
 <!-- VERSION_END -->
