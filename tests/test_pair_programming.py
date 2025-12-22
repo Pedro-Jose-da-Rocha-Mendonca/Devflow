@@ -534,8 +534,9 @@ Cannot proceed until this is fixed.
         """Test parsing REVIEWER output as question."""
         session = PairSession(story_key="test-1", task="Task")
         
-        output = """I need clarification on this approach.
-Can you explain why you chose this pattern?
+        output = """I have a question about this approach.
+Can you clarify why you chose this pattern?
+It's unclear to me.
 """
         feedback = session._parse_reviewer_output(output, "chunk_001")
         assert feedback.feedback_type == FeedbackType.QUESTION
