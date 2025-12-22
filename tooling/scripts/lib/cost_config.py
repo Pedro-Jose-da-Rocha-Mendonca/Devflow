@@ -57,42 +57,42 @@ class CostConfig:
     display_currencies: list[str] = field(default_factory=lambda: DEFAULT_DISPLAY_CURRENCIES.copy())
 
     @classmethod
-    def from_env(cls) -> 'CostConfig':
+    def from_env(cls) -> "CostConfig":
         """Load configuration from environment variables."""
         config = cls()
 
         # Budget limits
-        if os.getenv('MAX_BUDGET_CONTEXT'):
-            config.budget_context = float(os.getenv('MAX_BUDGET_CONTEXT'))
-        if os.getenv('MAX_BUDGET_DEV'):
-            config.budget_dev = float(os.getenv('MAX_BUDGET_DEV'))
-        if os.getenv('MAX_BUDGET_REVIEW'):
-            config.budget_review = float(os.getenv('MAX_BUDGET_REVIEW'))
+        if os.getenv("MAX_BUDGET_CONTEXT"):
+            config.budget_context = float(os.getenv("MAX_BUDGET_CONTEXT"))
+        if os.getenv("MAX_BUDGET_DEV"):
+            config.budget_dev = float(os.getenv("MAX_BUDGET_DEV"))
+        if os.getenv("MAX_BUDGET_REVIEW"):
+            config.budget_review = float(os.getenv("MAX_BUDGET_REVIEW"))
 
         # Alert thresholds
-        if os.getenv('COST_WARNING_PERCENT'):
-            config.warning_percent = int(os.getenv('COST_WARNING_PERCENT'))
-        if os.getenv('COST_CRITICAL_PERCENT'):
-            config.critical_percent = int(os.getenv('COST_CRITICAL_PERCENT'))
-        if os.getenv('COST_AUTO_STOP'):
-            config.auto_stop = os.getenv('COST_AUTO_STOP').lower() in ('true', '1', 'yes')
+        if os.getenv("COST_WARNING_PERCENT"):
+            config.warning_percent = int(os.getenv("COST_WARNING_PERCENT"))
+        if os.getenv("COST_CRITICAL_PERCENT"):
+            config.critical_percent = int(os.getenv("COST_CRITICAL_PERCENT"))
+        if os.getenv("COST_AUTO_STOP"):
+            config.auto_stop = os.getenv("COST_AUTO_STOP").lower() in ("true", "1", "yes")
 
         # Currency settings
-        if os.getenv('COST_DISPLAY_CURRENCY'):
-            config.display_currency = os.getenv('COST_DISPLAY_CURRENCY')
+        if os.getenv("COST_DISPLAY_CURRENCY"):
+            config.display_currency = os.getenv("COST_DISPLAY_CURRENCY")
 
         # Currency rates from environment
-        if os.getenv('CURRENCY_RATE_EUR'):
-            config.currency_rates['EUR'] = float(os.getenv('CURRENCY_RATE_EUR'))
-        if os.getenv('CURRENCY_RATE_GBP'):
-            config.currency_rates['GBP'] = float(os.getenv('CURRENCY_RATE_GBP'))
-        if os.getenv('CURRENCY_RATE_BRL'):
-            config.currency_rates['BRL'] = float(os.getenv('CURRENCY_RATE_BRL'))
+        if os.getenv("CURRENCY_RATE_EUR"):
+            config.currency_rates["EUR"] = float(os.getenv("CURRENCY_RATE_EUR"))
+        if os.getenv("CURRENCY_RATE_GBP"):
+            config.currency_rates["GBP"] = float(os.getenv("CURRENCY_RATE_GBP"))
+        if os.getenv("CURRENCY_RATE_BRL"):
+            config.currency_rates["BRL"] = float(os.getenv("CURRENCY_RATE_BRL"))
 
         return config
 
     @classmethod
-    def from_file(cls, config_path: Path) -> 'CostConfig':
+    def from_file(cls, config_path: Path) -> "CostConfig":
         """Load configuration from JSON file."""
         config = cls()
 
@@ -104,28 +104,28 @@ class CostConfig:
                 data = json.load(f)
 
             # Budget limits
-            if 'budget_context' in data:
-                config.budget_context = float(data['budget_context'])
-            if 'budget_dev' in data:
-                config.budget_dev = float(data['budget_dev'])
-            if 'budget_review' in data:
-                config.budget_review = float(data['budget_review'])
+            if "budget_context" in data:
+                config.budget_context = float(data["budget_context"])
+            if "budget_dev" in data:
+                config.budget_dev = float(data["budget_dev"])
+            if "budget_review" in data:
+                config.budget_review = float(data["budget_review"])
 
             # Alert thresholds
-            if 'warning_percent' in data:
-                config.warning_percent = int(data['warning_percent'])
-            if 'critical_percent' in data:
-                config.critical_percent = int(data['critical_percent'])
-            if 'auto_stop' in data:
-                config.auto_stop = bool(data['auto_stop'])
+            if "warning_percent" in data:
+                config.warning_percent = int(data["warning_percent"])
+            if "critical_percent" in data:
+                config.critical_percent = int(data["critical_percent"])
+            if "auto_stop" in data:
+                config.auto_stop = bool(data["auto_stop"])
 
             # Currency settings
-            if 'display_currency' in data:
-                config.display_currency = data['display_currency']
-            if 'currency_rates' in data:
-                config.currency_rates.update(data['currency_rates'])
-            if 'display_currencies' in data:
-                config.display_currencies = data['display_currencies']
+            if "display_currency" in data:
+                config.display_currency = data["display_currency"]
+            if "currency_rates" in data:
+                config.currency_rates.update(data["currency_rates"])
+            if "display_currencies" in data:
+                config.display_currencies = data["display_currencies"]
 
         except Exception as e:
             print(f"Warning: Could not load config file: {e}")
@@ -135,39 +135,39 @@ class CostConfig:
     def save(self, config_path: Path):
         """Save configuration to JSON file."""
         data = {
-            'budget_context': self.budget_context,
-            'budget_dev': self.budget_dev,
-            'budget_review': self.budget_review,
-            'warning_percent': self.warning_percent,
-            'critical_percent': self.critical_percent,
-            'auto_stop': self.auto_stop,
-            'display_currency': self.display_currency,
-            'currency_rates': self.currency_rates,
-            'display_currencies': self.display_currencies,
+            "budget_context": self.budget_context,
+            "budget_dev": self.budget_dev,
+            "budget_review": self.budget_review,
+            "warning_percent": self.warning_percent,
+            "critical_percent": self.critical_percent,
+            "auto_stop": self.auto_stop,
+            "display_currency": self.display_currency,
+            "currency_rates": self.currency_rates,
+            "display_currencies": self.display_currencies,
         }
 
         config_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(config_path, 'w') as f:
+        with open(config_path, "w") as f:
             json.dump(data, f, indent=2)
 
     def get_budget_for_phase(self, phase: str) -> float:
         """Get budget limit for a specific phase."""
         phase = phase.lower()
-        if phase in ('context', 'sm'):
+        if phase in ("context", "sm"):
             return self.budget_context
-        elif phase in ('dev', 'development', 'implement'):
+        elif phase in ("dev", "development", "implement"):
             return self.budget_dev
-        elif phase in ('review', 'qa'):
+        elif phase in ("review", "qa"):
             return self.budget_review
         return self.budget_dev  # Default
 
     def get_thresholds(self) -> dict[str, float]:
         """Get budget thresholds as decimal values."""
         return {
-            'warning': self.warning_percent / 100.0,
-            'critical': self.critical_percent / 100.0,
-            'stop': 1.0,
+            "warning": self.warning_percent / 100.0,
+            "critical": self.critical_percent / 100.0,
+            "stop": 1.0,
         }
 
 
@@ -180,7 +180,7 @@ def get_config() -> CostConfig:
     global _config
     if _config is None:
         # Try to load from file first, then overlay with env vars
-        config_file = Path(__file__).parent.parent.parent / '.automation' / 'costs' / 'config.json'
+        config_file = Path(__file__).parent.parent.parent / ".automation" / "costs" / "config.json"
         if config_file.exists():
             _config = CostConfig.from_file(config_file)
         else:

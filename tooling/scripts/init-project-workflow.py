@@ -16,29 +16,32 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 
+
 def get_platform():
     """Detect the current platform."""
-    if sys.platform == 'win32':
-        return 'windows'
-    elif sys.platform == 'darwin':
-        return 'macos'
+    if sys.platform == "win32":
+        return "windows"
+    elif sys.platform == "darwin":
+        return "macos"
     else:
-        return 'linux'
+        return "linux"
+
 
 def run_windows():
     """Run PowerShell script on Windows."""
-    script = SCRIPT_DIR / 'init-project-workflow.ps1'
+    script = SCRIPT_DIR / "init-project-workflow.ps1"
 
     if not script.exists():
         print(f"Error: PowerShell script not found: {script}")
         return 1
 
-    cmd = ['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(script)]
+    cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(script)]
     return subprocess.call(cmd)
+
 
 def run_unix():
     """Run shell script on macOS/Linux."""
-    script = SCRIPT_DIR / 'init-project-workflow.sh'
+    script = SCRIPT_DIR / "init-project-workflow.sh"
 
     if not script.exists():
         print(f"Error: Shell script not found: {script}")
@@ -50,16 +53,18 @@ def run_unix():
     cmd = [str(script)]
     return subprocess.call(cmd)
 
+
 def main():
     platform = get_platform()
 
     print(f"Detected platform: {platform}")
     print()
 
-    if platform == 'windows':
+    if platform == "windows":
         return run_windows()
     else:
         return run_unix()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

@@ -31,54 +31,55 @@ from typing import Any
 
 # Colors for terminal output
 class Colors:
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    CYAN = '\033[0;36m'
-    MAGENTA = '\033[0;35m'
-    BOLD = '\033[1m'
-    NC = '\033[0m'
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    YELLOW = "\033[1;33m"
+    BLUE = "\033[0;34m"
+    CYAN = "\033[0;36m"
+    MAGENTA = "\033[0;35m"
+    BOLD = "\033[1m"
+    NC = "\033[0m"
+
 
 # Debt indicator patterns
 DEBT_PATTERNS = {
     "TODO": {
-        "pattern": r'\b(TODO|@todo)\b[:\s]*(.*?)(?:\n|$)',
+        "pattern": r"\b(TODO|@todo)\b[:\s]*(.*?)(?:\n|$)",
         "severity": "low",
         "category": "planned-work",
     },
     "FIXME": {
-        "pattern": r'\b(FIXME|@fixme)\b[:\s]*(.*?)(?:\n|$)',
+        "pattern": r"\b(FIXME|@fixme)\b[:\s]*(.*?)(?:\n|$)",
         "severity": "medium",
         "category": "bugs",
     },
     "HACK": {
-        "pattern": r'\b(HACK|@hack|WORKAROUND)\b[:\s]*(.*?)(?:\n|$)',
+        "pattern": r"\b(HACK|@hack|WORKAROUND)\b[:\s]*(.*?)(?:\n|$)",
         "severity": "high",
         "category": "code-quality",
     },
     "XXX": {
-        "pattern": r'\bXXX\b[:\s]*(.*?)(?:\n|$)',
+        "pattern": r"\bXXX\b[:\s]*(.*?)(?:\n|$)",
         "severity": "high",
         "category": "critical",
     },
     "DEPRECATED": {
-        "pattern": r'\b(DEPRECATED|@deprecated)\b[:\s]*(.*?)(?:\n|$)',
+        "pattern": r"\b(DEPRECATED|@deprecated)\b[:\s]*(.*?)(?:\n|$)",
         "severity": "medium",
         "category": "maintenance",
     },
     "REFACTOR": {
-        "pattern": r'\b(REFACTOR|NEEDS[_\s]REFACTOR)\b[:\s]*(.*?)(?:\n|$)',
+        "pattern": r"\b(REFACTOR|NEEDS[_\s]REFACTOR)\b[:\s]*(.*?)(?:\n|$)",
         "severity": "medium",
         "category": "code-quality",
     },
     "TECH_DEBT": {
-        "pattern": r'\b(TECH[_\s]?DEBT|TECHNICAL[_\s]?DEBT)\b[:\s]*(.*?)(?:\n|$)',
+        "pattern": r"\b(TECH[_\s]?DEBT|TECHNICAL[_\s]?DEBT)\b[:\s]*(.*?)(?:\n|$)",
         "severity": "high",
         "category": "architecture",
     },
     "OPTIMIZE": {
-        "pattern": r'\b(OPTIMIZE|PERF|PERFORMANCE)\b[:\s]*(.*?)(?:\n|$)',
+        "pattern": r"\b(OPTIMIZE|PERF|PERFORMANCE)\b[:\s]*(.*?)(?:\n|$)",
         "severity": "low",
         "category": "performance",
     },
@@ -86,21 +87,55 @@ DEBT_PATTERNS = {
 
 # File extensions to scan
 CODE_EXTENSIONS = {
-    '.py', '.js', '.ts', '.tsx', '.jsx', '.dart', '.java', '.kt', '.swift',
-    '.go', '.rs', '.rb', '.php', '.cs', '.cpp', '.c', '.h', '.hpp',
-    '.sh', '.bash', '.zsh', '.ps1', '.yaml', '.yml', '.json', '.md',
+    ".py",
+    ".js",
+    ".ts",
+    ".tsx",
+    ".jsx",
+    ".dart",
+    ".java",
+    ".kt",
+    ".swift",
+    ".go",
+    ".rs",
+    ".rb",
+    ".php",
+    ".cs",
+    ".cpp",
+    ".c",
+    ".h",
+    ".hpp",
+    ".sh",
+    ".bash",
+    ".zsh",
+    ".ps1",
+    ".yaml",
+    ".yml",
+    ".json",
+    ".md",
 }
 
 # Directories to skip
 SKIP_DIRS = {
-    'node_modules', '.git', '__pycache__', '.cache', 'build', 'dist',
-    '.dart_tool', '.pub', 'coverage', '.idea', '.vscode', 'vendor',
+    "node_modules",
+    ".git",
+    "__pycache__",
+    ".cache",
+    "build",
+    "dist",
+    ".dart_tool",
+    ".pub",
+    "coverage",
+    ".idea",
+    ".vscode",
+    "vendor",
 }
 
 
 @dataclass
 class DebtItem:
     """A single technical debt item."""
+
     file_path: str
     line_number: int
     debt_type: str
@@ -124,6 +159,7 @@ class DebtItem:
 @dataclass
 class DebtReport:
     """Complete tech debt report."""
+
     scan_date: str
     project_path: str
     items: list[DebtItem] = field(default_factory=list)
@@ -192,15 +228,15 @@ class TechDebtTracker:
         items: list[DebtItem] = []
 
         try:
-            content = file_path.read_text(errors='ignore')
-            lines = content.split('\n')
+            content = file_path.read_text(errors="ignore")
+            lines = content.split("\n")
 
             for debt_type, config in DEBT_PATTERNS.items():
                 pattern = re.compile(config["pattern"], re.IGNORECASE | re.MULTILINE)
 
                 for match in pattern.finditer(content):
                     # Find line number
-                    line_start = content[:match.start()].count('\n') + 1
+                    line_start = content[: match.start()].count("\n") + 1
 
                     # Extract message
                     groups = match.groups()
@@ -209,15 +245,17 @@ class TechDebtTracker:
                     # Get context (the line itself)
                     context = lines[line_start - 1].strip() if line_start <= len(lines) else ""
 
-                    items.append(DebtItem(
-                        file_path=str(file_path.relative_to(self.project_path)),
-                        line_number=line_start,
-                        debt_type=debt_type,
-                        severity=config["severity"],
-                        category=config["category"],
-                        message=message[:200],  # Limit message length
-                        context=context[:200],
-                    ))
+                    items.append(
+                        DebtItem(
+                            file_path=str(file_path.relative_to(self.project_path)),
+                            line_number=line_start,
+                            debt_type=debt_type,
+                            severity=config["severity"],
+                            category=config["category"],
+                            message=message[:200],  # Limit message length
+                            context=context[:200],
+                        )
+                    )
 
         except Exception:
             pass  # Skip files that can't be read
@@ -229,7 +267,7 @@ class TechDebtTracker:
         items: list[DebtItem] = []
 
         for item in path.iterdir():
-            if item.name.startswith('.'):
+            if item.name.startswith("."):
                 continue
 
             if item.is_dir():
@@ -247,7 +285,7 @@ class TechDebtTracker:
 
         # Look for tech debt templates
         self.project_path / "tooling" / "docs" / "templates"
-        debt_pattern = re.compile(r'(tech[_-]?debt|DEBT)', re.IGNORECASE)
+        debt_pattern = re.compile(r"(tech[_-]?debt|DEBT)", re.IGNORECASE)
 
         # Search common locations
         search_paths = [
@@ -260,10 +298,12 @@ class TechDebtTracker:
             if search_path.exists():
                 for md_file in search_path.rglob("*.md"):
                     if debt_pattern.search(md_file.name):
-                        documented.append({
-                            "file": str(md_file.relative_to(self.project_path)),
-                            "type": "documentation",
-                        })
+                        documented.append(
+                            {
+                                "file": str(md_file.relative_to(self.project_path)),
+                                "type": "documentation",
+                            }
+                        )
 
         return documented
 
@@ -295,12 +335,14 @@ class TechDebtTracker:
                 history = []
 
         # Add new entry
-        history.append({
-            "date": report.scan_date,
-            "total": report.total_count,
-            "score": report.debt_score,
-            "by_severity": report.by_severity,
-        })
+        history.append(
+            {
+                "date": report.scan_date,
+                "total": report.total_count,
+                "score": report.debt_score,
+                "by_severity": report.by_severity,
+            }
+        )
 
         # Keep last 100 entries
         history = history[-100:]
@@ -355,7 +397,9 @@ def print_dashboard(report: DebtReport, history: list[dict[str, Any]]):
     # Category breakdown
     print(f"{Colors.BOLD}📁 BY CATEGORY{Colors.NC}")
     for category, count in sorted(report.by_category.items(), key=lambda x: -x[1]):
-        bar_length = int((count / max(report.by_category.values())) * 30) if report.by_category else 0
+        bar_length = (
+            int((count / max(report.by_category.values())) * 30) if report.by_category else 0
+        )
         bar = "█" * bar_length
         print(f"  {category:>15} │ {bar} {count}")
     print()
@@ -386,7 +430,9 @@ def print_dashboard(report: DebtReport, history: list[dict[str, Any]]):
             if change > 0:
                 print(f"\n  {Colors.RED}↑ Score increased by {change} (more debt){Colors.NC}")
             elif change < 0:
-                print(f"\n  {Colors.GREEN}↓ Score decreased by {abs(change)} (less debt){Colors.NC}")
+                print(
+                    f"\n  {Colors.GREEN}↓ Score decreased by {abs(change)} (less debt){Colors.NC}"
+                )
             else:
                 print(f"\n  {Colors.YELLOW}→ Score unchanged{Colors.NC}")
         print()
@@ -432,7 +478,9 @@ def print_report(report: DebtReport):
                 "low": Colors.GREEN,
             }.get(item.severity, Colors.NC)
 
-            print(f"   {severity_color}[{item.debt_type}]{Colors.NC} Line {item.line_number}: {item.message[:60]}")
+            print(
+                f"   {severity_color}[{item.debt_type}]{Colors.NC} Line {item.line_number}: {item.message[:60]}"
+            )
         print()
 
     # Documented debt
@@ -471,11 +519,13 @@ def generate_markdown_report(report: DebtReport) -> str:
     for category, count in sorted(report.by_category.items(), key=lambda x: -x[1]):
         lines.append(f"| {category} | {count} |")
 
-    lines.extend([
-        "",
-        "## All Items",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## All Items",
+            "",
+        ]
+    )
 
     # Group by file
     by_file: dict[str, list[DebtItem]] = {}
@@ -543,7 +593,9 @@ def main():
         print(generate_markdown_report(report))
     elif args.trend:
         if not history:
-            print(f"{Colors.YELLOW}No historical data available. Run with --save to start tracking.{Colors.NC}")
+            print(
+                f"{Colors.YELLOW}No historical data available. Run with --save to start tracking.{Colors.NC}"
+            )
         else:
             print_dashboard(report, history)
     elif args.report:

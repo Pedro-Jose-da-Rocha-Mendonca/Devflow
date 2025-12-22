@@ -28,41 +28,43 @@ from currency_converter import CurrencyConverter, get_converter
 
 class Colors:
     """ANSI color codes for terminal output."""
+
     # Reset
-    RESET = '\033[0m'
+    RESET = "\033[0m"
 
     # Regular colors
-    BLACK = '\033[30m'
-    RED = '\033[31m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'
-    BLUE = '\033[34m'
-    MAGENTA = '\033[35m'
-    CYAN = '\033[36m'
-    WHITE = '\033[37m'
+    BLACK = "\033[30m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    MAGENTA = "\033[35m"
+    CYAN = "\033[36m"
+    WHITE = "\033[37m"
 
     # Bold colors
-    BOLD = '\033[1m'
-    BOLD_RED = '\033[1;31m'
-    BOLD_GREEN = '\033[1;32m'
-    BOLD_YELLOW = '\033[1;33m'
-    BOLD_BLUE = '\033[1;34m'
-    BOLD_CYAN = '\033[1;36m'
-    BOLD_WHITE = '\033[1;37m'
+    BOLD = "\033[1m"
+    BOLD_RED = "\033[1;31m"
+    BOLD_GREEN = "\033[1;32m"
+    BOLD_YELLOW = "\033[1;33m"
+    BOLD_BLUE = "\033[1;34m"
+    BOLD_CYAN = "\033[1;36m"
+    BOLD_WHITE = "\033[1;37m"
 
     # Background
-    BG_RED = '\033[41m'
-    BG_GREEN = '\033[42m'
-    BG_YELLOW = '\033[43m'
+    BG_RED = "\033[41m"
+    BG_GREEN = "\033[42m"
+    BG_YELLOW = "\033[43m"
 
     # Dim
-    DIM = '\033[2m'
+    DIM = "\033[2m"
 
     @staticmethod
     def strip(text: str) -> str:
         """Remove ANSI codes from text."""
         import re
-        return re.sub(r'\033\[[0-9;]*m', '', text)
+
+        return re.sub(r"\033\[[0-9;]*m", "", text)
 
 
 class CostDisplay:
@@ -73,15 +75,15 @@ class CostDisplay:
     """
 
     # Box drawing characters
-    BOX_TOP_LEFT = '╔'
-    BOX_TOP_RIGHT = '╗'
-    BOX_BOTTOM_LEFT = '╚'
-    BOX_BOTTOM_RIGHT = '╝'
-    BOX_HORIZONTAL = '═'
-    BOX_VERTICAL = '║'
-    BOX_T_LEFT = '╠'
-    BOX_T_RIGHT = '╣'
-    BOX_LINE = '─'
+    BOX_TOP_LEFT = "╔"
+    BOX_TOP_RIGHT = "╗"
+    BOX_BOTTOM_LEFT = "╚"
+    BOX_BOTTOM_RIGHT = "╝"
+    BOX_HORIZONTAL = "═"
+    BOX_VERTICAL = "║"
+    BOX_T_LEFT = "╠"
+    BOX_T_RIGHT = "╣"
+    BOX_LINE = "─"
 
     def __init__(
         self,
@@ -89,7 +91,7 @@ class CostDisplay:
         converter: Optional[CurrencyConverter] = None,
         width: int = 70,
         compact: bool = False,
-        display_currency: Optional[str] = None
+        display_currency: Optional[str] = None,
     ):
         """
         Initialize display.
@@ -110,7 +112,7 @@ class CostDisplay:
         self.last_refresh = None
 
         # Get display currency from environment or parameter
-        self.display_currency = display_currency or os.environ.get('COST_DISPLAY_CURRENCY')
+        self.display_currency = display_currency or os.environ.get("COST_DISPLAY_CURRENCY")
 
     def _box_line(self, left: str, right: str, fill: str = BOX_HORIZONTAL) -> str:
         """Create a box line."""
@@ -186,10 +188,16 @@ class CostDisplay:
         lines = []
 
         # Header
-        lines.append(f"{Colors.CYAN}{self._box_line(self.BOX_TOP_LEFT, self.BOX_TOP_RIGHT)}{Colors.RESET}")
+        lines.append(
+            f"{Colors.CYAN}{self._box_line(self.BOX_TOP_LEFT, self.BOX_TOP_RIGHT)}{Colors.RESET}"
+        )
         title = f"COST MONITOR - Story: {session.story_key}"
-        lines.append(f"{Colors.CYAN}{self._content_line(Colors.BOLD + title + Colors.RESET, 'center')}{Colors.RESET}")
-        lines.append(f"{Colors.CYAN}{self._box_line(self.BOX_T_LEFT, self.BOX_T_RIGHT)}{Colors.RESET}")
+        lines.append(
+            f"{Colors.CYAN}{self._content_line(Colors.BOLD + title + Colors.RESET, 'center')}{Colors.RESET}"
+        )
+        lines.append(
+            f"{Colors.CYAN}{self._box_line(self.BOX_T_LEFT, self.BOX_T_RIGHT)}{Colors.RESET}"
+        )
 
         # Current Session Info
         lines.append(self._empty_line())
@@ -199,12 +207,16 @@ class CostDisplay:
         model = self.tracker.current_model or "N/A"
         elapsed = self._format_elapsed()
 
-        lines.append(self._content_line(
-            f"Agent: {Colors.BOLD_CYAN}{agent:20}{Colors.RESET} Model: {Colors.BOLD_BLUE}{model}{Colors.RESET}"
-        ))
-        lines.append(self._content_line(
-            f"Status: {Colors.BOLD_GREEN}Running{Colors.RESET}               Elapsed: {Colors.BOLD}{elapsed}{Colors.RESET}"
-        ))
+        lines.append(
+            self._content_line(
+                f"Agent: {Colors.BOLD_CYAN}{agent:20}{Colors.RESET} Model: {Colors.BOLD_BLUE}{model}{Colors.RESET}"
+            )
+        )
+        lines.append(
+            self._content_line(
+                f"Status: {Colors.BOLD_GREEN}Running{Colors.RESET}               Elapsed: {Colors.BOLD}{elapsed}{Colors.RESET}"
+            )
+        )
 
         # Tokens
         lines.append(self._empty_line())
@@ -214,13 +226,17 @@ class CostDisplay:
         output_tokens = self._format_tokens(session.total_output_tokens)
         total_tokens = self._format_tokens(session.total_tokens)
 
-        lines.append(self._content_line(
-            f"Input:  {Colors.BOLD}{input_tokens:>12} tokens{Colors.RESET}    "
-            f"Output: {Colors.BOLD}{output_tokens:>12} tokens{Colors.RESET}"
-        ))
-        lines.append(self._content_line(
-            f"Total:  {Colors.BOLD_WHITE}{total_tokens:>12} tokens{Colors.RESET}"
-        ))
+        lines.append(
+            self._content_line(
+                f"Input:  {Colors.BOLD}{input_tokens:>12} tokens{Colors.RESET}    "
+                f"Output: {Colors.BOLD}{output_tokens:>12} tokens{Colors.RESET}"
+            )
+        )
+        lines.append(
+            self._content_line(
+                f"Total:  {Colors.BOLD_WHITE}{total_tokens:>12} tokens{Colors.RESET}"
+            )
+        )
 
         # Cost Breakdown by Agent
         if not self.compact:
@@ -228,9 +244,11 @@ class CostDisplay:
             lines.append(self._section_header("COST BREAKDOWN"))
 
             # Table header
-            lines.append(self._content_line(
-                f"{Colors.DIM}{'Agent':<10} {'Model':<10} {'Input $':>10} {'Output $':>10} {'Total':>10}{Colors.RESET}"
-            ))
+            lines.append(
+                self._content_line(
+                    f"{Colors.DIM}{'Agent':<10} {'Model':<10} {'Input $':>10} {'Output $':>10} {'Total':>10}{Colors.RESET}"
+                )
+            )
             lines.append(self._content_line(f"{Colors.DIM}{self.BOX_LINE * 54}{Colors.RESET}"))
 
             # Aggregate by agent+model
@@ -238,7 +256,13 @@ class CostDisplay:
             for entry in session.entries:
                 key = (entry.agent, entry.model)
                 if key not in breakdown:
-                    breakdown[key] = {"input": 0, "output": 0, "cost": 0, "input_tokens": 0, "output_tokens": 0}
+                    breakdown[key] = {
+                        "input": 0,
+                        "output": 0,
+                        "cost": 0,
+                        "input_tokens": 0,
+                        "output_tokens": 0,
+                    }
 
                 breakdown[key]["input_tokens"] += entry.input_tokens
                 breakdown[key]["output_tokens"] += entry.output_tokens
@@ -264,19 +288,23 @@ class CostDisplay:
                 data["output"] = output_cost
 
             for (agent, model), data in breakdown.items():
-                lines.append(self._content_line(
-                    f"{agent:<10} {model:<10} "
-                    f"${data['input']:>8.2f} ${data['output']:>8.2f} "
-                    f"{Colors.BOLD}${data['cost']:>8.2f}{Colors.RESET}"
-                ))
+                lines.append(
+                    self._content_line(
+                        f"{agent:<10} {model:<10} "
+                        f"${data['input']:>8.2f} ${data['output']:>8.2f} "
+                        f"{Colors.BOLD}${data['cost']:>8.2f}{Colors.RESET}"
+                    )
+                )
 
             # Total row
             total_cost = session.total_cost_usd
             lines.append(self._content_line(f"{Colors.DIM}{self.BOX_LINE * 54}{Colors.RESET}"))
-            lines.append(self._content_line(
-                f"{Colors.BOLD}{'TOTAL':<10} {'':10} "
-                f"{'':>10} {'':>10} ${total_cost:>8.2f}{Colors.RESET}"
-            ))
+            lines.append(
+                self._content_line(
+                    f"{Colors.BOLD}{'TOTAL':<10} {'':10} "
+                    f"{'':>10} {'':>10} ${total_cost:>8.2f}{Colors.RESET}"
+                )
+            )
 
         # Budget
         lines.append(self._empty_line())
@@ -285,11 +313,13 @@ class CostDisplay:
         budget_pct = session.budget_used_percent
         budget_color = self._get_budget_color(budget_pct)
 
-        lines.append(self._content_line(
-            f"Limit: {Colors.BOLD}${session.budget_limit_usd:.2f}{Colors.RESET}    "
-            f"Used: {budget_color}${session.total_cost_usd:.2f}{Colors.RESET}    "
-            f"Remaining: {Colors.BOLD}${session.budget_remaining:.2f}{Colors.RESET}"
-        ))
+        lines.append(
+            self._content_line(
+                f"Limit: {Colors.BOLD}${session.budget_limit_usd:.2f}{Colors.RESET}    "
+                f"Used: {budget_color}${session.total_cost_usd:.2f}{Colors.RESET}    "
+                f"Remaining: {Colors.BOLD}${session.budget_remaining:.2f}{Colors.RESET}"
+            )
+        )
         lines.append(self._content_line(self._progress_bar(budget_pct)))
 
         # Budget status message
@@ -309,14 +339,18 @@ class CostDisplay:
         else:
             # Show all currencies
             lines.append(self._section_header("MULTI-CURRENCY"))
-            lines.append(self._content_line(self.converter.format_all(session.total_cost_usd, " │ ")))
+            lines.append(
+                self._content_line(self.converter.format_all(session.total_cost_usd, " │ "))
+            )
 
         # Footer
         lines.append(self._empty_line())
-        lines.append(f"{Colors.CYAN}{self._box_line(self.BOX_BOTTOM_LEFT, self.BOX_BOTTOM_RIGHT)}{Colors.RESET}")
+        lines.append(
+            f"{Colors.CYAN}{self._box_line(self.BOX_BOTTOM_LEFT, self.BOX_BOTTOM_RIGHT)}{Colors.RESET}"
+        )
         lines.append(f"{Colors.DIM}Press Ctrl+C to stop monitoring{Colors.RESET}")
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     def refresh(self, clear: bool = True):
         """Refresh the display."""
@@ -328,18 +362,18 @@ class CostDisplay:
 
     def clear_screen(self):
         """Clear the terminal screen."""
-        if sys.platform == 'win32':
-            os.system('cls')
+        if sys.platform == "win32":
+            os.system("cls")
         else:
-            os.system('clear')
+            os.system("clear")
             # Alternative: print ANSI escape
             # print('\033[2J\033[H', end='')
 
     def update_in_place(self):
         """Update display in place without full clear."""
         # Move cursor to top
-        lines = self.render().count('\n') + 1
-        print(f'\033[{lines}A', end='')
+        lines = self.render().count("\n") + 1
+        print(f"\033[{lines}A", end="")
         print(self.render())
 
 
@@ -350,12 +384,12 @@ class CompactCostDisplay:
         self,
         tracker: CostTracker,
         converter: Optional[CurrencyConverter] = None,
-        display_currency: Optional[str] = None
+        display_currency: Optional[str] = None,
     ):
         self.tracker = tracker
         self.converter = converter or get_converter()
         # Get display currency from environment or parameter
-        self.display_currency = display_currency or os.environ.get('COST_DISPLAY_CURRENCY', 'USD')
+        self.display_currency = display_currency or os.environ.get("COST_DISPLAY_CURRENCY", "USD")
 
     def render(self) -> str:
         """Render compact display."""
@@ -382,7 +416,7 @@ class CompactCostDisplay:
 
     def print(self):
         """Print compact display."""
-        print(f"\r{self.render()}", end='', flush=True)
+        print(f"\r{self.render()}", end="", flush=True)
 
 
 if __name__ == "__main__":
@@ -404,6 +438,6 @@ if __name__ == "__main__":
 
     # Compact display
     compact = CompactCostDisplay(tracker)
-    print("Compact: ", end='')
+    print("Compact: ", end="")
     compact.print()
     print()

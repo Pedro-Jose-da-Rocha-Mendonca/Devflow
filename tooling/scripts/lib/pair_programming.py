@@ -39,31 +39,34 @@ except ImportError:
 
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-CLAUDE_CLI = "claude.cmd" if sys.platform == 'win32' else "claude"
+CLAUDE_CLI = "claude.cmd" if sys.platform == "win32" else "claude"
 
 
 class ChunkType(Enum):
     """Types of code chunks."""
-    DESIGN = "design"          # Architecture/design decision
+
+    DESIGN = "design"  # Architecture/design decision
     IMPLEMENTATION = "implementation"  # Core code
-    TEST = "test"              # Test code
-    REFACTOR = "refactor"      # Refactoring
-    FIX = "fix"                # Bug fix
+    TEST = "test"  # Test code
+    REFACTOR = "refactor"  # Refactoring
+    FIX = "fix"  # Bug fix
     DOCUMENTATION = "documentation"  # Docs/comments
 
 
 class FeedbackType(Enum):
     """Types of reviewer feedback."""
-    APPROVE = "approve"        # Good to proceed
-    MINOR = "minor"            # Minor issues, can proceed
-    MAJOR = "major"            # Major issues, must fix
-    BLOCKING = "blocking"      # Cannot proceed until fixed
-    QUESTION = "question"      # Needs clarification
+
+    APPROVE = "approve"  # Good to proceed
+    MINOR = "minor"  # Minor issues, can proceed
+    MAJOR = "major"  # Major issues, must fix
+    BLOCKING = "blocking"  # Cannot proceed until fixed
+    QUESTION = "question"  # Needs clarification
 
 
 @dataclass
 class CodeChunk:
     """A chunk of code being developed."""
+
     chunk_id: str
     chunk_type: ChunkType
     description: str
@@ -80,13 +83,14 @@ class CodeChunk:
             "content": self.content[:500] + "..." if len(self.content) > 500 else self.content,
             "file_path": self.file_path,
             "line_range": self.line_range,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
         }
 
 
 @dataclass
 class ReviewFeedback:
     """Feedback from reviewer on a chunk."""
+
     chunk_id: str
     feedback_type: FeedbackType
     comments: list[str]
@@ -105,7 +109,7 @@ class ReviewFeedback:
             "must_fix": self.must_fix,
             "nice_to_have": self.nice_to_have,
             "approved": self.approved,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
         }
 
     def has_blocking_issues(self) -> bool:
@@ -115,6 +119,7 @@ class ReviewFeedback:
 @dataclass
 class PairExchange:
     """A single exchange in the pair programming session."""
+
     exchange_id: int
     chunk: CodeChunk
     feedback: Optional[ReviewFeedback] = None
@@ -127,13 +132,14 @@ class PairExchange:
             "chunk": self.chunk.to_dict(),
             "feedback": self.feedback.to_dict() if self.feedback else None,
             "revision": self.revision.to_dict() if self.revision else None,
-            "resolved": self.resolved
+            "resolved": self.resolved,
         }
 
 
 @dataclass
 class PairSessionResult:
     """Result of a pair programming session."""
+
     story_key: str
     task: str
     exchanges: list[PairExchange]
@@ -151,14 +157,16 @@ class PairSessionResult:
             "story_key": self.story_key,
             "task": self.task,
             "exchanges": [e.to_dict() for e in self.exchanges],
-            "final_code": self.final_code[:1000] if len(self.final_code) > 1000 else self.final_code,
+            "final_code": self.final_code[:1000]
+            if len(self.final_code) > 1000
+            else self.final_code,
             "files_created": self.files_created,
             "files_modified": self.files_modified,
             "total_chunks": self.total_chunks,
             "total_revisions": self.total_revisions,
             "approval_rate": self.approval_rate,
             "start_time": self.start_time,
-            "end_time": self.end_time
+            "end_time": self.end_time,
         }
 
     def to_summary(self) -> str:
@@ -190,6 +198,7 @@ class PairSessionResult:
 @dataclass
 class PairConfig:
     """Configuration for pair programming session."""
+
     max_revisions_per_chunk: int = 3
     timeout_seconds: int = 180
     verbose: bool = True
@@ -205,15 +214,14 @@ class PairConfig:
             "auto_apply_fixes": self.auto_apply_fixes,
             "chunk_size_hint": self.chunk_size_hint,
             "reviewer_model": self.reviewer_model,
-            "dev_model": self.dev_model
+            "dev_model": self.dev_model,
         }
 
 
 class PairSession:
     """A pair programming session between DEV and REVIEWER."""
 
-    def __init__(self, story_key: str, task: str,
-                 config: Optional[PairConfig] = None):
+    def __init__(self, story_key: str, task: str, config: Optional[PairConfig] = None):
         self.story_key = story_key
         self.task = task
         self.config = config or PairConfig()
@@ -244,7 +252,7 @@ class PairSession:
                 capture_output=True,
                 text=True,
                 timeout=self.config.timeout_seconds,
-                cwd=str(self.project_root)
+                cwd=str(self.project_root),
             )
             return result.stdout + result.stderr
         except subprocess.TimeoutExpired:
@@ -264,23 +272,23 @@ class PairSession:
         file_path = file_match.group(1) if file_match else None
 
         # Try to extract code blocks
-        code_blocks = re.findall(r'```[\w]*\n(.*?)```', output, re.DOTALL)
+        code_blocks = re.findall(r"```[\w]*\n(.*?)```", output, re.DOTALL)
         content = "\n\n".join(code_blocks) if code_blocks else output
 
         # Determine chunk type
         chunk_type = ChunkType.IMPLEMENTATION
         output_lower = output.lower()
-        if 'test' in output_lower:
+        if "test" in output_lower:
             chunk_type = ChunkType.TEST
-        elif 'refactor' in output_lower:
+        elif "refactor" in output_lower:
             chunk_type = ChunkType.REFACTOR
-        elif 'design' in output_lower or 'architecture' in output_lower:
+        elif "design" in output_lower or "architecture" in output_lower:
             chunk_type = ChunkType.DESIGN
-        elif 'fix' in output_lower or 'bug' in output_lower:
+        elif "fix" in output_lower or "bug" in output_lower:
             chunk_type = ChunkType.FIX
 
         # Extract description
-        desc_match = re.search(r'^#+\s*(.+)$', output, re.MULTILINE)
+        desc_match = re.search(r"^#+\s*(.+)$", output, re.MULTILINE)
         description = desc_match.group(1) if desc_match else "Code implementation"
 
         return CodeChunk(
@@ -288,7 +296,7 @@ class PairSession:
             chunk_type=chunk_type,
             description=description[:100],
             content=content,
-            file_path=file_path
+            file_path=file_path,
         )
 
     def _parse_reviewer_output(self, output: str, chunk_id: str) -> ReviewFeedback:
@@ -296,13 +304,13 @@ class PairSession:
         output_lower = output.lower()
 
         # Determine feedback type
-        if any(word in output_lower for word in ['blocking', 'cannot proceed', 'critical']):
+        if any(word in output_lower for word in ["blocking", "cannot proceed", "critical"]):
             feedback_type = FeedbackType.BLOCKING
-        elif any(word in output_lower for word in ['major', 'significant', 'must fix']):
+        elif any(word in output_lower for word in ["major", "significant", "must fix"]):
             feedback_type = FeedbackType.MAJOR
-        elif any(word in output_lower for word in ['minor', 'small', 'nitpick']):
+        elif any(word in output_lower for word in ["minor", "small", "nitpick"]):
             feedback_type = FeedbackType.MINOR
-        elif any(word in output_lower for word in ['question', 'clarify', 'unclear']):
+        elif any(word in output_lower for word in ["question", "clarify", "unclear"]):
             feedback_type = FeedbackType.QUESTION
         else:
             feedback_type = FeedbackType.APPROVE
@@ -310,8 +318,8 @@ class PairSession:
         # Extract comments
         comments = []
         comment_patterns = [
-            r'[-•]\s*(.+)',
-            r'\d+\.\s*(.+)',
+            r"[-•]\s*(.+)",
+            r"\d+\.\s*(.+)",
         ]
         for pattern in comment_patterns:
             matches = re.findall(pattern, output)
@@ -319,24 +327,25 @@ class PairSession:
 
         # Extract must-fix issues
         must_fix = []
-        must_fix_section = re.search(r'(?:must fix|blocking|required).*?:(.*?)(?:\n\n|\Z)',
-                                     output, re.IGNORECASE | re.DOTALL)
+        must_fix_section = re.search(
+            r"(?:must fix|blocking|required).*?:(.*?)(?:\n\n|\Z)", output, re.IGNORECASE | re.DOTALL
+        )
         if must_fix_section:
-            issues = re.findall(r'[-•]\s*(.+)', must_fix_section.group(1))
+            issues = re.findall(r"[-•]\s*(.+)", must_fix_section.group(1))
             must_fix.extend(issues)
 
         # Extract suggestions
         suggestions = []
-        suggestion_section = re.search(r'(?:suggest|consider|recommend).*?:(.*?)(?:\n\n|\Z)',
-                                       output, re.IGNORECASE | re.DOTALL)
+        suggestion_section = re.search(
+            r"(?:suggest|consider|recommend).*?:(.*?)(?:\n\n|\Z)", output, re.IGNORECASE | re.DOTALL
+        )
         if suggestion_section:
-            sugs = re.findall(r'[-•]\s*(.+)', suggestion_section.group(1))
+            sugs = re.findall(r"[-•]\s*(.+)", suggestion_section.group(1))
             suggestions.extend(sugs)
 
         # Check for approval
-        approved = (
-            feedback_type == FeedbackType.APPROVE or
-            any(word in output_lower for word in ['lgtm', 'approved', 'looks good', 'ship it'])
+        approved = feedback_type == FeedbackType.APPROVE or any(
+            word in output_lower for word in ["lgtm", "approved", "looks good", "ship it"]
         )
 
         return ReviewFeedback(
@@ -345,11 +354,12 @@ class PairSession:
             comments=comments[:10],
             suggestions=suggestions[:5],
             must_fix=must_fix[:5],
-            approved=approved
+            approved=approved,
         )
 
-    def _build_dev_prompt(self, task_part: str, context: str,
-                          previous_feedback: Optional[ReviewFeedback] = None) -> str:
+    def _build_dev_prompt(
+        self, task_part: str, context: str, previous_feedback: Optional[ReviewFeedback] = None
+    ) -> str:
         """Build prompt for DEV agent."""
 
         base_prompt = f"""You are in a PAIR PROGRAMMING session with a REVIEWER.
@@ -363,15 +373,17 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
 """
 
         if previous_feedback:
-            feedback_text = "\n".join([
-                "## Reviewer Feedback (address these)",
-                "",
-                "**Issues to Fix:**",
-                *[f"- ❌ {issue}" for issue in previous_feedback.must_fix],
-                "",
-                "**Suggestions:**",
-                *[f"- 💡 {sug}" for sug in previous_feedback.suggestions],
-            ])
+            feedback_text = "\n".join(
+                [
+                    "## Reviewer Feedback (address these)",
+                    "",
+                    "**Issues to Fix:**",
+                    *[f"- ❌ {issue}" for issue in previous_feedback.must_fix],
+                    "",
+                    "**Suggestions:**",
+                    *[f"- 💡 {sug}" for sug in previous_feedback.suggestions],
+                ]
+            )
             base_prompt += f"\n\n{feedback_text}\n"
 
         base_prompt += """
@@ -384,8 +396,7 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
 
         return base_prompt
 
-    def _build_reviewer_prompt(self, chunk: CodeChunk,
-                               accumulated_code: str) -> str:
+    def _build_reviewer_prompt(self, chunk: CodeChunk, accumulated_code: str) -> str:
         """Build prompt for REVIEWER agent."""
 
         return f"""You are in a PAIR PROGRAMMING session reviewing DEV's work in real-time.
@@ -393,7 +404,7 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
 ## Current Chunk to Review
 **Type**: {chunk.chunk_type.value}
 **Description**: {chunk.description}
-**File**: {chunk.file_path or 'Not specified'}
+**File**: {chunk.file_path or "Not specified"}
 
 ```
 {chunk.content}
@@ -436,7 +447,7 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
         approved_chunks = 0
 
         for i, task_part in enumerate(task_parts):
-            self._log(f"Working on part {i+1}/{len(task_parts)}")
+            self._log(f"Working on part {i + 1}/{len(task_parts)}")
 
             # Get initial context
             context = f"Story: {self.story_key}\n"
@@ -452,8 +463,10 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
 
             # Track file
             if chunk.file_path:
-                if chunk.file_path not in self.files_created and \
-                   chunk.file_path not in self.files_modified:
+                if (
+                    chunk.file_path not in self.files_created
+                    and chunk.file_path not in self.files_modified
+                ):
                     self.files_created.append(chunk.file_path)
 
             accumulated_code += f"\n\n// {chunk.description}\n{chunk.content}"
@@ -470,15 +483,16 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
                 exchange_id=self.exchange_counter,
                 chunk=chunk,
                 feedback=feedback,
-                resolved=feedback.approved
+                resolved=feedback.approved,
             )
             self.exchange_counter += 1
 
             # Revision loop if needed
             revision_count = 0
-            while feedback.has_blocking_issues() and \
-                  revision_count < self.config.max_revisions_per_chunk:
-
+            while (
+                feedback.has_blocking_issues()
+                and revision_count < self.config.max_revisions_per_chunk
+            ):
                 revision_count += 1
                 total_revisions += 1
                 self._log(f"Revision {revision_count} needed", "SYSTEM")
@@ -492,7 +506,9 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
                 exchange.revision = revised_chunk
 
                 # Update accumulated code
-                accumulated_code += f"\n\n// Revision: {revised_chunk.description}\n{revised_chunk.content}"
+                accumulated_code += (
+                    f"\n\n// Revision: {revised_chunk.description}\n{revised_chunk.content}"
+                )
 
                 # REVIEWER re-reviews
                 self._log("Re-reviewing...", "REVIEWER")
@@ -517,7 +533,7 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
             self.shared_memory.add(
                 agent="PAIR",
                 content=f"Completed chunk: {chunk.description} ({feedback.feedback_type.value})",
-                tags=["pair-programming", "chunk"]
+                tags=["pair-programming", "chunk"],
             )
 
         # Calculate approval rate
@@ -537,20 +553,18 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
             total_revisions=total_revisions,
             approval_rate=approval_rate,
             start_time=start_time,
-            end_time=datetime.now().isoformat()
+            end_time=datetime.now().isoformat(),
         )
 
 
 # Convenience functions
-def start_pair_session(story_key: str, task: str,
-                       **config_kwargs) -> PairSession:
+def start_pair_session(story_key: str, task: str, **config_kwargs) -> PairSession:
     """Start a new pair programming session."""
     config = PairConfig(**config_kwargs)
     return PairSession(story_key, task, config)
 
 
-def run_pair_session(story_key: str, task: str,
-                     **config_kwargs) -> PairSessionResult:
+def run_pair_session(story_key: str, task: str, **config_kwargs) -> PairSessionResult:
     """Run a complete pair programming session."""
     session = start_pair_session(story_key, task, **config_kwargs)
     return session.run()

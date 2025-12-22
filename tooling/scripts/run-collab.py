@@ -66,7 +66,7 @@ def detect_claude_cli() -> Optional[str]:
             Path(os.environ.get("LOCALAPPDATA", "")) / "Programs" / "claude" / "claude.exe",
             Path(os.environ.get("PROGRAMFILES", "")) / "Claude" / "claude.exe",
             Path.home() / ".claude" / "local" / "claude.exe",
-            Path.home() / "AppData" / "Local" / "Programs" / "claude" / "claude.exe"
+            Path.home() / "AppData" / "Local" / "Programs" / "claude" / "claude.exe",
         ]
     else:
         # macOS and Linux
@@ -74,7 +74,7 @@ def detect_claude_cli() -> Optional[str]:
             Path.home() / ".claude" / "local" / "claude",
             Path("/usr/local/bin/claude"),
             Path("/opt/claude/bin/claude"),
-            Path.home() / ".local" / "bin" / "claude"
+            Path.home() / ".local" / "bin" / "claude",
         ]
 
     for path in possible_paths:
@@ -101,6 +101,7 @@ def get_shell_quote(s: str) -> str:
     else:
         # Unix: Use shlex.quote
         import shlex
+
         return shlex.quote(s)
 
 
@@ -118,7 +119,7 @@ def normalize_path(path: Path) -> Path:
 
     # On Windows, ensure we use the correct separators
     if IS_WINDOWS:
-        return Path(str(path).replace('/', '\\'))
+        return Path(str(path).replace("/", "\\"))
     return path
 
 
@@ -154,6 +155,7 @@ def get_cache_dir() -> Path:
         xdg_cache = os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")
         return Path(xdg_cache) / "devflow"
 
+
 # Import collaboration modules
 from lib.agent_handoff import HandoffGenerator, create_handoff  # noqa: E402
 from lib.agent_router import AgentRouter, RoutingResult  # noqa: E402
@@ -170,6 +172,7 @@ class Colors:
     if IS_WINDOWS:
         try:
             import ctypes
+
             kernel32 = ctypes.windll.kernel32
             kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
         except Exception:
@@ -177,29 +180,29 @@ class Colors:
 
     # Check if colors should be enabled
     _use_colors = (
-        sys.stdout.isatty() and
-        os.environ.get("NO_COLOR") is None and
-        os.environ.get("TERM") != "dumb"
+        sys.stdout.isatty()
+        and os.environ.get("NO_COLOR") is None
+        and os.environ.get("TERM") != "dumb"
     )
 
     if _use_colors:
-        HEADER = '\033[95m'
-        BLUE = '\033[94m'
-        CYAN = '\033[96m'
-        GREEN = '\033[92m'
-        YELLOW = '\033[93m'
-        RED = '\033[91m'
-        BOLD = '\033[1m'
-        END = '\033[0m'
+        HEADER = "\033[95m"
+        BLUE = "\033[94m"
+        CYAN = "\033[96m"
+        GREEN = "\033[92m"
+        YELLOW = "\033[93m"
+        RED = "\033[91m"
+        BOLD = "\033[1m"
+        END = "\033[0m"
     else:
-        HEADER = ''
-        BLUE = ''
-        CYAN = ''
-        GREEN = ''
-        YELLOW = ''
-        RED = ''
-        BOLD = ''
-        END = ''
+        HEADER = ""
+        BLUE = ""
+        CYAN = ""
+        GREEN = ""
+        YELLOW = ""
+        RED = ""
+        BOLD = ""
+        END = ""
 
 
 def print_banner():
@@ -256,7 +259,7 @@ def run_swarm_mode(story_key: str, task: str, agents: list[str], args: argparse.
         consensus_type=ConsensusType[args.consensus.upper()],
         parallel_execution=args.parallel,
         verbose=not args.quiet,
-        budget_limit_usd=args.budget
+        budget_limit_usd=args.budget,
     )
 
     orchestrator = SwarmOrchestrator(story_key, config)
@@ -279,7 +282,7 @@ def run_pair_mode(story_key: str, task: str, args: argparse.Namespace):
         max_revisions_per_chunk=args.max_revisions,
         verbose=not args.quiet,
         dev_model=args.model,
-        reviewer_model=args.model
+        reviewer_model=args.model,
     )
 
     session = PairSession(story_key, task, config)
@@ -320,7 +323,7 @@ def run_sequential_mode(story_key: str, task: str, agents: list[str], args: argp
 {task}
 
 ## Previous Work
-{previous_output[:2000] if previous_output else 'This is the first step.'}
+{previous_output[:2000] if previous_output else "This is the first step."}
 
 Complete your part of this task according to your role.
 """
@@ -330,24 +333,23 @@ Complete your part of this task according to your role.
 
         # For demo, we'll note the handoff
         if i > 0:
-            prev_agent = agents[i-1]
+            prev_agent = agents[i - 1]
             handoff = create_handoff(
                 from_agent=prev_agent,
                 to_agent=agent,
                 story_key=story_key,
-                summary=f"Completed {prev_agent} phase, handing off to {agent}"
+                summary=f"Completed {prev_agent} phase, handing off to {agent}",
             )
             print(f"  → Handoff from {prev_agent}: {handoff.id}")
 
         # Record in shared memory
-        share_learning(agent, f"Processed task: {task[:50]}...", story_key,
-                       tags=["sequential", agent.lower()])
+        share_learning(
+            agent, f"Processed task: {task[:50]}...", story_key, tags=["sequential", agent.lower()]
+        )
 
-        results.append({
-            "agent": agent,
-            "status": "completed",
-            "timestamp": datetime.now().isoformat()
-        })
+        results.append(
+            {"agent": agent, "status": "completed", "timestamp": datetime.now().isoformat()}
+        )
 
     print(f"\n{Colors.GREEN}✅ Sequential pipeline complete!{Colors.END}")
 
@@ -371,14 +373,20 @@ def save_result(story_key: str, mode: str, result: dict):
 
     filepath = normalize_path(results_dir / filename)
 
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump({
-            "story_key": story_key,
-            "mode": mode,
-            "timestamp": datetime.now().isoformat(),
-            "platform": platform.system(),
-            "result": result
-        }, f, indent=2, default=str, ensure_ascii=False)
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "story_key": story_key,
+                "mode": mode,
+                "timestamp": datetime.now().isoformat(),
+                "platform": platform.system(),
+                "result": result,
+            },
+            f,
+            indent=2,
+            default=str,
+            ensure_ascii=False,
+        )
 
     print(f"\n{Colors.CYAN}📁 Result saved to: {filepath}{Colors.END}")
 
@@ -423,59 +431,71 @@ Examples:
   python run-collab.py "fix login bug" --auto
   python run-collab.py 3-5 --memory      # Show shared memory
   python run-collab.py 3-5 --query "What did ARCHITECT decide about auth?"
-        """
+        """,
     )
 
     # Positional argument
-    parser.add_argument('story_key', nargs='?', default=None,
-                        help='Story key or task description')
+    parser.add_argument("story_key", nargs="?", default=None, help="Story key or task description")
 
     # Mode selection
     mode_group = parser.add_mutually_exclusive_group()
-    mode_group.add_argument('--auto', action='store_true', default=True,
-                           help='Auto-route to best agents (default)')
-    mode_group.add_argument('--swarm', action='store_true',
-                           help='Multi-agent swarm/debate mode')
-    mode_group.add_argument('--pair', action='store_true',
-                           help='DEV + REVIEWER pair programming')
-    mode_group.add_argument('--sequential', action='store_true',
-                           help='Traditional sequential pipeline')
+    mode_group.add_argument(
+        "--auto", action="store_true", default=True, help="Auto-route to best agents (default)"
+    )
+    mode_group.add_argument("--swarm", action="store_true", help="Multi-agent swarm/debate mode")
+    mode_group.add_argument("--pair", action="store_true", help="DEV + REVIEWER pair programming")
+    mode_group.add_argument(
+        "--sequential", action="store_true", help="Traditional sequential pipeline"
+    )
 
     # Utility modes
-    parser.add_argument('--memory', action='store_true',
-                        help='Show shared memory and knowledge graph')
-    parser.add_argument('--query', type=str, metavar='QUESTION',
-                        help='Query the knowledge graph')
-    parser.add_argument('--route-only', action='store_true',
-                        help='Just show routing decision, don\'t execute')
+    parser.add_argument(
+        "--memory", action="store_true", help="Show shared memory and knowledge graph"
+    )
+    parser.add_argument("--query", type=str, metavar="QUESTION", help="Query the knowledge graph")
+    parser.add_argument(
+        "--route-only", action="store_true", help="Just show routing decision, don't execute"
+    )
 
     # Agent selection
-    parser.add_argument('--agents', type=str,
-                        help='Comma-separated list of agents (for swarm/sequential)')
+    parser.add_argument(
+        "--agents", type=str, help="Comma-separated list of agents (for swarm/sequential)"
+    )
 
     # Swarm options
-    parser.add_argument('--max-iterations', type=int, default=3,
-                        help='Maximum swarm iterations (default: 3)')
-    parser.add_argument('--consensus', type=str, default='reviewer_approval',
-                        choices=['unanimous', 'majority', 'quorum', 'reviewer_approval'],
-                        help='Consensus type (default: reviewer_approval)')
-    parser.add_argument('--parallel', action='store_true',
-                        help='Enable parallel agent execution')
+    parser.add_argument(
+        "--max-iterations", type=int, default=3, help="Maximum swarm iterations (default: 3)"
+    )
+    parser.add_argument(
+        "--consensus",
+        type=str,
+        default="reviewer_approval",
+        choices=["unanimous", "majority", "quorum", "reviewer_approval"],
+        help="Consensus type (default: reviewer_approval)",
+    )
+    parser.add_argument("--parallel", action="store_true", help="Enable parallel agent execution")
 
     # Pair programming options
-    parser.add_argument('--max-revisions', type=int, default=3,
-                        help='Max revisions per chunk in pair mode (default: 3)')
+    parser.add_argument(
+        "--max-revisions",
+        type=int,
+        default=3,
+        help="Max revisions per chunk in pair mode (default: 3)",
+    )
 
     # General options
-    parser.add_argument('--model', type=str, default='opus',
-                        choices=['opus', 'sonnet', 'haiku'],
-                        help='Claude model to use (default: opus)')
-    parser.add_argument('--budget', type=float, default=20.0,
-                        help='Budget limit in USD (default: 20.0)')
-    parser.add_argument('--quiet', '-q', action='store_true',
-                        help='Reduce output verbosity')
-    parser.add_argument('--task', type=str,
-                        help='Override task description')
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="opus",
+        choices=["opus", "sonnet", "haiku"],
+        help="Claude model to use (default: opus)",
+    )
+    parser.add_argument(
+        "--budget", type=float, default=20.0, help="Budget limit in USD (default: 20.0)"
+    )
+    parser.add_argument("--quiet", "-q", action="store_true", help="Reduce output verbosity")
+    parser.add_argument("--task", type=str, help="Override task description")
 
     return parser.parse_args()
 
@@ -523,11 +543,23 @@ def main():
     # Parse and validate agents if provided
     agents = None
     if args.agents:
-        agents = [a.strip().upper() for a in args.agents.split(',')]
-        valid_agents = {"SM", "DEV", "BA", "ARCHITECT", "PM", "WRITER", "MAINTAINER", "REVIEWER", "SECURITY"}
+        agents = [a.strip().upper() for a in args.agents.split(",")]
+        valid_agents = {
+            "SM",
+            "DEV",
+            "BA",
+            "ARCHITECT",
+            "PM",
+            "WRITER",
+            "MAINTAINER",
+            "REVIEWER",
+            "SECURITY",
+        }
         invalid_agents = [a for a in agents if a not in valid_agents]
         if invalid_agents:
-            print(f"\n{Colors.RED}Error: Invalid agent name(s): {', '.join(invalid_agents)}{Colors.END}")
+            print(
+                f"\n{Colors.RED}Error: Invalid agent name(s): {', '.join(invalid_agents)}{Colors.END}"
+            )
             print(f"Valid agents are: {', '.join(sorted(valid_agents))}")
             return 1
 
@@ -553,7 +585,7 @@ def main():
             print("Auto-Route")
             run_auto_mode(story_key, task, args)
 
-        print(f"\n{Colors.GREEN}{'═'*60}{Colors.END}")
+        print(f"\n{Colors.GREEN}{'═' * 60}{Colors.END}")
         print(f"{Colors.GREEN}✅ Collaboration complete!{Colors.END}")
         return 0
 
@@ -564,9 +596,10 @@ def main():
         print(f"\n{Colors.RED}❌ Error: {e}{Colors.END}")
         if not args.quiet:
             import traceback
+
             traceback.print_exc()
         return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

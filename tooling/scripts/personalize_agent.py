@@ -21,14 +21,15 @@ from typing import Optional
 
 # Colors for terminal output
 class Colors:
-    HEADER = '\033[95m'
-    BLUE = '\033[94m'
-    CYAN = '\033[96m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    END = '\033[0m'
-    BOLD = '\033[1m'
+    HEADER = "\033[95m"
+    BLUE = "\033[94m"
+    CYAN = "\033[96m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    END = "\033[0m"
+    BOLD = "\033[1m"
+
 
 # Find project paths
 SCRIPT_DIR = Path(__file__).parent.resolve()
@@ -73,12 +74,8 @@ def get_agent_templates(agent_name: str) -> list[dict]:
             if file.name != "README.md":
                 # Read first few lines to get description
                 content = file.read_text()
-                first_line = content.split('\n')[0].replace('#', '').strip()
-                templates.append({
-                    'name': file.stem,
-                    'path': file,
-                    'description': first_line
-                })
+                first_line = content.split("\n")[0].replace("#", "").strip()
+                templates.append({"name": file.stem, "path": file, "description": first_line})
 
     return templates
 
@@ -92,7 +89,9 @@ def prompt_choice(prompt: str, options: list[str], default: int = 0) -> int:
 
     while True:
         try:
-            response = input(f"\nEnter choice [1-{len(options)}] (default: {default + 1}): ").strip()
+            response = input(
+                f"\nEnter choice [1-{len(options)}] (default: {default + 1}): "
+            ).strip()
             if not response:
                 return default
             choice = int(response) - 1
@@ -109,13 +108,15 @@ def prompt_yes_no(prompt: str, default: bool = True) -> bool:
     response = input(f"{Colors.YELLOW}{prompt} [{default_str}]: {Colors.END}").strip().lower()
     if not response:
         return default
-    return response in ('y', 'yes')
+    return response in ("y", "yes")
 
 
 def prompt_input(prompt: str, default: str = "") -> str:
     """Prompt for text input."""
     if default:
-        response = input(f"{Colors.YELLOW}{prompt}{Colors.END} [{Colors.BLUE}{default}{Colors.END}]: ").strip()
+        response = input(
+            f"{Colors.YELLOW}{prompt}{Colors.END} [{Colors.BLUE}{default}{Colors.END}]: "
+        ).strip()
         return response if response else default
     return input(f"{Colors.YELLOW}{prompt}: {Colors.END}").strip()
 
@@ -155,29 +156,29 @@ def get_user_profile() -> dict:
     print_step(1, "User Profile")
 
     profile = {
-        'name': prompt_input("Your name", "Developer"),
-        'technical_level': prompt_choice(
-            "Your technical level:",
-            ["Junior", "Mid-level", "Senior", "Principal/Staff"],
-            default=2
+        "name": prompt_input("Your name", "Developer"),
+        "technical_level": prompt_choice(
+            "Your technical level:", ["Junior", "Mid-level", "Senior", "Principal/Staff"], default=2
         ),
-        'communication_style': prompt_choice(
+        "communication_style": prompt_choice(
             "Preferred communication style:",
-            ["Concise - brief and to the point",
-             "Balanced - moderate detail",
-             "Detailed - thorough explanations"],
-            default=1
-        )
+            [
+                "Concise - brief and to the point",
+                "Balanced - moderate detail",
+                "Detailed - thorough explanations",
+            ],
+            default=1,
+        ),
     }
 
     level_map = ["junior", "mid", "senior", "principal"]
     style_map = ["concise", "balanced", "detailed"]
 
     return {
-        'user': {
-            'name': profile['name'],
-            'technical_level': level_map[profile['technical_level']],
-            'communication_style': style_map[profile['communication_style']]
+        "user": {
+            "name": profile["name"],
+            "technical_level": level_map[profile["technical_level"]],
+            "communication_style": style_map[profile["communication_style"]],
         }
     }
 
@@ -207,7 +208,7 @@ def customize_agent(agent_name: str) -> Optional[dict]:
             template = templates[choice - 1]
             print(f"\n{Colors.GREEN}Using template: {template['name']}{Colors.END}")
             # Copy template content (in a real implementation, parse YAML)
-            shutil.copy(template['path'], OVERRIDES_DIR / f"{agent_name}.override.yaml")
+            shutil.copy(template["path"], OVERRIDES_DIR / f"{agent_name}.override.yaml")
             print(f"Template copied to: {agent_name}.override.yaml")
 
             if not prompt_yes_no("Customize further?", default=True):
@@ -217,16 +218,17 @@ def customize_agent(agent_name: str) -> Optional[dict]:
     print_step(2, "Persona Definition")
 
     if prompt_yes_no("Define a custom persona?", default=True):
-        override['persona'] = {
-            'role': prompt_input("Role title", f"Senior {agent_name.title()} Specialist"),
-            'identity': prompt_input("Identity description",
-                                    "A focused professional who delivers quality work"),
+        override["persona"] = {
+            "role": prompt_input("Role title", f"Senior {agent_name.title()} Specialist"),
+            "identity": prompt_input(
+                "Identity description", "A focused professional who delivers quality work"
+            ),
         }
 
         print("\nDefine your core principles (what guides your decisions):")
         principles = prompt_list("Principles:")
         if principles:
-            override['persona']['principles'] = principles
+            override["persona"]["principles"] = principles
 
     # Step 3: Rules
     print_step(3, "Additional Rules")
@@ -234,7 +236,7 @@ def customize_agent(agent_name: str) -> Optional[dict]:
     if prompt_yes_no("Add custom coding/working rules?", default=True):
         rules = prompt_list("Enter rules the agent should follow:")
         if rules:
-            override['additional_rules'] = rules
+            override["additional_rules"] = rules
 
     # Step 4: Memories
     print_step(4, "Project Context (Memories)")
@@ -242,7 +244,7 @@ def customize_agent(agent_name: str) -> Optional[dict]:
     if prompt_yes_no("Add project-specific knowledge?", default=True):
         memories = prompt_list("Enter facts the agent should always remember:")
         if memories:
-            override['memories'] = memories
+            override["memories"] = memories
 
     # Step 5: Critical actions
     print_step(5, "Critical Actions")
@@ -250,7 +252,7 @@ def customize_agent(agent_name: str) -> Optional[dict]:
     if prompt_yes_no("Define actions that must happen before completing tasks?", default=True):
         actions = prompt_list("Enter critical verification steps:")
         if actions:
-            override['critical_actions'] = actions
+            override["critical_actions"] = actions
 
     # Step 6: Model and budget
     print_step(6, "Model & Budget")
@@ -259,13 +261,13 @@ def customize_agent(agent_name: str) -> Optional[dict]:
         model_choice = prompt_choice(
             "Preferred model:",
             ["Sonnet (faster, cheaper)", "Opus (smarter, more expensive)"],
-            default=0
+            default=0,
         )
-        override['model'] = "sonnet" if model_choice == 0 else "opus"
+        override["model"] = "sonnet" if model_choice == 0 else "opus"
 
         budget = prompt_input("Max budget per task (USD)", "15.00")
         try:
-            override['max_budget_usd'] = float(budget)
+            override["max_budget_usd"] = float(budget)
         except ValueError:
             pass
 
@@ -293,11 +295,11 @@ def save_override(agent_name: str, override: dict):
             elif isinstance(value, list):
                 result += f"{prefix}{key}:\n"
                 for item in value:
-                    result += f"{prefix}  - \"{item}\"\n"
+                    result += f'{prefix}  - "{item}"\n'
             elif isinstance(value, (int, float)):
                 result += f"{prefix}{key}: {value}\n"
             else:
-                result += f"{prefix}{key}: \"{value}\"\n"
+                result += f'{prefix}{key}: "{value}"\n'
         return result
 
     content += write_yaml(override)
@@ -308,11 +310,11 @@ def save_override(agent_name: str, override: dict):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Interactive wizard to personalize AI agent behavior'
+        description="Interactive wizard to personalize AI agent behavior"
     )
-    parser.add_argument('agent', nargs='?', help='Agent name to personalize')
-    parser.add_argument('--all', action='store_true', help='Personalize all agents')
-    parser.add_argument('--list', action='store_true', help='List available agents and templates')
+    parser.add_argument("agent", nargs="?", help="Agent name to personalize")
+    parser.add_argument("--all", action="store_true", help="Personalize all agents")
+    parser.add_argument("--list", action="store_true", help="List available agents and templates")
 
     args = parser.parse_args()
 
@@ -341,7 +343,7 @@ def main():
         for section, values in profile.items():
             content += f"{section}:\n"
             for key, value in values.items():
-                content += f"  {key}: \"{value}\"\n"
+                content += f'  {key}: "{value}"\n'
         profile_path.write_text(content)
         print(f"\n{Colors.GREEN}✅ User profile saved{Colors.END}")
 
@@ -379,5 +381,5 @@ def main():
     print("\nTo modify later, edit the .override.yaml files directly.")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main() or 0)

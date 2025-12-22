@@ -31,12 +31,13 @@ from typing import Any
 
 # Colors for terminal output
 class Colors:
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    CYAN = '\033[0;36m'
-    NC = '\033[0m'  # No Color
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    YELLOW = "\033[1;33m"
+    BLUE = "\033[0;34m"
+    CYAN = "\033[0;36m"
+    NC = "\033[0m"  # No Color
+
 
 # Valid values
 VALID_MODELS = ["sonnet", "opus", "haiku"]
@@ -53,7 +54,7 @@ OVERRIDE_SCHEMA = {
             "identity": {"type": "string"},
             "communication_style": {"type": "string"},
             "principles": {"type": "list"},
-        }
+        },
     },
     "additional_rules": {"type": "list"},
     "memories": {"type": "list"},
@@ -70,14 +71,14 @@ USER_PROFILE_SCHEMA = {
             "name": {"type": "string"},
             "technical_level": {"type": "string", "enum": VALID_TECH_LEVELS},
             "communication_style": {"type": "string"},
-        }
+        },
     },
     "preferences": {
         "type": "object",
         "properties": {
             "code_style": {"type": "list"},
             "documentation": {"type": "string"},
-        }
+        },
     },
     "memories": {"type": "list"},
 }
@@ -86,6 +87,7 @@ USER_PROFILE_SCHEMA = {
 @dataclass
 class ValidationResult:
     """Result of validating a single file."""
+
     file_path: str
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
@@ -110,7 +112,7 @@ class YAMLValidator:
 
     def __init__(self, content: str):
         self.content = content
-        self.lines = content.split('\n')
+        self.lines = content.split("\n")
         self.data: dict[str, Any] = {}
 
     def parse(self) -> tuple[bool, str]:
@@ -128,11 +130,11 @@ class YAMLValidator:
 
         for i, line in enumerate(self.lines, 1):
             # Skip empty lines and comments
-            if not line.strip() or line.strip().startswith('#'):
+            if not line.strip() or line.strip().startswith("#"):
                 continue
 
             # Check for tabs (should be spaces)
-            if '\t' in line:
+            if "\t" in line:
                 raise ValueError(f"Line {i}: Contains tabs (use spaces instead)")
 
             # Check for unclosed quotes
@@ -146,19 +148,19 @@ class YAMLValidator:
             # Parse key-value pairs and lists
             stripped = line.strip()
 
-            if stripped.startswith('- '):
+            if stripped.startswith("- "):
                 # List item
                 if current_list_key:
-                    value = stripped[2:].strip().strip('"\'')
+                    value = stripped[2:].strip().strip("\"'")
                     current_list.append(value)
-            elif ':' in stripped:
+            elif ":" in stripped:
                 # Save previous list
                 if current_list_key and current_list:
                     self.data[current_list_key] = current_list
                     current_list = []
 
                 # Key-value pair
-                parts = stripped.split(':', 1)
+                parts = stripped.split(":", 1)
                 key = parts[0].strip()
                 value = parts[1].strip() if len(parts) > 1 else ""
 
@@ -168,7 +170,7 @@ class YAMLValidator:
                     current_list = []
                 else:
                     # Simple key-value
-                    value = value.strip('"\'')
+                    value = value.strip("\"'")
                     self.data[key] = value
                     current_list_key = None
 
@@ -181,7 +183,7 @@ class YAMLValidator:
         issues = []
 
         for i, line in enumerate(self.lines, 1):
-            if not line.strip() or line.strip().startswith('#'):
+            if not line.strip() or line.strip().startswith("#"):
                 continue
 
             # Trailing whitespace
@@ -189,10 +191,10 @@ class YAMLValidator:
                 issues.append(f"Line {i}: Trailing whitespace")
 
             # Missing space after colon
-            match = re.match(r'^(\s*)([a-zA-Z_][a-zA-Z0-9_]*):([^\s])', line)
-            if match and not line.strip().startswith('#'):
+            match = re.match(r"^(\s*)([a-zA-Z_][a-zA-Z0-9_]*):([^\s])", line)
+            if match and not line.strip().startswith("#"):
                 # Allow URLs
-                if 'http:' not in line and 'https:' not in line:
+                if "http:" not in line and "https:" not in line:
                     issues.append(f"Line {i}: Missing space after colon")
 
         return issues
@@ -206,12 +208,14 @@ class YAMLValidator:
         return key in self.data
 
 
-def validate_override_file(file_path: Path, agents_dir: Path, verbose: bool = False) -> ValidationResult:
+def validate_override_file(
+    file_path: Path, agents_dir: Path, verbose: bool = False
+) -> ValidationResult:
     """Validate an agent override file."""
     result = ValidationResult(file_path=str(file_path))
 
     # Extract agent name
-    agent_name = file_path.stem.replace('.override', '')
+    agent_name = file_path.stem.replace(".override", "")
     agent_file = agents_dir / f"{agent_name}.md"
 
     # Check if corresponding agent exists
@@ -242,38 +246,42 @@ def validate_override_file(file_path: Path, agents_dir: Path, verbose: bool = Fa
         result.warnings.append(issue)
 
     # Validate model
-    model = validator.get('model')
+    model = validator.get("model")
     if model:
         if model in VALID_MODELS:
             result.info.append(f"Model override is valid: {model}")
         else:
-            result.errors.append(f"Invalid model: '{model}'. Valid options: {', '.join(VALID_MODELS)}")
+            result.errors.append(
+                f"Invalid model: '{model}'. Valid options: {', '.join(VALID_MODELS)}"
+            )
 
     # Validate budget
-    budget = validator.get('max_budget_usd')
+    budget = validator.get("max_budget_usd")
     if budget:
         try:
             budget_val = float(budget)
             if budget_val < MIN_BUDGET:
                 result.errors.append(f"Budget too low: {budget_val} (minimum: {MIN_BUDGET})")
             elif budget_val > MAX_BUDGET:
-                result.warnings.append(f"Budget unusually high: {budget_val} (max recommended: {MAX_BUDGET})")
+                result.warnings.append(
+                    f"Budget unusually high: {budget_val} (max recommended: {MAX_BUDGET})"
+                )
             else:
                 result.info.append(f"Budget override is valid: ${budget_val}")
         except ValueError:
             result.errors.append(f"Invalid budget format: '{budget}' (must be a number)")
 
     # Check lists
-    if validator.has_key('additional_rules'):
-        rules = validator.get('additional_rules', [])
+    if validator.has_key("additional_rules"):
+        rules = validator.get("additional_rules", [])
         result.info.append(f"Additional rules defined: {len(rules)} rules")
 
-    if validator.has_key('memories'):
-        memories = validator.get('memories', [])
+    if validator.has_key("memories"):
+        memories = validator.get("memories", [])
         result.info.append(f"Memories defined: {len(memories)} items")
 
-    if validator.has_key('critical_actions'):
-        actions = validator.get('critical_actions', [])
+    if validator.has_key("critical_actions"):
+        actions = validator.get("critical_actions", [])
         result.info.append(f"Critical actions defined: {len(actions)} actions")
 
     return result
@@ -309,7 +317,7 @@ def validate_user_profile(file_path: Path, verbose: bool = False) -> ValidationR
         result.warnings.append(issue)
 
     # Check user section (basic check since our parser is simple)
-    if 'user' not in content:
+    if "user" not in content:
         result.warnings.append("No user section found in profile")
     else:
         result.info.append("User section found")
@@ -326,21 +334,21 @@ def fix_file(file_path: Path) -> list[str]:
         original = content
 
         # Fix trailing whitespace
-        lines = content.split('\n')
+        lines = content.split("\n")
         fixed_lines = [line.rstrip() for line in lines]
         if lines != fixed_lines:
             fixes.append("Fixed trailing whitespace")
 
         # Fix tabs
-        content = '\n'.join(fixed_lines)
-        if '\t' in content:
-            content = content.replace('\t', '  ')
+        content = "\n".join(fixed_lines)
+        if "\t" in content:
+            content = content.replace("\t", "  ")
             fixes.append("Converted tabs to spaces")
 
         # Write if changed
         if content != original:
             # Backup
-            backup_path = file_path.with_suffix(file_path.suffix + '.bak')
+            backup_path = file_path.with_suffix(file_path.suffix + ".bak")
             backup_path.write_text(original)
             fixes.append(f"Backup saved to {backup_path.name}")
 
@@ -399,9 +407,13 @@ def main():
     # Print header
     if not args.json:
         print()
-        print(f"{Colors.CYAN}═══════════════════════════════════════════════════════════════{Colors.NC}")
+        print(
+            f"{Colors.CYAN}═══════════════════════════════════════════════════════════════{Colors.NC}"
+        )
         print(f"{Colors.CYAN}  OVERRIDE VALIDATOR (Python){Colors.NC}")
-        print(f"{Colors.CYAN}═══════════════════════════════════════════════════════════════{Colors.NC}")
+        print(
+            f"{Colors.CYAN}═══════════════════════════════════════════════════════════════{Colors.NC}"
+        )
         print()
         print(f"{Colors.BLUE}Scanning:{Colors.NC} {overrides_dir}")
 
@@ -458,7 +470,7 @@ def main():
                 "valid": sum(1 for r in results if r.is_valid),
                 "errors": sum(len(r.errors) for r in results),
                 "warnings": sum(len(r.warnings) for r in results),
-            }
+            },
         }
         print(json.dumps(output, indent=2))
     else:
@@ -471,9 +483,13 @@ def main():
         total_warnings = sum(len(r.warnings) for r in results)
 
         print()
-        print(f"{Colors.CYAN}═══════════════════════════════════════════════════════════════{Colors.NC}")
+        print(
+            f"{Colors.CYAN}═══════════════════════════════════════════════════════════════{Colors.NC}"
+        )
         print(f"{Colors.CYAN}  VALIDATION SUMMARY{Colors.NC}")
-        print(f"{Colors.CYAN}═══════════════════════════════════════════════════════════════{Colors.NC}")
+        print(
+            f"{Colors.CYAN}═══════════════════════════════════════════════════════════════{Colors.NC}"
+        )
         print()
         print(f"  Files validated: {Colors.GREEN}{len(results)}{Colors.NC}")
         print(f"  Errors:          {Colors.RED}{total_errors}{Colors.NC}")
@@ -484,7 +500,9 @@ def main():
             print(f"{Colors.RED}❌ Validation failed with {total_errors} error(s){Colors.NC}")
             sys.exit(1)
         elif total_warnings > 0:
-            print(f"{Colors.YELLOW}⚠️  Validation passed with {total_warnings} warning(s){Colors.NC}")
+            print(
+                f"{Colors.YELLOW}⚠️  Validation passed with {total_warnings} warning(s){Colors.NC}"
+            )
         else:
             print(f"{Colors.GREEN}✅ All validations passed!{Colors.NC}")
 

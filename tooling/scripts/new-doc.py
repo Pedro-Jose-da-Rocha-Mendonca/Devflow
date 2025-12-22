@@ -20,18 +20,20 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 
+
 def get_platform():
     """Detect the current platform."""
-    if sys.platform == 'win32':
-        return 'windows'
-    elif sys.platform == 'darwin':
-        return 'macos'
+    if sys.platform == "win32":
+        return "windows"
+    elif sys.platform == "darwin":
+        return "macos"
     else:
-        return 'linux'
+        return "linux"
+
 
 def run_windows(args):
     """Run PowerShell script on Windows."""
-    script = SCRIPT_DIR / 'new-doc.ps1'
+    script = SCRIPT_DIR / "new-doc.ps1"
 
     if not script.exists():
         print(f"Error: PowerShell script not found: {script}")
@@ -42,20 +44,21 @@ def run_windows(args):
     i = 0
     while i < len(args):
         arg = args[i]
-        if arg.startswith('--'):
+        if arg.startswith("--"):
             # Convert --type to -Type
             param_name = arg[2:].title()
-            ps_args.append(f'-{param_name}')
+            ps_args.append(f"-{param_name}")
         else:
             ps_args.append(arg)
         i += 1
 
-    cmd = ['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(script)] + ps_args
+    cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(script)] + ps_args
     return subprocess.call(cmd)
+
 
 def run_unix(args):
     """Run shell script on macOS/Linux."""
-    script = SCRIPT_DIR / 'new-doc.sh'
+    script = SCRIPT_DIR / "new-doc.sh"
 
     if not script.exists():
         print(f"Error: Shell script not found: {script}")
@@ -66,6 +69,7 @@ def run_unix(args):
 
     cmd = [str(script)] + args
     return subprocess.call(cmd)
+
 
 def main():
     if len(sys.argv) < 2:
@@ -79,10 +83,11 @@ def main():
     print(f"Platform: {platform}")
     print()
 
-    if platform == 'windows':
+    if platform == "windows":
         return run_windows(args)
     else:
         return run_unix(args)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

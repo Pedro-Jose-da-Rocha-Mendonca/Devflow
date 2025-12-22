@@ -93,7 +93,7 @@ class CurrencyConverter:
         self,
         rates: Optional[dict[str, float]] = None,
         display_currencies: Optional[list[str]] = None,
-        config_path: Optional[Path] = None
+        config_path: Optional[Path] = None,
     ):
         """
         Initialize converter.
@@ -147,11 +147,7 @@ class CurrencyConverter:
         return amount_usd * rate
 
     def format(
-        self,
-        amount_usd: float,
-        currency: str,
-        include_symbol: bool = True,
-        decimal_places: int = 2
+        self, amount_usd: float, currency: str, include_symbol: bool = True, decimal_places: int = 2
     ) -> str:
         """
         Format amount in target currency.
@@ -181,10 +177,7 @@ class CurrencyConverter:
         return formatted
 
     def format_all(
-        self,
-        amount_usd: float,
-        separator: str = " | ",
-        currencies: Optional[list[str]] = None
+        self, amount_usd: float, separator: str = " | ", currencies: Optional[list[str]] = None
     ) -> str:
         """
         Format amount in all display currencies.
@@ -217,10 +210,7 @@ class CurrencyConverter:
         Returns:
             Dictionary of currency code -> formatted amount
         """
-        return {
-            currency: self.format(amount_usd, currency)
-            for currency in self.display_currencies
-        }
+        return {currency: self.format(amount_usd, currency) for currency in self.display_currencies}
 
     def set_rates(self, rates: dict[str, float]):
         """Update exchange rates."""
@@ -253,7 +243,7 @@ class CurrencyConverter:
             "display_currencies": self.display_currencies,
         }
 
-        with open(config_path, 'w') as f:
+        with open(config_path, "w") as f:
             json.dump(config, f, indent=2)
 
 

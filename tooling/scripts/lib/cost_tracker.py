@@ -37,6 +37,7 @@ try:
         create_error,
         log_warning,
     )
+
     ENHANCED_ERRORS = True
 except ImportError:
     ENHANCED_ERRORS = False
@@ -46,17 +47,22 @@ except ImportError:
         "Using basic error classes. For better error messages, ensure "
         "errors.py is in the lib directory.",
         ImportWarning,
-        stacklevel=2
+        stacklevel=2,
     )
+
     # Fallback error classes
     class CostTrackingError(Exception):
         pass
+
     class SessionError(Exception):
         pass
+
     class BudgetError(Exception):
         pass
+
     class CalculationError(Exception):
         pass
+
 
 # Token pricing per 1M tokens (USD)
 # Last updated: December 2025
@@ -78,9 +84,9 @@ PRICING = {
 
 # Default budget thresholds
 DEFAULT_THRESHOLDS = {
-    "warning": 0.75,    # 75% - Yellow warning
-    "critical": 0.90,   # 90% - Red warning
-    "stop": 1.00,       # 100% - Auto-stop
+    "warning": 0.75,  # 75% - Yellow warning
+    "critical": 0.90,  # 90% - Red warning
+    "stop": 1.00,  # 100% - Auto-stop
 }
 
 # Storage paths
@@ -92,6 +98,7 @@ SESSIONS_DIR = COSTS_DIR / "sessions"
 @dataclass
 class CostEntry:
     """Single cost entry for a Claude API call."""
+
     timestamp: str
     agent: str
     model: str
@@ -106,6 +113,7 @@ class CostEntry:
 @dataclass
 class SessionCost:
     """Complete cost data for a session."""
+
     session_id: str
     story_key: str
     start_time: str
@@ -154,7 +162,7 @@ class SessionCost:
                 "cost_usd": round(self.total_cost_usd, 4),
                 "budget_remaining": round(self.budget_remaining, 4),
                 "budget_used_percent": round(self.budget_used_percent, 2),
-            }
+            },
         }
 
     def get_cost_by_agent(self) -> dict[str, float]:
@@ -198,7 +206,7 @@ class CostTracker:
         story_key: str = "unknown",
         budget_limit_usd: float = 15.00,
         thresholds: Optional[dict[str, float]] = None,
-        auto_save: bool = True
+        auto_save: bool = True,
     ):
         self.story_key = story_key
         self.budget_limit_usd = budget_limit_usd
@@ -246,7 +254,7 @@ class CostTracker:
                 raise create_error(
                     ErrorCode.INVALID_TOKENS,
                     context=ErrorContext(operation="calculating cost", model=model),
-                    custom_message=error_msg
+                    custom_message=error_msg,
                 )
             raise CalculationError(error_msg)
 
@@ -256,7 +264,7 @@ class CostTracker:
                 raise create_error(
                     ErrorCode.INVALID_TOKENS,
                     context=ErrorContext(operation="calculating cost", model=model),
-                    custom_message=error_msg
+                    custom_message=error_msg,
                 )
             raise CalculationError(error_msg)
 
@@ -285,13 +293,7 @@ class CostTracker:
 
         return round(input_cost + output_cost, 6)
 
-    def log_usage(
-        self,
-        agent: str,
-        model: str,
-        input_tokens: int,
-        output_tokens: int
-    ) -> CostEntry:
+    def log_usage(self, agent: str, model: str, input_tokens: int, output_tokens: int) -> CostEntry:
         """
         Log a usage entry.
 
@@ -354,31 +356,31 @@ class CostTracker:
                     f"🛑 BUDGET EXCEEDED - ${total_cost:.2f} spent of ${self.budget_limit_usd:.2f} limit. "
                     f"Action required: Increase budget or stop operations. "
                     f"Story: {self.story_key}"
-                )
+                ),
             )
         elif usage_pct >= self.thresholds["critical"]:
             return (
                 True,
                 "critical",
                 (
-                    f"🔴 CRITICAL: {usage_pct*100:.0f}% of budget used (${total_cost:.2f}). "
+                    f"🔴 CRITICAL: {usage_pct * 100:.0f}% of budget used (${total_cost:.2f}). "
                     f"Only ${remaining:.2f} remaining. Consider wrapping up soon."
-                )
+                ),
             )
         elif usage_pct >= self.thresholds["warning"]:
             return (
                 True,
                 "warning",
                 (
-                    f"🟡 WARNING: {usage_pct*100:.0f}% of budget used (${total_cost:.2f}). "
+                    f"🟡 WARNING: {usage_pct * 100:.0f}% of budget used (${total_cost:.2f}). "
                     f"${remaining:.2f} remaining of ${self.budget_limit_usd:.2f} budget."
-                )
+                ),
             )
 
         return (
             True,
             "ok",
-            f"🟢 Budget OK: {usage_pct*100:.0f}% used (${total_cost:.2f}/${self.budget_limit_usd:.2f})"
+            f"🟢 Budget OK: {usage_pct * 100:.0f}% used (${total_cost:.2f}/${self.budget_limit_usd:.2f})",
         )
 
     def get_session_summary(self) -> dict:
@@ -405,7 +407,7 @@ class CostTracker:
             # Ensure directory exists
             SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
 
-            with open(filepath, 'w') as f:
+            with open(filepath, "w") as f:
                 json.dump(self.session.to_dict(), f, indent=2)
             return True
 
@@ -521,8 +523,7 @@ class CostTracker:
             return None
         except Exception as e:
             error_msg = (
-                f"Unexpected error loading session {session_file.name}: "
-                f"{type(e).__name__}: {e}"
+                f"Unexpected error loading session {session_file.name}: {type(e).__name__}: {e}"
             )
             if ENHANCED_ERRORS:
                 log_warning(error_msg)
@@ -613,32 +614,33 @@ def parse_token_usage(output: str) -> Optional[tuple[int, int]]:
     import re
 
     # Pattern 1: Explicit input/output tokens (most accurate)
-    input_match = re.search(r'input[_\s]*tokens?[:\s]+(\d+)', output, re.IGNORECASE)
-    output_match = re.search(r'output[_\s]*tokens?[:\s]+(\d+)', output, re.IGNORECASE)
+    input_match = re.search(r"input[_\s]*tokens?[:\s]+(\d+)", output, re.IGNORECASE)
+    output_match = re.search(r"output[_\s]*tokens?[:\s]+(\d+)", output, re.IGNORECASE)
     if input_match and output_match:
         return (int(input_match.group(1)), int(output_match.group(1)))
 
     # Pattern 2: "X in / Y out"
-    match = re.search(r'(\d+)\s*in\s*/\s*(\d+)\s*out', output, re.IGNORECASE)
+    match = re.search(r"(\d+)\s*in\s*/\s*(\d+)\s*out", output, re.IGNORECASE)
     if match:
         return (int(match.group(1)), int(match.group(2)))
 
     # Pattern 3: "Input: X, Output: Y" or "Input: X Output: Y"
-    input_match = re.search(r'input[:\s]+(\d+)', output, re.IGNORECASE)
-    output_match = re.search(r'output[:\s]+(\d+)', output, re.IGNORECASE)
+    input_match = re.search(r"input[:\s]+(\d+)", output, re.IGNORECASE)
+    output_match = re.search(r"output[:\s]+(\d+)", output, re.IGNORECASE)
     if input_match and output_match:
         return (int(input_match.group(1)), int(output_match.group(1)))
 
     # Pattern 4: "Token usage: X/Y" (total/limit) - cannot determine split
     # Return None rather than guessing, let caller decide how to handle
-    match = re.search(r'Token usage:\s*(\d+)/(\d+)', output, re.IGNORECASE)
+    match = re.search(r"Token usage:\s*(\d+)/(\d+)", output, re.IGNORECASE)
     if match:
         # Log warning that we couldn't determine the split
         total = int(match.group(1))
         warnings.warn(
             f"Found total token count ({total}) but cannot determine input/output split. "
             "Token usage will not be tracked for this call.",
-            UserWarning, stacklevel=2
+            UserWarning,
+            stacklevel=2,
         )
         return None
 
@@ -660,7 +662,7 @@ def get_tracker() -> Optional[CostTracker]:
         Each thread has its own tracker instance to avoid race conditions
         in multi-threaded scenarios (e.g., swarm mode with parallel agents).
     """
-    return getattr(_tracker_local, 'tracker', None)
+    return getattr(_tracker_local, "tracker", None)
 
 
 def set_tracker(tracker: CostTracker):
@@ -700,6 +702,7 @@ if __name__ == "__main__":
 
     # Print summary
     import pprint
+
     pprint.pprint(tracker.get_session_summary())
 
     # Check budget

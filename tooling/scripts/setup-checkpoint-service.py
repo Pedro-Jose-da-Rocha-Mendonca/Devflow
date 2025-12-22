@@ -23,29 +23,32 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 
+
 def get_platform():
     """Detect the current platform."""
-    if sys.platform == 'win32':
-        return 'windows'
-    elif sys.platform == 'darwin':
-        return 'macos'
+    if sys.platform == "win32":
+        return "windows"
+    elif sys.platform == "darwin":
+        return "macos"
     else:
-        return 'linux'
+        return "linux"
+
 
 def run_windows(action):
     """Run PowerShell script on Windows."""
-    script = SCRIPT_DIR / 'setup-checkpoint-service.ps1'
+    script = SCRIPT_DIR / "setup-checkpoint-service.ps1"
 
     if not script.exists():
         print(f"Error: PowerShell script not found: {script}")
         return 1
 
-    cmd = ['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(script), '-Action', action]
+    cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(script), "-Action", action]
     return subprocess.call(cmd)
+
 
 def run_unix(action):
     """Run shell script on macOS/Linux."""
-    script = SCRIPT_DIR / 'setup-checkpoint-service.sh'
+    script = SCRIPT_DIR / "setup-checkpoint-service.sh"
 
     if not script.exists():
         print(f"Error: Shell script not found: {script}")
@@ -57,12 +60,13 @@ def run_unix(action):
     cmd = [str(script), action]
     return subprocess.call(cmd)
 
+
 def main():
-    action = 'install'
+    action = "install"
     if len(sys.argv) > 1:
         action = sys.argv[1].lower()
 
-    if action not in ['install', 'uninstall', 'status']:
+    if action not in ["install", "uninstall", "status"]:
         print(__doc__)
         print("\nDetected platform:", get_platform())
         return 1
@@ -73,10 +77,11 @@ def main():
     print(f"Action: {action}")
     print()
 
-    if platform == 'windows':
+    if platform == "windows":
         return run_windows(action)
     else:
         return run_unix(action)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     sys.exit(main())

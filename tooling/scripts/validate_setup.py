@@ -27,6 +27,7 @@ from typing import Optional
 
 class CheckStatus(Enum):
     """Status of a validation check."""
+
     PASS = "✅"
     FAIL = "❌"
     WARN = "⚠️"
@@ -37,6 +38,7 @@ class CheckStatus(Enum):
 @dataclass
 class CheckResult:
     """Result of a validation check."""
+
     name: str
     status: CheckStatus
     message: str
@@ -46,26 +48,27 @@ class CheckResult:
 
 class Colors:
     """ANSI color codes."""
-    RESET = '\033[0m'
-    RED = '\033[31m'
-    GREEN = '\033[32m'
-    YELLOW = '\033[33m'
-    BLUE = '\033[34m'
-    CYAN = '\033[36m'
-    BOLD = '\033[1m'
-    DIM = '\033[2m'
+
+    RESET = "\033[0m"
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    CYAN = "\033[36m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
 
     @classmethod
     def disable(cls):
         """Disable colors (for non-TTY output)."""
-        cls.RESET = ''
-        cls.RED = ''
-        cls.GREEN = ''
-        cls.YELLOW = ''
-        cls.BLUE = ''
-        cls.CYAN = ''
-        cls.BOLD = ''
-        cls.DIM = ''
+        cls.RESET = ""
+        cls.RED = ""
+        cls.GREEN = ""
+        cls.YELLOW = ""
+        cls.BLUE = ""
+        cls.CYAN = ""
+        cls.BOLD = ""
+        cls.DIM = ""
 
 
 # Detect if running in non-TTY
@@ -101,12 +104,14 @@ class SetupValidator:
             CheckStatus.WARN: Colors.YELLOW,
             CheckStatus.SKIP: Colors.DIM,
             CheckStatus.INFO: Colors.BLUE,
-        }.get(result.status, '')
+        }.get(result.status, "")
 
-        print(f"  {result.status.value} {status_color}{result.name}{Colors.RESET}: {result.message}")
+        print(
+            f"  {result.status.value} {status_color}{result.name}{Colors.RESET}: {result.message}"
+        )
 
         if self.verbose and result.details:
-            for line in result.details.split('\n'):
+            for line in result.details.split("\n"):
                 print(f"      {Colors.DIM}{line}{Colors.RESET}")
 
         if result.status == CheckStatus.FAIL and result.fix_command:
@@ -118,24 +123,30 @@ class SetupValidator:
         version_str = f"{version.major}.{version.minor}.{version.micro}"
 
         if version >= (3, 9):
-            self.add_result(CheckResult(
-                name="Python Version",
-                status=CheckStatus.PASS,
-                message=f"Python {version_str} is supported"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Python Version",
+                    status=CheckStatus.PASS,
+                    message=f"Python {version_str} is supported",
+                )
+            )
         elif version >= (3, 7):
-            self.add_result(CheckResult(
-                name="Python Version",
-                status=CheckStatus.WARN,
-                message=f"Python {version_str} may work but 3.9+ recommended"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Python Version",
+                    status=CheckStatus.WARN,
+                    message=f"Python {version_str} may work but 3.9+ recommended",
+                )
+            )
         else:
-            self.add_result(CheckResult(
-                name="Python Version",
-                status=CheckStatus.FAIL,
-                message=f"Python {version_str} is not supported (need 3.9+)",
-                fix_command="pyenv install 3.11 && pyenv local 3.11"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Python Version",
+                    status=CheckStatus.FAIL,
+                    message=f"Python {version_str} is not supported (need 3.9+)",
+                    fix_command="pyenv install 3.11 && pyenv local 3.11",
+                )
+            )
 
     def check_project_structure(self):
         """Check required project structure exists."""
@@ -160,36 +171,44 @@ class SetupValidator:
                 missing.append(str(dir_path.relative_to(PROJECT_ROOT)))
 
         if all_exist:
-            self.add_result(CheckResult(
-                name="Project Structure",
-                status=CheckStatus.PASS,
-                message="All required directories exist"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Project Structure",
+                    status=CheckStatus.PASS,
+                    message="All required directories exist",
+                )
+            )
         else:
-            self.add_result(CheckResult(
-                name="Project Structure",
-                status=CheckStatus.FAIL,
-                message=f"Missing directories: {', '.join(missing)}",
-                fix_command=f"mkdir -p {' '.join(missing)}"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Project Structure",
+                    status=CheckStatus.FAIL,
+                    message=f"Missing directories: {', '.join(missing)}",
+                    fix_command=f"mkdir -p {' '.join(missing)}",
+                )
+            )
 
         # Check optional dirs
         for dir_path in optional_dirs:
             if not dir_path.exists():
                 if self.fix:
                     dir_path.mkdir(parents=True, exist_ok=True)
-                    self.add_result(CheckResult(
-                        name=f"Directory {dir_path.name}",
-                        status=CheckStatus.PASS,
-                        message="Created missing directory"
-                    ))
+                    self.add_result(
+                        CheckResult(
+                            name=f"Directory {dir_path.name}",
+                            status=CheckStatus.PASS,
+                            message="Created missing directory",
+                        )
+                    )
                 else:
-                    self.add_result(CheckResult(
-                        name=f"Directory {dir_path.name}",
-                        status=CheckStatus.WARN,
-                        message="Optional directory missing (will be created on first use)",
-                        fix_command=f"mkdir -p {dir_path}"
-                    ))
+                    self.add_result(
+                        CheckResult(
+                            name=f"Directory {dir_path.name}",
+                            status=CheckStatus.WARN,
+                            message="Optional directory missing (will be created on first use)",
+                            fix_command=f"mkdir -p {dir_path}",
+                        )
+                    )
 
     def check_core_modules(self):
         """Check core Python modules exist and are importable."""
@@ -205,34 +224,42 @@ class SetupValidator:
 
         for module_name, module_path in modules:
             if not module_path.exists():
-                self.add_result(CheckResult(
-                    name=f"Module {module_name}",
-                    status=CheckStatus.FAIL,
-                    message=f"File not found: {module_path.name}"
-                ))
+                self.add_result(
+                    CheckResult(
+                        name=f"Module {module_name}",
+                        status=CheckStatus.FAIL,
+                        message=f"File not found: {module_path.name}",
+                    )
+                )
                 continue
 
             try:
                 __import__(module_name)
-                self.add_result(CheckResult(
-                    name=f"Module {module_name}",
-                    status=CheckStatus.PASS,
-                    message="Imports successfully"
-                ))
+                self.add_result(
+                    CheckResult(
+                        name=f"Module {module_name}",
+                        status=CheckStatus.PASS,
+                        message="Imports successfully",
+                    )
+                )
             except ImportError as e:
-                self.add_result(CheckResult(
-                    name=f"Module {module_name}",
-                    status=CheckStatus.FAIL,
-                    message=f"Import error: {e}",
-                    details=str(e)
-                ))
+                self.add_result(
+                    CheckResult(
+                        name=f"Module {module_name}",
+                        status=CheckStatus.FAIL,
+                        message=f"Import error: {e}",
+                        details=str(e),
+                    )
+                )
             except Exception as e:
-                self.add_result(CheckResult(
-                    name=f"Module {module_name}",
-                    status=CheckStatus.WARN,
-                    message=f"Warning during import: {type(e).__name__}",
-                    details=str(e)
-                ))
+                self.add_result(
+                    CheckResult(
+                        name=f"Module {module_name}",
+                        status=CheckStatus.WARN,
+                        message=f"Warning during import: {type(e).__name__}",
+                        details=str(e),
+                    )
+                )
 
     def check_cost_tracker_functionality(self):
         """Test core cost tracker functionality."""
@@ -242,52 +269,66 @@ class SetupValidator:
 
             # Check pricing is defined
             if not PRICING:
-                self.add_result(CheckResult(
-                    name="Pricing Configuration",
-                    status=CheckStatus.FAIL,
-                    message="No pricing data defined"
-                ))
+                self.add_result(
+                    CheckResult(
+                        name="Pricing Configuration",
+                        status=CheckStatus.FAIL,
+                        message="No pricing data defined",
+                    )
+                )
             else:
                 models = list(PRICING.keys())
-                self.add_result(CheckResult(
-                    name="Pricing Configuration",
-                    status=CheckStatus.PASS,
-                    message=f"{len(models)} models configured",
-                    details=f"Models: {', '.join(models[:5])}..."
-                ))
+                self.add_result(
+                    CheckResult(
+                        name="Pricing Configuration",
+                        status=CheckStatus.PASS,
+                        message=f"{len(models)} models configured",
+                        details=f"Models: {', '.join(models[:5])}...",
+                    )
+                )
 
             # Test cost calculation
-            tracker = CostTracker(story_key="validation-test", budget_limit_usd=10.00, auto_save=False)
+            tracker = CostTracker(
+                story_key="validation-test", budget_limit_usd=10.00, auto_save=False
+            )
             cost = tracker.calculate_cost("sonnet", 1000, 500)
 
             if cost > 0:
-                self.add_result(CheckResult(
-                    name="Cost Calculation",
-                    status=CheckStatus.PASS,
-                    message=f"Calculated ${cost:.6f} for test tokens"
-                ))
+                self.add_result(
+                    CheckResult(
+                        name="Cost Calculation",
+                        status=CheckStatus.PASS,
+                        message=f"Calculated ${cost:.6f} for test tokens",
+                    )
+                )
             else:
-                self.add_result(CheckResult(
-                    name="Cost Calculation",
-                    status=CheckStatus.WARN,
-                    message="Cost calculation returned 0"
-                ))
+                self.add_result(
+                    CheckResult(
+                        name="Cost Calculation",
+                        status=CheckStatus.WARN,
+                        message="Cost calculation returned 0",
+                    )
+                )
 
             # Test budget checking
             ok, level, msg = tracker.check_budget()
-            self.add_result(CheckResult(
-                name="Budget Monitoring",
-                status=CheckStatus.PASS,
-                message=f"Budget check working (status: {level})"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Budget Monitoring",
+                    status=CheckStatus.PASS,
+                    message=f"Budget check working (status: {level})",
+                )
+            )
 
         except Exception as e:
-            self.add_result(CheckResult(
-                name="Cost Tracker",
-                status=CheckStatus.FAIL,
-                message=f"Error testing cost tracker: {e}",
-                details=str(e)
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Cost Tracker",
+                    status=CheckStatus.FAIL,
+                    message=f"Error testing cost tracker: {e}",
+                    details=str(e),
+                )
+            )
 
     def check_environment_config(self):
         """Check environment configuration."""
@@ -304,24 +345,28 @@ class SetupValidator:
             if value:
                 configured += 1
                 if self.verbose:
-                    self.add_result(CheckResult(
-                        name=f"Env: {var}",
-                        status=CheckStatus.INFO,
-                        message=f"Set to '{value}'"
-                    ))
+                    self.add_result(
+                        CheckResult(
+                            name=f"Env: {var}", status=CheckStatus.INFO, message=f"Set to '{value}'"
+                        )
+                    )
 
         if configured > 0:
-            self.add_result(CheckResult(
-                name="Environment Variables",
-                status=CheckStatus.PASS,
-                message=f"{configured}/{len(env_vars)} custom settings configured"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Environment Variables",
+                    status=CheckStatus.PASS,
+                    message=f"{configured}/{len(env_vars)} custom settings configured",
+                )
+            )
         else:
-            self.add_result(CheckResult(
-                name="Environment Variables",
-                status=CheckStatus.INFO,
-                message="Using default configuration (all optional)"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Environment Variables",
+                    status=CheckStatus.INFO,
+                    message="Using default configuration (all optional)",
+                )
+            )
 
     def check_storage_writable(self):
         """Check that storage directories are writable."""
@@ -336,24 +381,30 @@ class SetupValidator:
             try:
                 test_file.write_text("test")
                 test_file.unlink()
-                self.add_result(CheckResult(
-                    name=f"Storage: {test_dir.name}",
-                    status=CheckStatus.PASS,
-                    message="Directory is writable"
-                ))
+                self.add_result(
+                    CheckResult(
+                        name=f"Storage: {test_dir.name}",
+                        status=CheckStatus.PASS,
+                        message="Directory is writable",
+                    )
+                )
             except PermissionError:
-                self.add_result(CheckResult(
-                    name=f"Storage: {test_dir.name}",
-                    status=CheckStatus.FAIL,
-                    message="Directory is not writable",
-                    fix_command=f"chmod 755 {test_dir}"
-                ))
+                self.add_result(
+                    CheckResult(
+                        name=f"Storage: {test_dir.name}",
+                        status=CheckStatus.FAIL,
+                        message="Directory is not writable",
+                        fix_command=f"chmod 755 {test_dir}",
+                    )
+                )
             except Exception as e:
-                self.add_result(CheckResult(
-                    name=f"Storage: {test_dir.name}",
-                    status=CheckStatus.WARN,
-                    message=f"Could not verify: {e}"
-                ))
+                self.add_result(
+                    CheckResult(
+                        name=f"Storage: {test_dir.name}",
+                        status=CheckStatus.WARN,
+                        message=f"Could not verify: {e}",
+                    )
+                )
 
     def check_shell_scripts(self):
         """Check shell scripts are executable."""
@@ -367,24 +418,28 @@ class SetupValidator:
                     os.chmod(script, 0o755)
 
         if not shell_scripts:
-            self.add_result(CheckResult(
-                name="Shell Scripts",
-                status=CheckStatus.INFO,
-                message="No shell scripts found"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Shell Scripts", status=CheckStatus.INFO, message="No shell scripts found"
+                )
+            )
         elif non_executable and not self.fix:
-            self.add_result(CheckResult(
-                name="Shell Scripts",
-                status=CheckStatus.WARN,
-                message=f"{len(non_executable)} scripts not executable",
-                fix_command="chmod +x tooling/scripts/*.sh"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Shell Scripts",
+                    status=CheckStatus.WARN,
+                    message=f"{len(non_executable)} scripts not executable",
+                    fix_command="chmod +x tooling/scripts/*.sh",
+                )
+            )
         else:
-            self.add_result(CheckResult(
-                name="Shell Scripts",
-                status=CheckStatus.PASS,
-                message=f"{len(shell_scripts)} scripts are executable"
-            ))
+            self.add_result(
+                CheckResult(
+                    name="Shell Scripts",
+                    status=CheckStatus.PASS,
+                    message=f"{len(shell_scripts)} scripts are executable",
+                )
+            )
 
     def run_all_checks(self) -> bool:
         """Run all validation checks."""
@@ -419,10 +474,14 @@ class SetupValidator:
             print(f"  {Colors.RED}Failed:{Colors.RESET} {failed}")
 
         if failed == 0:
-            print(f"\n{Colors.GREEN}{Colors.BOLD}✅ All checks passed! Devflow is ready to use.{Colors.RESET}\n")
+            print(
+                f"\n{Colors.GREEN}{Colors.BOLD}✅ All checks passed! Devflow is ready to use.{Colors.RESET}\n"
+            )
             return True
         else:
-            print(f"\n{Colors.RED}{Colors.BOLD}❌ {failed} check(s) failed. Please fix the issues above.{Colors.RESET}")
+            print(
+                f"\n{Colors.RED}{Colors.BOLD}❌ {failed} check(s) failed. Please fix the issues above.{Colors.RESET}"
+            )
             if not self.fix:
                 print(f"  {Colors.DIM}Run with --fix to auto-fix some issues.{Colors.RESET}\n")
             return False
@@ -438,23 +497,11 @@ Examples:
   python validate_setup.py           Run basic validation
   python validate_setup.py -v        Run with verbose output
   python validate_setup.py --fix     Auto-fix fixable issues
-"""
+""",
     )
-    parser.add_argument(
-        '-v', '--verbose',
-        action='store_true',
-        help='Show detailed output'
-    )
-    parser.add_argument(
-        '--fix',
-        action='store_true',
-        help='Attempt to auto-fix issues'
-    )
-    parser.add_argument(
-        '--json',
-        action='store_true',
-        help='Output results as JSON'
-    )
+    parser.add_argument("-v", "--verbose", action="store_true", help="Show detailed output")
+    parser.add_argument("--fix", action="store_true", help="Attempt to auto-fix issues")
+    parser.add_argument("--json", action="store_true", help="Output results as JSON")
 
     args = parser.parse_args()
 
@@ -483,6 +530,7 @@ Examples:
         print(f"\n{Colors.RED}Critical error during validation: {e}{Colors.RESET}")
         if args.verbose:
             import traceback
+
             traceback.print_exc()
         sys.exit(2)
 

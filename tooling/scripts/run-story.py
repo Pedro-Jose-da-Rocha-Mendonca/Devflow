@@ -39,18 +39,20 @@ SCRIPT_DIR = Path(__file__).parent
 # Add lib directory for imports
 sys.path.insert(0, str(SCRIPT_DIR / "lib"))
 
+
 def get_platform():
     """Detect the current platform."""
-    if sys.platform == 'win32':
-        return 'windows'
-    elif sys.platform == 'darwin':
-        return 'macos'
+    if sys.platform == "win32":
+        return "windows"
+    elif sys.platform == "darwin":
+        return "macos"
     else:
-        return 'linux'
+        return "linux"
+
 
 def run_windows(args):
     """Run PowerShell script on Windows."""
-    script = SCRIPT_DIR / 'run-story.ps1'
+    script = SCRIPT_DIR / "run-story.ps1"
 
     if not script.exists():
         print(f"Error: PowerShell script not found: {script}")
@@ -61,22 +63,23 @@ def run_windows(args):
     i = 0
     while i < len(args):
         arg = args[i]
-        if arg.startswith('--'):
+        if arg.startswith("--"):
             # Convert --develop to -Develop
             param_name = arg[2:].title()
-            ps_args.append(f'-{param_name}')
-        elif arg.startswith('-') and len(arg) == 2:
+            ps_args.append(f"-{param_name}")
+        elif arg.startswith("-") and len(arg) == 2:
             ps_args.append(arg)
         else:
             ps_args.append(arg)
         i += 1
 
-    cmd = ['powershell', '-ExecutionPolicy', 'Bypass', '-File', str(script)] + ps_args
+    cmd = ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(script)] + ps_args
     return subprocess.call(cmd)
+
 
 def run_unix(args):
     """Run shell script on macOS/Linux."""
-    script = SCRIPT_DIR / 'run-story.sh'
+    script = SCRIPT_DIR / "run-story.sh"
 
     if not script.exists():
         print(f"Error: Shell script not found: {script}")
@@ -87,6 +90,7 @@ def run_unix(args):
 
     cmd = [str(script)] + args
     return subprocess.call(cmd)
+
 
 def parse_args():
     """Parse command line arguments."""
@@ -99,20 +103,24 @@ Examples:
   python run-story.py 3-5 --develop           # Development only
   python run-story.py 3-5 --native            # Native Python with cost tracking
   python run-story.py 3-5 --budget 20.00      # Custom budget
-        """
+        """,
     )
 
-    parser.add_argument('story_key', help='Story key (e.g., 3-5)')
-    parser.add_argument('--develop', '-d', action='store_true', help='Development phase only')
-    parser.add_argument('--review', '-r', action='store_true', help='Review phase only')
-    parser.add_argument('--context', '-c', action='store_true', help='Context phase only')
-    parser.add_argument('--no-commit', action='store_true', help='Disable auto-commit')
-    parser.add_argument('--with-pr', action='store_true', help='Create PR after commit')
-    parser.add_argument('--model', choices=['sonnet', 'opus', 'haiku'], default='sonnet', help='Model to use')
-    parser.add_argument('--budget', type=float, default=15.00, help='Budget limit in USD')
-    parser.add_argument('--show-costs', action='store_true', help='Show cost dashboard after run')
-    parser.add_argument('--native', action='store_true', help='Run natively with Python (enables cost tracking)')
-    parser.add_argument('--no-monitor', action='store_true', help='Disable live monitoring display')
+    parser.add_argument("story_key", help="Story key (e.g., 3-5)")
+    parser.add_argument("--develop", "-d", action="store_true", help="Development phase only")
+    parser.add_argument("--review", "-r", action="store_true", help="Review phase only")
+    parser.add_argument("--context", "-c", action="store_true", help="Context phase only")
+    parser.add_argument("--no-commit", action="store_true", help="Disable auto-commit")
+    parser.add_argument("--with-pr", action="store_true", help="Create PR after commit")
+    parser.add_argument(
+        "--model", choices=["sonnet", "opus", "haiku"], default="sonnet", help="Model to use"
+    )
+    parser.add_argument("--budget", type=float, default=15.00, help="Budget limit in USD")
+    parser.add_argument("--show-costs", action="store_true", help="Show cost dashboard after run")
+    parser.add_argument(
+        "--native", action="store_true", help="Run natively with Python (enables cost tracking)"
+    )
+    parser.add_argument("--no-monitor", action="store_true", help="Disable live monitoring display")
 
     return parser.parse_args()
 
@@ -146,8 +154,7 @@ class NativeRunner:
             return
 
         self.tracker = self.CostTracker(
-            story_key=self.args.story_key,
-            budget_limit_usd=self.args.budget
+            story_key=self.args.story_key, budget_limit_usd=self.args.budget
         )
         self.display = self.CompactCostDisplay(self.tracker)
 
@@ -175,7 +182,7 @@ class NativeRunner:
 
     def run_claude(self, agent: str, model: str, prompt: str, timeout: int = 300) -> tuple:
         """Run Claude CLI and capture output."""
-        cli = "claude.cmd" if sys.platform == 'win32' else "claude"
+        cli = "claude.cmd" if sys.platform == "win32" else "claude"
 
         cmd = [cli, "--print", "--model", model, "-p", prompt]
 
@@ -189,7 +196,7 @@ class NativeRunner:
                 capture_output=True,
                 text=True,
                 timeout=timeout,
-                cwd=str(SCRIPT_DIR.parent.parent)  # Project root
+                cwd=str(SCRIPT_DIR.parent.parent),  # Project root
             )
 
             output = result.stdout + result.stderr
@@ -213,13 +220,13 @@ class NativeRunner:
 
         # Try to find token patterns
         # Pattern: "Token usage: X/Y"
-        match = re.search(r'Token usage:\s*(\d+)/(\d+)', output)
+        match = re.search(r"Token usage:\s*(\d+)/(\d+)", output)
         if match:
             total = int(match.group(1))
             return (int(total * 0.8), int(total * 0.2))
 
         # Pattern: "X in / Y out"
-        match = re.search(r'(\d+)\s*in\s*/\s*(\d+)\s*out', output, re.IGNORECASE)
+        match = re.search(r"(\d+)\s*in\s*/\s*(\d+)\s*out", output, re.IGNORECASE)
         if match:
             return (int(match.group(1)), int(match.group(2)))
 
@@ -264,7 +271,7 @@ class NativeRunner:
                 success, output = self.run_claude(
                     "SM",
                     "sonnet",
-                    f"Analyze story {self.args.story_key} and prepare context for development"
+                    f"Analyze story {self.args.story_key} and prepare context for development",
                 )
                 if not success:
                     print(f"Context phase failed: {output[:200]}")
@@ -279,7 +286,7 @@ class NativeRunner:
                 success, output = self.run_claude(
                     "DEV",
                     self.args.model,
-                    f"Implement story {self.args.story_key} following the context and specifications"
+                    f"Implement story {self.args.story_key} following the context and specifications",
                 )
                 if not success:
                     print(f"Development phase failed: {output[:200]}")
@@ -292,9 +299,7 @@ class NativeRunner:
             if run_review and not self.args.context and not self.args.develop:
                 print("\n[3/3] Review Phase...")
                 success, output = self.run_claude(
-                    "SM",
-                    "sonnet",
-                    f"Review the implementation of story {self.args.story_key}"
+                    "SM", "sonnet", f"Review the implementation of story {self.args.story_key}"
                 )
                 if not success:
                     print(f"Review phase failed: {output[:200]}")
@@ -326,6 +331,7 @@ class NativeRunner:
                 print("\n" + "=" * 60)
                 try:
                     from cost_dashboard import CostDashboard
+
                     dashboard = CostDashboard()
                     if self.tracker:
                         dashboard.show_session(self.tracker.session)
@@ -356,26 +362,26 @@ def main():
     script_args = [args.story_key]
 
     if args.develop:
-        script_args.append('--develop')
+        script_args.append("--develop")
     if args.review:
-        script_args.append('--review')
+        script_args.append("--review")
     if args.context:
-        script_args.append('--context')
+        script_args.append("--context")
     if args.no_commit:
-        script_args.append('--no-commit')
+        script_args.append("--no-commit")
     if args.with_pr:
-        script_args.append('--with-pr')
-    if args.model != 'sonnet':
-        script_args.extend(['--model', args.model])
+        script_args.append("--with-pr")
+    if args.model != "sonnet":
+        script_args.extend(["--model", args.model])
 
     print(f"Running: run-story with args: {' '.join(script_args)}")
     print()
 
-    if platform == 'windows':
+    if platform == "windows":
         return run_windows(script_args)
     else:
         return run_unix(script_args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

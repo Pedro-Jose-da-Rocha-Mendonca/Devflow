@@ -52,6 +52,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 @dataclass
 class FileChange:
     """Represents a changed file."""
+
     path: str
     status: str  # added, modified, deleted
     additions: int = 0
@@ -62,13 +63,14 @@ class FileChange:
             "path": self.path,
             "status": self.status,
             "additions": self.additions,
-            "deletions": self.deletions
+            "deletions": self.deletions,
         }
 
 
 @dataclass
 class AgentWorkSummary:
     """Summary of work done by an agent."""
+
     agent: str
     story_key: str
     start_time: str
@@ -95,7 +97,7 @@ class AgentWorkSummary:
             "blockers_resolved": self.blockers_resolved,
             "warnings": self.warnings,
             "questions_for_next": self.questions_for_next,
-            "artifacts_created": self.artifacts_created
+            "artifacts_created": self.artifacts_created,
         }
 
 
@@ -106,78 +108,78 @@ HANDOFF_TEMPLATES = {
             "Story acceptance criteria",
             "Technical context and constraints",
             "Related files and patterns to follow",
-            "Known blockers or dependencies"
+            "Known blockers or dependencies",
         ],
         "expected_questions": [
             "What patterns should I follow?",
             "Are there existing similar implementations?",
-            "What tests are expected?"
-        ]
+            "What tests are expected?",
+        ],
     },
     ("SM", "ARCHITECT"): {
         "focus_areas": [
             "High-level requirements",
             "System constraints",
             "Integration points",
-            "Scale requirements"
+            "Scale requirements",
         ],
         "expected_questions": [
             "What are the non-functional requirements?",
             "What existing systems need integration?",
-            "What are the performance targets?"
-        ]
+            "What are the performance targets?",
+        ],
     },
     ("ARCHITECT", "DEV"): {
         "focus_areas": [
             "Architecture decisions",
             "Design patterns to use",
             "Component structure",
-            "Interface definitions"
+            "Interface definitions",
         ],
         "expected_questions": [
             "What patterns should I implement?",
             "How should components communicate?",
-            "What are the boundaries?"
-        ]
+            "What are the boundaries?",
+        ],
     },
     ("DEV", "REVIEWER"): {
         "focus_areas": [
             "Implementation approach",
             "Key decisions made",
             "Areas of uncertainty",
-            "Test coverage"
+            "Test coverage",
         ],
         "expected_questions": [
             "Why was this approach chosen?",
             "What alternatives were considered?",
-            "What edge cases were handled?"
-        ]
+            "What edge cases were handled?",
+        ],
     },
     ("REVIEWER", "DEV"): {
         "focus_areas": [
             "Issues found",
             "Required changes",
             "Suggestions (optional)",
-            "Approval status"
+            "Approval status",
         ],
         "expected_questions": [
             "Which issues are blocking?",
             "Are there acceptable alternatives?",
-            "What's the priority order?"
-        ]
+            "What's the priority order?",
+        ],
     },
     ("BA", "DEV"): {
         "focus_areas": [
             "Refined requirements",
             "Acceptance criteria",
             "User stories",
-            "Edge cases"
+            "Edge cases",
         ],
         "expected_questions": [
             "What are the exact acceptance criteria?",
             "What user flows need support?",
-            "What error scenarios exist?"
-        ]
+            "What error scenarios exist?",
+        ],
     },
 }
 
@@ -199,21 +201,16 @@ class HandoffGenerator:
             else:
                 cmd = ["git", "diff", "--numstat", "HEAD~1"]
 
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                cwd=str(self.project_root)
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, cwd=str(self.project_root))
 
             changes = []
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 if not line:
                     continue
-                parts = line.split('\t')
+                parts = line.split("\t")
                 if len(parts) >= 3:
-                    additions = int(parts[0]) if parts[0] != '-' else 0
-                    deletions = int(parts[1]) if parts[1] != '-' else 0
+                    additions = int(parts[0]) if parts[0] != "-" else 0
+                    deletions = int(parts[1]) if parts[1] != "-" else 0
                     path = parts[2]
 
                     status = "modified"
@@ -222,12 +219,11 @@ class HandoffGenerator:
                     elif additions == 0 and deletions > 0:
                         status = "deleted"
 
-                    changes.append(FileChange(
-                        path=path,
-                        status=status,
-                        additions=additions,
-                        deletions=deletions
-                    ))
+                    changes.append(
+                        FileChange(
+                            path=path, status=status, additions=additions, deletions=deletions
+                        )
+                    )
 
             return changes
         except Exception:
@@ -240,21 +236,23 @@ class HandoffGenerator:
                 ["git", "diff", "--cached", "--numstat"],
                 capture_output=True,
                 text=True,
-                cwd=str(self.project_root)
+                cwd=str(self.project_root),
             )
 
             changes = []
-            for line in result.stdout.strip().split('\n'):
+            for line in result.stdout.strip().split("\n"):
                 if not line:
                     continue
-                parts = line.split('\t')
+                parts = line.split("\t")
                 if len(parts) >= 3:
-                    changes.append(FileChange(
-                        path=parts[2],
-                        status="staged",
-                        additions=int(parts[0]) if parts[0] != '-' else 0,
-                        deletions=int(parts[1]) if parts[1] != '-' else 0
-                    ))
+                    changes.append(
+                        FileChange(
+                            path=parts[2],
+                            status="staged",
+                            additions=int(parts[0]) if parts[0] != "-" else 0,
+                            deletions=int(parts[1]) if parts[1] != "-" else 0,
+                        )
+                    )
 
             return changes
         except Exception:
@@ -269,11 +267,11 @@ class HandoffGenerator:
         """Extract warnings from agent log output."""
         warnings = []
         warning_patterns = [
-            r'⚠️\s*(.+)',
-            r'WARNING:\s*(.+)',
-            r'WARN:\s*(.+)',
-            r'Watch out.*?:\s*(.+)',
-            r'Note:\s*(.+)',
+            r"⚠️\s*(.+)",
+            r"WARNING:\s*(.+)",
+            r"WARN:\s*(.+)",
+            r"Watch out.*?:\s*(.+)",
+            r"Note:\s*(.+)",
         ]
 
         for pattern in warning_patterns:
@@ -282,14 +280,18 @@ class HandoffGenerator:
 
         return list(set(warnings))[:5]  # Dedupe and limit
 
-    def generate(self, from_agent: str, to_agent: str,
-                 work_summary: str,
-                 decisions_made: Optional[list[str]] = None,
-                 blockers_resolved: Optional[list[str]] = None,
-                 warnings: Optional[list[str]] = None,
-                 files_changed: Optional[list[FileChange]] = None,
-                 next_steps: Optional[list[str]] = None,
-                 log_content: Optional[str] = None) -> HandoffSummary:
+    def generate(
+        self,
+        from_agent: str,
+        to_agent: str,
+        work_summary: str,
+        decisions_made: Optional[list[str]] = None,
+        blockers_resolved: Optional[list[str]] = None,
+        warnings: Optional[list[str]] = None,
+        files_changed: Optional[list[FileChange]] = None,
+        next_steps: Optional[list[str]] = None,
+        log_content: Optional[str] = None,
+    ) -> HandoffSummary:
         """Generate a handoff from one agent to another."""
 
         # Auto-detect file changes if not provided
@@ -309,9 +311,7 @@ class HandoffGenerator:
 
         # Generate next steps if not provided
         if next_steps is None:
-            next_steps = self._generate_next_steps(
-                from_agent, to_agent, files_changed, template
-            )
+            next_steps = self._generate_next_steps(from_agent, to_agent, files_changed, template)
 
         # Create handoff
         handoff = self.knowledge_graph.add_handoff(
@@ -323,21 +323,21 @@ class HandoffGenerator:
             blockers_resolved=blockers_resolved or [],
             watch_out_for=warnings or [],
             files_touched=[f.path for f in files_changed] if files_changed else [],
-            next_steps=next_steps or []
+            next_steps=next_steps or [],
         )
 
         # Also record in shared memory
         self.shared_memory.add(
             agent=from_agent,
             content=f"Handed off to {to_agent}: {work_summary}",
-            tags=["handoff", to_agent.lower()]
+            tags=["handoff", to_agent.lower()],
         )
 
         return handoff
 
-    def _generate_next_steps(self, from_agent: str, to_agent: str,
-                            files: list[FileChange],
-                            template: dict) -> list[str]:
+    def _generate_next_steps(
+        self, from_agent: str, to_agent: str, files: list[FileChange], template: dict
+    ) -> list[str]:
         """Generate suggested next steps for the receiving agent."""
         steps = []
 
@@ -418,15 +418,11 @@ class WorkTracker:
         self.shared_memory = get_shared_memory(story_key)
         self.knowledge_graph = get_knowledge_graph(story_key)
 
-    def record_decision(self, topic: str, decision: str,
-                        context: Optional[dict[str, Any]] = None):
+    def record_decision(self, topic: str, decision: str, context: Optional[dict[str, Any]] = None):
         """Record a decision made during work."""
         self.decisions.append(f"{topic}: {decision}")
         self.knowledge_graph.add_decision(
-            agent=self.agent,
-            topic=topic,
-            decision=decision,
-            context=context or {}
+            agent=self.agent, topic=topic, decision=decision, context=context or {}
         )
 
     def record_blocker(self, blocker: str, resolved: bool = False):
@@ -443,11 +439,7 @@ class WorkTracker:
     def record_note(self, note: str):
         """Record a general note."""
         self.notes.append(note)
-        self.shared_memory.add(
-            agent=self.agent,
-            content=note,
-            tags=["note"]
-        )
+        self.shared_memory.add(agent=self.agent, content=note, tags=["note"])
 
     def record_file(self, file_path: str):
         """Record a file that was touched."""
@@ -459,8 +451,11 @@ class WorkTracker:
         generator = HandoffGenerator(self.story_key)
 
         # Separate resolved and unresolved blockers
-        resolved = [b.replace("✅ ", "").replace(" (resolved)", "")
-                   for b in self.blockers if b.startswith("✅")]
+        resolved = [
+            b.replace("✅ ", "").replace(" (resolved)", "")
+            for b in self.blockers
+            if b.startswith("✅")
+        ]
 
         return generator.generate(
             from_agent=self.agent,
@@ -469,13 +464,14 @@ class WorkTracker:
             decisions_made=self.decisions,
             blockers_resolved=resolved,
             warnings=self.warnings,
-            next_steps=self.notes if self.notes else None
+            next_steps=self.notes if self.notes else None,
         )
 
 
 # Convenience functions
-def create_handoff(from_agent: str, to_agent: str, story_key: str,
-                   summary: str, **kwargs) -> HandoffSummary:
+def create_handoff(
+    from_agent: str, to_agent: str, story_key: str, summary: str, **kwargs
+) -> HandoffSummary:
     """Quick function to create a handoff."""
     generator = HandoffGenerator(story_key)
     return generator.generate(from_agent, to_agent, summary, **kwargs)
@@ -504,12 +500,12 @@ if __name__ == "__main__":
     tracker.record_decision(
         "implementation-approach",
         "Use existing UserService class",
-        {"reason": "Follows established patterns"}
+        {"reason": "Follows established patterns"},
     )
     tracker.record_decision(
         "testing-strategy",
         "Unit tests for service, integration for API",
-        {"coverage_target": "80%"}
+        {"coverage_target": "80%"},
     )
     tracker.record_warning("Rate limiting on profile image uploads")
     tracker.record_note("Existing user.py has the patterns to follow")
@@ -517,12 +513,12 @@ if __name__ == "__main__":
     # Generate handoff to DEV
     handoff = tracker.generate_handoff(
         to_agent="DEV",
-        summary="Created story context for user profile feature. Requirements are clear, patterns are established."
+        summary="Created story context for user profile feature. Requirements are clear, patterns are established.",
     )
 
     print(handoff.to_markdown())
 
-    print("\n" + "="*60 + "\n")
+    print("\n" + "=" * 60 + "\n")
 
     # DEV receives context
     generator = HandoffGenerator(story_key)

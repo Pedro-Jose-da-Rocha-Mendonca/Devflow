@@ -32,32 +32,35 @@ from typing import Optional
 
 class TaskType(Enum):
     """Types of development tasks."""
-    FEATURE = "feature"          # New functionality
-    BUGFIX = "bugfix"            # Bug fix
-    REFACTOR = "refactor"        # Code restructuring
-    SECURITY = "security"        # Security-related
+
+    FEATURE = "feature"  # New functionality
+    BUGFIX = "bugfix"  # Bug fix
+    REFACTOR = "refactor"  # Code restructuring
+    SECURITY = "security"  # Security-related
     PERFORMANCE = "performance"  # Performance optimization
     DOCUMENTATION = "documentation"  # Docs update
-    TESTING = "testing"          # Test addition/fix
-    MIGRATION = "migration"      # Data/code migration
-    TECH_DEBT = "tech_debt"      # Technical debt
+    TESTING = "testing"  # Test addition/fix
+    MIGRATION = "migration"  # Data/code migration
+    TECH_DEBT = "tech_debt"  # Technical debt
     INVESTIGATION = "investigation"  # Code exploration
     ARCHITECTURE = "architecture"  # Design decisions
-    QUICK_FIX = "quick_fix"      # Small, targeted fix
+    QUICK_FIX = "quick_fix"  # Small, targeted fix
 
 
 class Complexity(Enum):
     """Task complexity levels."""
-    TRIVIAL = 1      # Single file, simple change
-    LOW = 2          # Few files, straightforward
-    MEDIUM = 3       # Multiple files, some complexity
-    HIGH = 4         # Many files, complex logic
-    CRITICAL = 5     # System-wide, critical path
+
+    TRIVIAL = 1  # Single file, simple change
+    LOW = 2  # Few files, straightforward
+    MEDIUM = 3  # Multiple files, some complexity
+    HIGH = 4  # Many files, complex logic
+    CRITICAL = 5  # System-wide, critical path
 
 
 @dataclass
 class Agent:
     """Agent configuration."""
+
     name: str
     model: str
     specialties: list[str]
@@ -75,63 +78,63 @@ AGENTS = {
         model="sonnet",
         specialties=["planning", "context", "coordination", "review"],
         cost_tier="low",
-        max_complexity=5
+        max_complexity=5,
     ),
     "DEV": Agent(
         name="DEV",
         model="opus",
         specialties=["implementation", "coding", "feature", "bugfix"],
         cost_tier="high",
-        max_complexity=5
+        max_complexity=5,
     ),
     "BA": Agent(
         name="BA",
         model="sonnet",
         specialties=["requirements", "analysis", "user-stories", "acceptance-criteria"],
         cost_tier="low",
-        max_complexity=3
+        max_complexity=3,
     ),
     "ARCHITECT": Agent(
         name="ARCHITECT",
         model="sonnet",
         specialties=["design", "architecture", "patterns", "system-design", "scalability"],
         cost_tier="low",
-        max_complexity=5
+        max_complexity=5,
     ),
     "PM": Agent(
         name="PM",
         model="sonnet",
         specialties=["planning", "prioritization", "stakeholders", "roadmap"],
         cost_tier="low",
-        max_complexity=3
+        max_complexity=3,
     ),
     "WRITER": Agent(
         name="WRITER",
         model="sonnet",
         specialties=["documentation", "readme", "api-docs", "tutorials"],
         cost_tier="low",
-        max_complexity=3
+        max_complexity=3,
     ),
     "MAINTAINER": Agent(
         name="MAINTAINER",
         model="sonnet",  # Uses Opus for complex tasks
         specialties=["bugfix", "refactor", "tech-debt", "legacy", "maintenance"],
         cost_tier="medium",
-        max_complexity=4
+        max_complexity=4,
     ),
     "REVIEWER": Agent(
         name="REVIEWER",
         model="opus",
         specialties=["review", "quality", "security", "best-practices", "critique"],
         cost_tier="high",
-        max_complexity=5
+        max_complexity=5,
     ),
     "SECURITY": Agent(
         name="SECURITY",
         model="opus",
         specialties=["security", "vulnerabilities", "auth", "encryption", "penetration"],
         cost_tier="high",
-        max_complexity=5
+        max_complexity=5,
     ),
 }
 
@@ -139,80 +142,135 @@ AGENTS = {
 # Keyword patterns for task type detection
 TASK_PATTERNS = {
     TaskType.BUGFIX: [
-        r'\bbug\b', r'\bfix\b', r'\berror\b', r'\bcrash\b', r'\bbroken\b',
-        r'\bfailing\b', r'\bissue\b', r'\bdefect\b', r'\bregression\b'
+        r"\bbug\b",
+        r"\bfix\b",
+        r"\berror\b",
+        r"\bcrash\b",
+        r"\bbroken\b",
+        r"\bfailing\b",
+        r"\bissue\b",
+        r"\bdefect\b",
+        r"\bregression\b",
     ],
     TaskType.SECURITY: [
-        r'\bsecurity\b', r'\bvulnerability\b', r'\bauth\b', r'\bpassword\b',
-        r'\btoken\b', r'\bencrypt\b', r'\bxss\b', r'\bsql.?injection\b',
-        r'\bcve\b', r'\boauth\b', r'\bjwt\b', r'\bcors\b'
+        r"\bsecurity\b",
+        r"\bvulnerability\b",
+        r"\bauth\b",
+        r"\bpassword\b",
+        r"\btoken\b",
+        r"\bencrypt\b",
+        r"\bxss\b",
+        r"\bsql.?injection\b",
+        r"\bcve\b",
+        r"\boauth\b",
+        r"\bjwt\b",
+        r"\bcors\b",
     ],
     TaskType.PERFORMANCE: [
-        r'\bperformance\b', r'\bslow\b', r'\boptimize\b', r'\blatency\b',
-        r'\bcache\b', r'\bmemory\b', r'\bcpu\b', r'\bprofile\b', r'\bbottleneck\b'
+        r"\bperformance\b",
+        r"\bslow\b",
+        r"\boptimize\b",
+        r"\blatency\b",
+        r"\bcache\b",
+        r"\bmemory\b",
+        r"\bcpu\b",
+        r"\bprofile\b",
+        r"\bbottleneck\b",
     ],
     TaskType.REFACTOR: [
-        r'\brefactor\b', r'\brestructure\b', r'\bcleanup\b', r'\bclean.?up\b',
-        r'\breorganize\b', r'\bsimplify\b', r'\bmodularize\b'
+        r"\brefactor\b",
+        r"\brestructure\b",
+        r"\bcleanup\b",
+        r"\bclean.?up\b",
+        r"\breorganize\b",
+        r"\bsimplify\b",
+        r"\bmodularize\b",
     ],
     TaskType.DOCUMENTATION: [
-        r'\bdoc\b', r'\bdocument\b', r'\breadme\b', r'\bcomment\b',
-        r'\bexplain\b', r'\bapi.?doc\b', r'\btutorial\b'
+        r"\bdoc\b",
+        r"\bdocument\b",
+        r"\breadme\b",
+        r"\bcomment\b",
+        r"\bexplain\b",
+        r"\bapi.?doc\b",
+        r"\btutorial\b",
     ],
     TaskType.TESTING: [
-        r'\btest\b', r'\bspec\b', r'\bcoverage\b', r'\bassert\b',
-        r'\bmock\b', r'\bunit.?test\b', r'\bintegration.?test\b'
+        r"\btest\b",
+        r"\bspec\b",
+        r"\bcoverage\b",
+        r"\bassert\b",
+        r"\bmock\b",
+        r"\bunit.?test\b",
+        r"\bintegration.?test\b",
     ],
     TaskType.MIGRATION: [
-        r'\bmigrat\b', r'\bupgrad\b', r'\bconvert\b', r'\bport\b',
-        r'\bversion\b', r'\bdeprecate\b'
+        r"\bmigrat\b",
+        r"\bupgrad\b",
+        r"\bconvert\b",
+        r"\bport\b",
+        r"\bversion\b",
+        r"\bdeprecate\b",
     ],
     TaskType.TECH_DEBT: [
-        r'\btech.?debt\b', r'\btodo\b', r'\bfixme\b', r'\bhack\b',
-        r'\bworkaround\b', r'\btemporary\b', r'\blegacy\b'
+        r"\btech.?debt\b",
+        r"\btodo\b",
+        r"\bfixme\b",
+        r"\bhack\b",
+        r"\bworkaround\b",
+        r"\btemporary\b",
+        r"\blegacy\b",
     ],
     TaskType.ARCHITECTURE: [
-        r'\barchitect\b', r'\bdesign\b', r'\bpattern\b', r'\bstructure\b',
-        r'\bscalable\b', r'\bmicroservice\b', r'\bmonolith\b', r'\bapi.?design\b'
+        r"\barchitect\b",
+        r"\bdesign\b",
+        r"\bpattern\b",
+        r"\bstructure\b",
+        r"\bscalable\b",
+        r"\bmicroservice\b",
+        r"\bmonolith\b",
+        r"\bapi.?design\b",
     ],
     TaskType.INVESTIGATION: [
-        r'\binvestigate\b', r'\bexplore\b', r'\banalyze\b', r'\bunderstand\b',
-        r'\bresearch\b', r'\bspike\b', r'\bpoc\b'
+        r"\binvestigate\b",
+        r"\bexplore\b",
+        r"\banalyze\b",
+        r"\bunderstand\b",
+        r"\bresearch\b",
+        r"\bspike\b",
+        r"\bpoc\b",
     ],
 }
 
 # File extension to specialty mapping
 FILE_SPECIALTIES = {
     # Security-sensitive files
-    '.pem': ['security'],
-    '.key': ['security'],
-    '.env': ['security'],
-
+    ".pem": ["security"],
+    ".key": ["security"],
+    ".env": ["security"],
     # Documentation
-    '.md': ['documentation'],
-    '.rst': ['documentation'],
-    '.txt': ['documentation'],
-
+    ".md": ["documentation"],
+    ".rst": ["documentation"],
+    ".txt": ["documentation"],
     # Test files
-    'test_': ['testing'],
-    '_test.': ['testing'],
-    '.spec.': ['testing'],
-
+    "test_": ["testing"],
+    "_test.": ["testing"],
+    ".spec.": ["testing"],
     # Config files - often architectural
-    '.yaml': ['architecture', 'devops'],
-    '.yml': ['architecture', 'devops'],
-    '.toml': ['architecture'],
-    '.json': ['configuration'],
-
+    ".yaml": ["architecture", "devops"],
+    ".yml": ["architecture", "devops"],
+    ".toml": ["architecture"],
+    ".json": ["configuration"],
     # Database
-    '.sql': ['database', 'migration'],
-    'migration': ['migration', 'database'],
+    ".sql": ["database", "migration"],
+    "migration": ["migration", "database"],
 }
 
 
 @dataclass
 class TaskAnalysis:
     """Result of analyzing a task."""
+
     task_type: TaskType
     complexity: Complexity
     detected_patterns: list[str]
@@ -225,13 +283,14 @@ class TaskAnalysis:
             "complexity": self.complexity.value,
             "detected_patterns": self.detected_patterns,
             "file_contexts": self.file_contexts,
-            "confidence": self.confidence
+            "confidence": self.confidence,
         }
 
 
 @dataclass
 class RoutingResult:
     """Result of agent routing."""
+
     agents: list[str]  # Ordered list of recommended agents
     workflow: str  # sequential, parallel, swarm
     task_analysis: TaskAnalysis
@@ -246,7 +305,7 @@ class RoutingResult:
             "task_analysis": self.task_analysis.to_dict(),
             "reasoning": self.reasoning,
             "alternative_agents": self.alternative_agents,
-            "model_overrides": self.model_overrides
+            "model_overrides": self.model_overrides,
         }
 
 
@@ -257,8 +316,7 @@ class AgentRouter:
         self.project_root = project_root or Path.cwd()
         self.agents = AGENTS.copy()
 
-    def analyze_task(self, description: str,
-                     files: Optional[list[str]] = None) -> TaskAnalysis:
+    def analyze_task(self, description: str, files: Optional[list[str]] = None) -> TaskAnalysis:
         """
         Analyze a task to determine type and complexity.
 
@@ -311,29 +369,41 @@ class AgentRouter:
         complexity = self._estimate_complexity(description, files)
 
         # Calculate confidence
-        confidence = min(1.0, 0.3 + (0.1 * len(detected_patterns)) +
-                        (0.1 * len(file_contexts)))
+        confidence = min(1.0, 0.3 + (0.1 * len(detected_patterns)) + (0.1 * len(file_contexts)))
 
         return TaskAnalysis(
             task_type=task_type,
             complexity=complexity,
             detected_patterns=list(set(detected_patterns)),
             file_contexts=list(set(file_contexts)),
-            confidence=confidence
+            confidence=confidence,
         )
 
-    def _estimate_complexity(self, description: str,
-                            files: Optional[list[str]] = None) -> Complexity:
+    def _estimate_complexity(
+        self, description: str, files: Optional[list[str]] = None
+    ) -> Complexity:
         """Estimate task complexity."""
         score = 1
 
         # Description-based heuristics
         complexity_indicators = {
-            'simple': -1, 'trivial': -1, 'minor': -1, 'quick': -1,
-            'complex': 2, 'difficult': 2, 'critical': 3, 'major': 2,
-            'redesign': 3, 'rewrite': 3, 'overhaul': 3,
-            'multiple': 1, 'several': 1, 'many': 2,
-            'across': 1, 'throughout': 2, 'system-wide': 3
+            "simple": -1,
+            "trivial": -1,
+            "minor": -1,
+            "quick": -1,
+            "complex": 2,
+            "difficult": 2,
+            "critical": 3,
+            "major": 2,
+            "redesign": 3,
+            "rewrite": 3,
+            "overhaul": 3,
+            "multiple": 1,
+            "several": 1,
+            "many": 2,
+            "across": 1,
+            "throughout": 2,
+            "system-wide": 3,
         }
 
         desc_lower = description.lower()
@@ -354,10 +424,13 @@ class AgentRouter:
 
         return Complexity(score)
 
-    def route(self, description: str,
-              files: Optional[list[str]] = None,
-              prefer_cost: bool = False,
-              force_agents: Optional[list[str]] = None) -> RoutingResult:
+    def route(
+        self,
+        description: str,
+        files: Optional[list[str]] = None,
+        prefer_cost: bool = False,
+        force_agents: Optional[list[str]] = None,
+    ) -> RoutingResult:
         """Route a task to the appropriate agent(s)."""
 
         # Allow manual override
@@ -367,16 +440,14 @@ class AgentRouter:
                 agents=force_agents,
                 workflow="sequential",
                 task_analysis=analysis,
-                reasoning="Manual agent selection override"
+                reasoning="Manual agent selection override",
             )
 
         # Analyze the task
         analysis = self.analyze_task(description, files)
 
         # Select agents based on task type and complexity
-        agents, workflow, reasoning = self._select_agents(
-            analysis, prefer_cost
-        )
+        agents, workflow, reasoning = self._select_agents(analysis, prefer_cost)
 
         # Determine model overrides for complex tasks
         model_overrides = {}
@@ -395,11 +466,12 @@ class AgentRouter:
             task_analysis=analysis,
             reasoning=reasoning,
             alternative_agents=alternatives,
-            model_overrides=model_overrides
+            model_overrides=model_overrides,
         )
 
-    def _select_agents(self, analysis: TaskAnalysis,
-                       prefer_cost: bool) -> tuple[list[str], str, str]:
+    def _select_agents(
+        self, analysis: TaskAnalysis, prefer_cost: bool
+    ) -> tuple[list[str], str, str]:
         """Select agents based on task analysis."""
 
         task_type = analysis.task_type
@@ -409,63 +481,84 @@ class AgentRouter:
         routing_rules = {
             TaskType.FEATURE: {
                 "simple": (["DEV"], "sequential", "Direct implementation"),
-                "complex": (["SM", "ARCHITECT", "DEV", "REVIEWER"], "sequential",
-                           "Full pipeline for complex feature")
+                "complex": (
+                    ["SM", "ARCHITECT", "DEV", "REVIEWER"],
+                    "sequential",
+                    "Full pipeline for complex feature",
+                ),
             },
             TaskType.BUGFIX: {
                 "simple": (["MAINTAINER"], "sequential", "Simple bug fix"),
-                "complex": (["DEV", "REVIEWER"], "sequential",
-                           "Complex bug requires senior review")
+                "complex": (
+                    ["DEV", "REVIEWER"],
+                    "sequential",
+                    "Complex bug requires senior review",
+                ),
             },
             TaskType.SECURITY: {
                 "simple": (["SECURITY", "DEV"], "sequential", "Security fix with review"),
-                "complex": (["SECURITY", "DEV", "REVIEWER"], "swarm",
-                           "Critical security requires multi-agent review")
+                "complex": (
+                    ["SECURITY", "DEV", "REVIEWER"],
+                    "swarm",
+                    "Critical security requires multi-agent review",
+                ),
             },
             TaskType.PERFORMANCE: {
                 "simple": (["DEV"], "sequential", "Performance optimization"),
-                "complex": (["ARCHITECT", "DEV", "REVIEWER"], "sequential",
-                           "Architectural review for performance")
+                "complex": (
+                    ["ARCHITECT", "DEV", "REVIEWER"],
+                    "sequential",
+                    "Architectural review for performance",
+                ),
             },
             TaskType.REFACTOR: {
                 "simple": (["MAINTAINER"], "sequential", "Simple refactor"),
-                "complex": (["ARCHITECT", "DEV", "REVIEWER"], "sequential",
-                           "Architectural oversight for major refactor")
+                "complex": (
+                    ["ARCHITECT", "DEV", "REVIEWER"],
+                    "sequential",
+                    "Architectural oversight for major refactor",
+                ),
             },
             TaskType.DOCUMENTATION: {
                 "simple": (["WRITER"], "sequential", "Documentation update"),
-                "complex": (["BA", "WRITER"], "sequential",
-                           "Requirements review before docs")
+                "complex": (["BA", "WRITER"], "sequential", "Requirements review before docs"),
             },
             TaskType.TESTING: {
                 "simple": (["DEV"], "sequential", "Test implementation"),
-                "complex": (["DEV", "REVIEWER"], "sequential",
-                           "Test review for coverage")
+                "complex": (["DEV", "REVIEWER"], "sequential", "Test review for coverage"),
             },
             TaskType.MIGRATION: {
                 "simple": (["MAINTAINER"], "sequential", "Simple migration"),
-                "complex": (["ARCHITECT", "DEV", "REVIEWER"], "sequential",
-                           "Full review for migration")
+                "complex": (
+                    ["ARCHITECT", "DEV", "REVIEWER"],
+                    "sequential",
+                    "Full review for migration",
+                ),
             },
             TaskType.TECH_DEBT: {
                 "simple": (["MAINTAINER"], "sequential", "Tech debt cleanup"),
-                "complex": (["ARCHITECT", "MAINTAINER", "REVIEWER"], "sequential",
-                           "Architectural review for major cleanup")
+                "complex": (
+                    ["ARCHITECT", "MAINTAINER", "REVIEWER"],
+                    "sequential",
+                    "Architectural review for major cleanup",
+                ),
             },
             TaskType.ARCHITECTURE: {
                 "simple": (["ARCHITECT"], "sequential", "Design decision"),
-                "complex": (["ARCHITECT", "DEV", "REVIEWER"], "swarm",
-                           "Multi-agent design review")
+                "complex": (["ARCHITECT", "DEV", "REVIEWER"], "swarm", "Multi-agent design review"),
             },
             TaskType.INVESTIGATION: {
                 "simple": (["SM"], "sequential", "Code exploration"),
-                "complex": (["SM", "ARCHITECT"], "sequential",
-                           "Deep analysis with architecture context")
+                "complex": (
+                    ["SM", "ARCHITECT"],
+                    "sequential",
+                    "Deep analysis with architecture context",
+                ),
             },
             TaskType.QUICK_FIX: {
                 "simple": (["MAINTAINER"], "sequential", "Quick targeted fix"),
-                "complex": (["MAINTAINER"], "sequential", "Quick fix")
-            }
+                "complex": (["MAINTAINER"], "sequential", "Quick fix"),
+            },
         }
 
         # Determine complexity level
@@ -492,8 +585,7 @@ class AgentRouter:
 
         return agents, workflow, reasoning
 
-    def _find_alternatives(self, primary: list[str],
-                          analysis: TaskAnalysis) -> list[str]:
+    def _find_alternatives(self, primary: list[str], analysis: TaskAnalysis) -> list[str]:
         """Find alternative agents that could handle the task."""
         alternatives = []
 
@@ -503,8 +595,7 @@ class AgentRouter:
 
             # Check if agent specialties match any file contexts or detected patterns
             matches = set(agent.specialties) & (
-                set(analysis.file_contexts) |
-                {p.lower() for p in analysis.detected_patterns}
+                set(analysis.file_contexts) | {p.lower() for p in analysis.detected_patterns}
             )
 
             if matches and agent.max_complexity >= analysis.complexity.value:
@@ -547,23 +638,24 @@ class AgentRouter:
             model = result.model_overrides.get(agent, agent_info.model if agent_info else "sonnet")
             lines.append(f"  {i}. **{agent}** (model: {model})")
 
-        lines.extend([
-            "",
-            f"📋 **Workflow**: {result.workflow}",
-            f"💡 **Reasoning**: {result.reasoning}",
-        ])
+        lines.extend(
+            [
+                "",
+                f"📋 **Workflow**: {result.workflow}",
+                f"💡 **Reasoning**: {result.reasoning}",
+            ]
+        )
 
         if result.alternative_agents:
-            lines.extend([
-                "",
-                f"🔄 **Alternatives**: {', '.join(result.alternative_agents)}"
-            ])
+            lines.extend(["", f"🔄 **Alternatives**: {', '.join(result.alternative_agents)}"])
 
         if result.task_analysis.detected_patterns:
-            lines.extend([
-                "",
-                f"🔍 **Detected patterns**: {', '.join(result.task_analysis.detected_patterns[:5])}"
-            ])
+            lines.extend(
+                [
+                    "",
+                    f"🔍 **Detected patterns**: {', '.join(result.task_analysis.detected_patterns[:5])}",
+                ]
+            )
 
         return "\n".join(lines)
 
@@ -600,7 +692,7 @@ if __name__ == "__main__":
     ]
 
     for task in test_cases:
-        print(f"Task: \"{task}\"")
+        print(f'Task: "{task}"')
         result = router.route(task)
         print(router.explain_routing(result))
-        print("\n" + "="*60 + "\n")
+        print("\n" + "=" * 60 + "\n")

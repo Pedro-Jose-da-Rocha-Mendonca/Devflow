@@ -49,11 +49,12 @@ except ImportError:
 
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-CLAUDE_CLI = "claude.cmd" if sys.platform == 'win32' else "claude"
+CLAUDE_CLI = "claude.cmd" if sys.platform == "win32" else "claude"
 
 
 class SwarmState(Enum):
     """State of the swarm orchestration."""
+
     INITIALIZING = "initializing"
     RUNNING = "running"
     DEBATING = "debating"
@@ -66,15 +67,17 @@ class SwarmState(Enum):
 
 class ConsensusType(Enum):
     """Types of consensus mechanisms."""
-    UNANIMOUS = "unanimous"      # All must agree
-    MAJORITY = "majority"        # >50% agree
-    QUORUM = "quorum"           # N of M agree
+
+    UNANIMOUS = "unanimous"  # All must agree
+    MAJORITY = "majority"  # >50% agree
+    QUORUM = "quorum"  # N of M agree
     REVIEWER_APPROVAL = "reviewer_approval"  # REVIEWER must approve
 
 
 @dataclass
 class AgentResponse:
     """Response from an agent."""
+
     agent: str
     model: str
     content: str
@@ -99,13 +102,14 @@ class AgentResponse:
             "issues_found": self.issues_found,
             "approvals": self.approvals,
             "suggestions": self.suggestions,
-            "vote": self.vote
+            "vote": self.vote,
         }
 
 
 @dataclass
 class SwarmIteration:
     """One iteration of the swarm."""
+
     iteration_num: int
     responses: list[AgentResponse] = field(default_factory=list)
     consensus_reached: bool = False
@@ -118,13 +122,14 @@ class SwarmIteration:
             "responses": [r.to_dict() for r in self.responses],
             "consensus_reached": self.consensus_reached,
             "issues_remaining": self.issues_remaining,
-            "decisions_made": self.decisions_made
+            "decisions_made": self.decisions_made,
         }
 
 
 @dataclass
 class SwarmResult:
     """Result of swarm orchestration."""
+
     story_key: str
     task: str
     state: SwarmState
@@ -149,7 +154,7 @@ class SwarmResult:
             "total_cost_usd": self.total_cost_usd,
             "start_time": self.start_time,
             "end_time": self.end_time,
-            "consensus_type": self.consensus_type.value
+            "consensus_type": self.consensus_type.value,
         }
 
     def to_summary(self) -> str:
@@ -172,7 +177,9 @@ class SwarmResult:
 
         lines.append("")
         lines.append("### Final Output")
-        lines.append(self.final_output[:1000] if len(self.final_output) > 1000 else self.final_output)
+        lines.append(
+            self.final_output[:1000] if len(self.final_output) > 1000 else self.final_output
+        )
 
         return "\n".join(lines)
 
@@ -180,6 +187,7 @@ class SwarmResult:
 @dataclass
 class SwarmConfig:
     """Configuration for swarm orchestration."""
+
     max_iterations: int = 3
     consensus_type: ConsensusType = ConsensusType.REVIEWER_APPROVAL
     quorum_size: int = 2  # For QUORUM type
@@ -197,7 +205,7 @@ class SwarmConfig:
             "timeout_seconds": self.timeout_seconds,
             "parallel_execution": self.parallel_execution,
             "auto_fix_enabled": self.auto_fix_enabled,
-            "budget_limit_usd": self.budget_limit_usd
+            "budget_limit_usd": self.budget_limit_usd,
         }
 
 
@@ -235,12 +243,16 @@ class SwarmOrchestrator:
         """Log a message with timestamp."""
         if self.config.verbose:
             timestamp = datetime.now().strftime("%H:%M:%S")
-            emoji = {"INFO": "ℹ️", "SUCCESS": "✅", "WARNING": "⚠️",
-                    "ERROR": "❌", "DEBUG": "🔍"}.get(level, "•")
+            emoji = {
+                "INFO": "ℹ️",
+                "SUCCESS": "✅",
+                "WARNING": "⚠️",
+                "ERROR": "❌",
+                "DEBUG": "🔍",
+            }.get(level, "•")
             print(f"[{timestamp}] {emoji} {message}")
 
-    def _invoke_agent(self, agent: str, prompt: str,
-                      iteration: int = 0) -> AgentResponse:
+    def _invoke_agent(self, agent: str, prompt: str, iteration: int = 0) -> AgentResponse:
         """Invoke a single agent with Claude CLI."""
         model = self.agent_models.get(agent, "sonnet")
 
@@ -256,7 +268,7 @@ class SwarmOrchestrator:
                 capture_output=True,
                 text=True,
                 timeout=self.config.timeout_seconds,
-                cwd=str(self.project_root)
+                cwd=str(self.project_root),
             )
 
             content = result.stdout + result.stderr
@@ -285,7 +297,7 @@ class SwarmOrchestrator:
                 issues_found=issues,
                 approvals=approvals,
                 suggestions=suggestions,
-                vote=vote
+                vote=vote,
             )
 
         except subprocess.TimeoutExpired:
@@ -296,7 +308,7 @@ class SwarmOrchestrator:
                 content="[TIMEOUT]",
                 timestamp=datetime.now().isoformat(),
                 iteration=iteration,
-                vote="abstain"
+                vote="abstain",
             )
         except Exception as e:
             self._log(f"{agent} failed: {e}", "ERROR")
@@ -306,17 +318,17 @@ class SwarmOrchestrator:
                 content=f"[ERROR: {str(e)}]",
                 timestamp=datetime.now().isoformat(),
                 iteration=iteration,
-                vote="abstain"
+                vote="abstain",
             )
 
     def _extract_issues(self, content: str) -> list[str]:
         """Extract issues/problems from response."""
         issues = []
         patterns = [
-            r'(?:issue|problem|bug|error|fix needed|must fix|should fix):\s*(.+)',
-            r'❌\s*(.+)',
-            r'\[ISSUE\]\s*(.+)',
-            r'- (?:Issue|Problem|Bug):\s*(.+)',
+            r"(?:issue|problem|bug|error|fix needed|must fix|should fix):\s*(.+)",
+            r"❌\s*(.+)",
+            r"\[ISSUE\]\s*(.+)",
+            r"- (?:Issue|Problem|Bug):\s*(.+)",
         ]
 
         for pattern in patterns:
@@ -329,9 +341,9 @@ class SwarmOrchestrator:
         """Extract approvals/LGTMs from response."""
         approvals = []
         patterns = [
-            r'(?:lgtm|approved|looks good|well done|excellent)[\s:]*(.+)?',
-            r'✅\s*(.+)',
-            r'\[APPROVED\]\s*(.+)?',
+            r"(?:lgtm|approved|looks good|well done|excellent)[\s:]*(.+)?",
+            r"✅\s*(.+)",
+            r"\[APPROVED\]\s*(.+)?",
         ]
 
         for pattern in patterns:
@@ -345,9 +357,9 @@ class SwarmOrchestrator:
         """Extract suggestions from response."""
         suggestions = []
         patterns = [
-            r'(?:suggest|consider|recommend|might want to|could):\s*(.+)',
-            r'💡\s*(.+)',
-            r'\[SUGGESTION\]\s*(.+)',
+            r"(?:suggest|consider|recommend|might want to|could):\s*(.+)",
+            r"💡\s*(.+)",
+            r"\[SUGGESTION\]\s*(.+)",
         ]
 
         for pattern in patterns:
@@ -356,15 +368,18 @@ class SwarmOrchestrator:
 
         return list(set(suggestions))[:5]
 
-    def _determine_vote(self, content: str, issues: list[str],
-                       approvals: list[str]) -> str:
+    def _determine_vote(self, content: str, issues: list[str], approvals: list[str]) -> str:
         """Determine agent's vote based on response."""
         content_lower = content.lower()
 
         # Explicit votes
-        if any(word in content_lower for word in ['approved', 'lgtm', 'ship it', 'looks good to me']):
+        if any(
+            word in content_lower for word in ["approved", "lgtm", "ship it", "looks good to me"]
+        ):
             return "approve"
-        if any(word in content_lower for word in ['rejected', 'do not merge', 'needs work', 'blocking']):
+        if any(
+            word in content_lower for word in ["rejected", "do not merge", "needs work", "blocking"]
+        ):
             return "reject"
 
         # Implicit from issues/approvals
@@ -386,8 +401,9 @@ class SwarmOrchestrator:
 
         rates = pricing.get(model, pricing["sonnet"])
         # Assume 50/50 input/output split
-        cost = (tokens / 2 / 1_000_000 * rates["input"]) + \
-               (tokens / 2 / 1_000_000 * rates["output"])
+        cost = (tokens / 2 / 1_000_000 * rates["input"]) + (
+            tokens / 2 / 1_000_000 * rates["output"]
+        )
         return cost
 
     def _check_consensus(self, responses: list[AgentResponse]) -> bool:
@@ -424,10 +440,14 @@ class SwarmOrchestrator:
             all_issues.extend(r.issues_found)
         return list(set(all_issues))
 
-    def _build_iteration_prompt(self, agent: str, task: str,
-                                 iteration: int,
-                                 previous_responses: list[AgentResponse],
-                                 issues_to_fix: list[str]) -> str:
+    def _build_iteration_prompt(
+        self,
+        agent: str,
+        task: str,
+        iteration: int,
+        previous_responses: list[AgentResponse],
+        issues_to_fix: list[str],
+    ) -> str:
         """Build prompt for a specific iteration."""
 
         if iteration == 0:
@@ -470,7 +490,7 @@ At the end, clearly indicate if you APPROVE or have ISSUES with the work.
 {chr(10).join(feedback_lines)}
 
 ## Issues to Address
-{chr(10).join(f'- {issue}' for issue in issues_to_fix) if issues_to_fix else 'No outstanding issues.'}
+{chr(10).join(f"- {issue}" for issue in issues_to_fix) if issues_to_fix else "No outstanding issues."}
 
 Please address the feedback and issues above.
 At the end, clearly indicate if you APPROVE the current state or have remaining ISSUES.
@@ -478,8 +498,9 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
 
         return prompt
 
-    def run_swarm(self, agents: list[str], task: str,
-                  max_iterations: Optional[int] = None) -> SwarmResult:
+    def run_swarm(
+        self, agents: list[str], task: str, max_iterations: Optional[int] = None
+    ) -> SwarmResult:
         """Run swarm orchestration with multiple agents."""
 
         max_iter = max_iterations or self.config.max_iterations
@@ -511,7 +532,9 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
                         prompt = self._build_iteration_prompt(
                             agent, task, iteration, previous_responses, issues_to_fix
                         )
-                        futures[executor.submit(self._invoke_agent, agent, prompt, iteration)] = agent
+                        futures[executor.submit(self._invoke_agent, agent, prompt, iteration)] = (
+                            agent
+                        )
 
                     for future in as_completed(futures):
                         response = future.result()
@@ -529,7 +552,7 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
                     self.shared_memory.add(
                         agent=agent,
                         content=f"Iteration {iteration + 1}: {response.vote or 'no vote'}",
-                        tags=["swarm", "iteration"]
+                        tags=["swarm", "iteration"],
                     )
 
             # Collect issues
@@ -543,7 +566,7 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
                 responses=iter_responses,
                 consensus_reached=consensus,
                 issues_remaining=issues_to_fix,
-                decisions_made=[f"{r.agent}: {r.vote}" for r in iter_responses]
+                decisions_made=[f"{r.agent}: {r.vote}" for r in iter_responses],
             )
             self.iterations.append(swarm_iter)
 
@@ -576,7 +599,7 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
             total_cost_usd=self.total_cost,
             start_time=start_time,
             end_time=datetime.now().isoformat(),
-            consensus_type=self.config.consensus_type
+            consensus_type=self.config.consensus_type,
         )
 
         # Save to knowledge graph
@@ -584,7 +607,7 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
             agent="SWARM",
             topic="swarm-result",
             decision=f"Completed with state: {self.state.value}",
-            context={"iterations": len(self.iterations), "cost": self.total_cost}
+            context={"iterations": len(self.iterations), "cost": self.total_cost},
         )
 
         return result
@@ -600,31 +623,33 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
 
         return primary.content
 
-    def run_iteration_loop(self, primary_agent: str, reviewer_agent: str,
-                           task: str, max_iterations: Optional[int] = None) -> SwarmResult:
+    def run_iteration_loop(
+        self,
+        primary_agent: str,
+        reviewer_agent: str,
+        task: str,
+        max_iterations: Optional[int] = None,
+    ) -> SwarmResult:
         """Run a simple iteration loop between two agents (e.g., DEV → REVIEWER → DEV)."""
         return self.run_swarm(
-            agents=[primary_agent, reviewer_agent],
-            task=task,
-            max_iterations=max_iterations
+            agents=[primary_agent, reviewer_agent], task=task, max_iterations=max_iterations
         )
 
 
 # Convenience functions
-def run_swarm(story_key: str, agents: list[str], task: str,
-              max_iterations: int = 3, **config_kwargs) -> SwarmResult:
+def run_swarm(
+    story_key: str, agents: list[str], task: str, max_iterations: int = 3, **config_kwargs
+) -> SwarmResult:
     """Quick function to run a swarm."""
     config = SwarmConfig(**config_kwargs)
     orchestrator = SwarmOrchestrator(story_key, config)
     return orchestrator.run_swarm(agents, task, max_iterations)
 
 
-def run_dev_review_loop(story_key: str, task: str,
-                        max_iterations: int = 3) -> SwarmResult:
+def run_dev_review_loop(story_key: str, task: str, max_iterations: int = 3) -> SwarmResult:
     """Run a DEV → REVIEWER iteration loop."""
     config = SwarmConfig(
-        max_iterations=max_iterations,
-        consensus_type=ConsensusType.REVIEWER_APPROVAL
+        max_iterations=max_iterations, consensus_type=ConsensusType.REVIEWER_APPROVAL
     )
     orchestrator = SwarmOrchestrator(story_key, config)
     return orchestrator.run_iteration_loop("DEV", "REVIEWER", task, max_iterations)
@@ -633,9 +658,7 @@ def run_dev_review_loop(story_key: str, task: str,
 def run_architecture_review(story_key: str, task: str) -> SwarmResult:
     """Run an architecture review swarm."""
     config = SwarmConfig(
-        max_iterations=2,
-        consensus_type=ConsensusType.MAJORITY,
-        parallel_execution=True
+        max_iterations=2, consensus_type=ConsensusType.MAJORITY, parallel_execution=True
     )
     orchestrator = SwarmOrchestrator(story_key, config)
     return orchestrator.run_swarm(["ARCHITECT", "DEV", "REVIEWER"], task)

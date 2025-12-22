@@ -30,24 +30,25 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 CHECKPOINT_DIR = PROJECT_ROOT / "tooling" / ".automation" / "checkpoints"
 LOGS_DIR = PROJECT_ROOT / "tooling" / ".automation" / "logs"
 # Platform-specific CLI command
-CLAUDE_CLI = "claude.cmd" if sys.platform == 'win32' else "claude"
+CLAUDE_CLI = "claude.cmd" if sys.platform == "win32" else "claude"
 
 # Context thresholds
 CONTEXT_WARNING_THRESHOLD = 0.75  # 75% - Start warning
 CONTEXT_CRITICAL_THRESHOLD = 0.85  # 85% - Auto-checkpoint
 CONTEXT_EMERGENCY_THRESHOLD = 0.95  # 95% - Force checkpoint
 
+
 # Colors for terminal output
 class Colors:
-    HEADER = '\033[95m'
-    BLUE = '\033[94m'
-    CYAN = '\033[96m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-    END = '\033[0m'
+    HEADER = "\033[95m"
+    BLUE = "\033[94m"
+    CYAN = "\033[96m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    RED = "\033[91m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
+    END = "\033[0m"
 
 
 class ContextCheckpointManager:
@@ -68,7 +69,7 @@ class ContextCheckpointManager:
         # Handle graceful shutdown (Windows-compatible)
         signal.signal(signal.SIGINT, self._signal_handler)
         # SIGTERM is not available on Windows
-        if sys.platform != 'win32':
+        if sys.platform != "win32":
             signal.signal(signal.SIGTERM, self._signal_handler)
 
     def _signal_handler(self, signum, frame):
@@ -99,19 +100,19 @@ class ContextCheckpointManager:
         - "⚠️ CONTEXT WARNING"
         """
         # Pattern 1: Token usage: X/Y
-        match = re.search(r'Token usage:\s*(\d+)/(\d+)', output)
+        match = re.search(r"Token usage:\s*(\d+)/(\d+)", output)
         if match:
             used = int(match.group(1))
             total = int(match.group(2))
             return used / total
 
         # Pattern 2: Context: X%
-        match = re.search(r'Context:\s*(\d+)%', output)
+        match = re.search(r"Context:\s*(\d+)%", output)
         if match:
             return int(match.group(1)) / 100
 
         # Pattern 3: Warning messages
-        if '⚠️ CONTEXT WARNING' in output or 'Approaching context limit' in output:
+        if "⚠️ CONTEXT WARNING" in output or "Approaching context limit" in output:
             return 0.90  # Assume 90% if warning present
 
         return None
@@ -127,7 +128,7 @@ class ContextCheckpointManager:
                 [CLAUDE_CLI, "session", "export", "--format", "json"],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
 
             if result.returncode == 0 and result.stdout:
@@ -146,7 +147,9 @@ class ContextCheckpointManager:
     def _fallback_conversation_extract(self) -> dict:
         """Fallback method to extract conversation from logs."""
         # Check for recent log files
-        log_files = sorted(self.logs_dir.glob("*.log"), key=lambda p: p.stat().st_mtime, reverse=True)
+        log_files = sorted(
+            self.logs_dir.glob("*.log"), key=lambda p: p.stat().st_mtime, reverse=True
+        )
 
         if not log_files:
             return {"messages": [], "metadata": {}}
@@ -160,8 +163,8 @@ class ContextCheckpointManager:
                     "metadata": {
                         "source": "log_file",
                         "file": str(latest_log),
-                        "timestamp": datetime.now().isoformat()
-                    }
+                        "timestamp": datetime.now().isoformat(),
+                    },
                 }
         except Exception as e:
             self._log(f"Error reading log file: {e}", "ERROR")
@@ -198,12 +201,12 @@ class ContextCheckpointManager:
                 "project_root": str(PROJECT_ROOT),
                 "working_directory": os.getcwd(),
                 "checkpoint_count": self.checkpoint_count,
-            }
+            },
         }
 
         # Save checkpoint file
         checkpoint_file = self.checkpoint_dir / f"{checkpoint_id}.json"
-        with open(checkpoint_file, 'w') as f:
+        with open(checkpoint_file, "w") as f:
             json.dump(checkpoint_data, f, indent=2)
 
         # Create summary file (human-readable)
@@ -219,22 +222,22 @@ class ContextCheckpointManager:
         """Create a human-readable summary of the checkpoint."""
         summary = f"""# Checkpoint Summary
 
-**Checkpoint ID**: {checkpoint_data['checkpoint_id']}
-**Timestamp**: {checkpoint_data['timestamp']}
-**Context Level**: {checkpoint_data['context_level']*100:.1f}%
-**Reason**: {checkpoint_data['reason']}
-**Session ID**: {checkpoint_data.get('session_id', 'N/A')}
+**Checkpoint ID**: {checkpoint_data["checkpoint_id"]}
+**Timestamp**: {checkpoint_data["timestamp"]}
+**Context Level**: {checkpoint_data["context_level"] * 100:.1f}%
+**Reason**: {checkpoint_data["reason"]}
+**Session ID**: {checkpoint_data.get("session_id", "N/A")}
 
 ## Conversation Snapshot
 
-Messages: {len(checkpoint_data['conversation'].get('messages', []))}
-Source: {checkpoint_data['conversation'].get('metadata', {}).get('source', 'unknown')}
+Messages: {len(checkpoint_data["conversation"].get("messages", []))}
+Source: {checkpoint_data["conversation"].get("metadata", {}).get("source", "unknown")}
 
 ## Metadata
 
-- Project Root: `{checkpoint_data['metadata']['project_root']}`
-- Working Directory: `{checkpoint_data['metadata']['working_directory']}`
-- Checkpoint Count: {checkpoint_data['metadata']['checkpoint_count']}
+- Project Root: `{checkpoint_data["metadata"]["project_root"]}`
+- Working Directory: `{checkpoint_data["metadata"]["working_directory"]}`
+- Checkpoint Count: {checkpoint_data["metadata"]["checkpoint_count"]}
 
 ## Recovery Instructions
 
@@ -242,10 +245,10 @@ To resume from this checkpoint:
 
 ```bash
 # Option 1: Use the checkpoint file
-python3 tooling/scripts/context_checkpoint.py --resume {checkpoint_data['checkpoint_id']}
+python3 tooling/scripts/context_checkpoint.py --resume {checkpoint_data["checkpoint_id"]}
 
 # Option 2: Manual resume
-# The full conversation is in: {checkpoint_data['checkpoint_id']}.json
+# The full conversation is in: {checkpoint_data["checkpoint_id"]}.json
 ```
 
 ## Next Steps
@@ -257,7 +260,7 @@ After checkpoint, the session should be cleared and restarted with:
 4. Todo list state
 """
 
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             f.write(summary)
 
     def clear_session(self):
@@ -266,10 +269,7 @@ After checkpoint, the session should be cleared and restarted with:
         try:
             # Try to clear via CLI
             result = subprocess.run(
-                [CLAUDE_CLI, "clear"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                [CLAUDE_CLI, "clear"], capture_output=True, text=True, timeout=5
             )
 
             if result.returncode == 0:
@@ -309,11 +309,11 @@ After checkpoint, the session should be cleared and restarted with:
 
             # Start new session with resume prompt
             self._log("🚀 Starting new session with checkpoint context...", "INFO")
-            print("\n" + "="*80)
+            print("\n" + "=" * 80)
             print("RESUME PROMPT (paste this into Claude Code):")
-            print("="*80 + "\n")
+            print("=" * 80 + "\n")
             print(resume_prompt)
-            print("\n" + "="*80 + "\n")
+            print("\n" + "=" * 80 + "\n")
 
             return True
 
@@ -323,7 +323,7 @@ After checkpoint, the session should be cleared and restarted with:
 
     def _create_resume_prompt(self, checkpoint_data: dict) -> str:
         """Create a prompt to resume from checkpoint."""
-        messages = checkpoint_data['conversation'].get('messages', [])
+        messages = checkpoint_data["conversation"].get("messages", [])
 
         # Extract key information
         task_context = "Continue previous work"
@@ -331,17 +331,17 @@ After checkpoint, the session should be cleared and restarted with:
 
         # Try to extract context from messages
         for msg in messages[-5:]:  # Last 5 messages
-            content = msg.get('content', '')
-            if 'File:' in content or 'file_path' in content:
+            content = msg.get("content", "")
+            if "File:" in content or "file_path" in content:
                 # Extract file references
                 file_matches = re.findall(r'(?:File:|file_path["\']:\s*["\'])([^\'"]+)', content)
                 recent_files.extend(file_matches)
 
         resume_prompt = f"""# Session Resume from Checkpoint
 
-**Checkpoint ID**: {checkpoint_data['checkpoint_id']}
-**Original Timestamp**: {checkpoint_data['timestamp']}
-**Context Level at Checkpoint**: {checkpoint_data['context_level']*100:.1f}%
+**Checkpoint ID**: {checkpoint_data["checkpoint_id"]}
+**Original Timestamp**: {checkpoint_data["timestamp"]}
+**Context Level at Checkpoint**: {checkpoint_data["context_level"] * 100:.1f}%
 
 ---
 
@@ -353,8 +353,8 @@ You were working on: {task_context}
 {chr(10).join(f"- `{f}`" for f in recent_files[:10]) if recent_files else "No recent files tracked"}
 
 ### Session State
-- Checkpoint Count: {checkpoint_data['metadata']['checkpoint_count']}
-- Working Directory: `{checkpoint_data['metadata']['working_directory']}`
+- Checkpoint Count: {checkpoint_data["metadata"]["checkpoint_count"]}
+- Working Directory: `{checkpoint_data["metadata"]["working_directory"]}`
 
 ---
 
@@ -363,12 +363,12 @@ You were working on: {task_context}
 Please continue from where we left off. The checkpoint was created because the context window was reaching capacity.
 
 **What to do**:
-1. Acknowledge that you've resumed from checkpoint {checkpoint_data['checkpoint_id']}
+1. Acknowledge that you've resumed from checkpoint {checkpoint_data["checkpoint_id"]}
 2. Ask me what specific task I'd like to continue with
 3. Use the TodoWrite tool to create a fresh todo list for current work
 
 **Context available**:
-- Full checkpoint data is saved in: `tooling/.automation/checkpoints/{checkpoint_data['checkpoint_id']}.json`
+- Full checkpoint data is saved in: `tooling/.automation/checkpoints/{checkpoint_data["checkpoint_id"]}.json`
 - You can read this file if you need to reference previous conversation details
 
 Ready to continue!
@@ -417,8 +417,13 @@ Ready to continue!
             # EMERGENCY: Force checkpoint immediately
             self._log(f"🚨 EMERGENCY: Context at {percentage:.1f}% - Force checkpoint!", "CRITICAL")
             checkpoint_file = self.create_checkpoint(context_level, reason="emergency")
-            self._log("⚠️  MANUAL ACTION REQUIRED: Clear session and resume from checkpoint", "CRITICAL")
-            self._log(f"Run: python3 tooling/scripts/context_checkpoint.py --resume {checkpoint_file.stem}", "INFO")
+            self._log(
+                "⚠️  MANUAL ACTION REQUIRED: Clear session and resume from checkpoint", "CRITICAL"
+            )
+            self._log(
+                f"Run: python3 tooling/scripts/context_checkpoint.py --resume {checkpoint_file.stem}",
+                "INFO",
+            )
 
         elif context_level >= CONTEXT_CRITICAL_THRESHOLD:
             # CRITICAL: Auto-checkpoint
@@ -433,7 +438,10 @@ Ready to continue!
     def interactive_monitor(self):
         """Run interactive monitoring mode."""
         self._log("🎯 Starting interactive context monitor", "INFO")
-        self._log(f"Thresholds: Warning={CONTEXT_WARNING_THRESHOLD*100}%, Critical={CONTEXT_CRITICAL_THRESHOLD*100}%, Emergency={CONTEXT_EMERGENCY_THRESHOLD*100}%", "INFO")
+        self._log(
+            f"Thresholds: Warning={CONTEXT_WARNING_THRESHOLD * 100}%, Critical={CONTEXT_CRITICAL_THRESHOLD * 100}%, Emergency={CONTEXT_EMERGENCY_THRESHOLD * 100}%",
+            "INFO",
+        )
 
         print(f"\n{Colors.BOLD}Commands:{Colors.END}")
         print("  - Type 'checkpoint' to manually create checkpoint")
@@ -447,20 +455,20 @@ Ready to continue!
             try:
                 cmd = input(f"{Colors.CYAN}> {Colors.END}").strip().lower()
 
-                if cmd == 'checkpoint':
+                if cmd == "checkpoint":
                     self.create_checkpoint(0.0, reason="manual")
 
-                elif cmd.startswith('resume '):
-                    checkpoint_id = cmd.split(' ', 1)[1]
+                elif cmd.startswith("resume "):
+                    checkpoint_id = cmd.split(" ", 1)[1]
                     self.resume_from_checkpoint(checkpoint_id)
 
-                elif cmd == 'list':
+                elif cmd == "list":
                     self._list_checkpoints()
 
-                elif cmd == 'status':
+                elif cmd == "status":
                     self._show_status()
 
-                elif cmd in ('quit', 'exit', 'q'):
+                elif cmd in ("quit", "exit", "q"):
                     break
 
                 else:
@@ -484,9 +492,9 @@ Ready to continue!
         for cp_file in checkpoints:
             with open(cp_file) as f:
                 data = json.load(f)
-                timestamp = data['timestamp']
-                context = data['context_level'] * 100
-                reason = data['reason']
+                timestamp = data["timestamp"]
+                context = data["context_level"] * 100
+                reason = data["reason"]
                 print(f"  • {cp_file.stem} - {timestamp} - {context:.1f}% ({reason})")
         print()
 
@@ -518,14 +526,14 @@ Examples:
 
   # Manual checkpoint
   python3 tooling/scripts/context_checkpoint.py --checkpoint
-        """
+        """,
     )
 
-    parser.add_argument('--session-id', help='Claude session ID to monitor')
-    parser.add_argument('--watch-log', help='Log file to watch for context warnings')
-    parser.add_argument('--resume', help='Resume from checkpoint ID')
-    parser.add_argument('--checkpoint', action='store_true', help='Create manual checkpoint')
-    parser.add_argument('--list', action='store_true', help='List available checkpoints')
+    parser.add_argument("--session-id", help="Claude session ID to monitor")
+    parser.add_argument("--watch-log", help="Log file to watch for context warnings")
+    parser.add_argument("--resume", help="Resume from checkpoint ID")
+    parser.add_argument("--checkpoint", action="store_true", help="Create manual checkpoint")
+    parser.add_argument("--list", action="store_true", help="List available checkpoints")
 
     args = parser.parse_args()
 

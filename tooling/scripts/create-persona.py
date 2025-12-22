@@ -22,14 +22,15 @@ from pathlib import Path
 
 # Colors for terminal output
 class Colors:
-    RED = '\033[0;31m'
-    GREEN = '\033[0;32m'
-    YELLOW = '\033[1;33m'
-    BLUE = '\033[0;34m'
-    CYAN = '\033[0;36m'
-    MAGENTA = '\033[0;35m'
-    BOLD = '\033[1m'
-    NC = '\033[0m'
+    RED = "\033[0;31m"
+    GREEN = "\033[0;32m"
+    YELLOW = "\033[1;33m"
+    BLUE = "\033[0;34m"
+    CYAN = "\033[0;36m"
+    MAGENTA = "\033[0;35m"
+    BOLD = "\033[1m"
+    NC = "\033[0m"
+
 
 # Persona templates
 PERSONA_TEMPLATES = {
@@ -158,6 +159,7 @@ PERSONA_TEMPLATES = {
 @dataclass
 class PersonaConfig:
     """Configuration for a custom persona."""
+
     name: str
     role: str
     focus: str
@@ -263,22 +265,24 @@ def interactive_create() -> PersonaConfig:
         principles = tpl["principles"].copy()
 
         print()
-        print(f"{Colors.GREEN}Template loaded!{Colors.NC} Default responsibilities and principles applied.")
+        print(
+            f"{Colors.GREEN}Template loaded!{Colors.NC} Default responsibilities and principles applied."
+        )
         modify = prompt("Would you like to modify them? (y/n)", "n")
 
-        if modify.lower() == 'y':
+        if modify.lower() == "y":
             print()
             print("Current responsibilities:")
             for r in responsibilities:
                 print(f"  - {r}")
-            if prompt("Modify responsibilities? (y/n)", "n").lower() == 'y':
+            if prompt("Modify responsibilities? (y/n)", "n").lower() == "y":
                 responsibilities = prompt_list("Enter responsibilities", 1)
 
             print()
             print("Current principles:")
             for p in principles:
                 print(f"  - {p}")
-            if prompt("Modify principles? (y/n)", "n").lower() == 'y':
+            if prompt("Modify principles? (y/n)", "n").lower() == "y":
                 principles = prompt_list("Enter principles", 1)
     else:
         role = prompt("Role (e.g., 'Senior QA Engineer')", required=True)
@@ -295,14 +299,14 @@ def interactive_create() -> PersonaConfig:
     print()
     communication_style = prompt(
         "Communication style (e.g., 'Technical and detailed', 'Friendly and explanatory')",
-        "Professional and clear"
+        "Professional and clear",
     )
 
     # Working directories (optional)
     print()
     add_dirs = prompt("Add working directories? (y/n)", "n")
     working_dirs = {}
-    if add_dirs.lower() == 'y':
+    if add_dirs.lower() == "y":
         print("Enter directory mappings (name: path), empty to finish:")
         while True:
             dir_name = input("  Name: ").strip()
@@ -315,14 +319,14 @@ def interactive_create() -> PersonaConfig:
     print()
     add_tech = prompt("Add tech stack context? (y/n)", "n")
     tech_stack = []
-    if add_tech.lower() == 'y':
+    if add_tech.lower() == "y":
         tech_stack = prompt_list("Enter technologies this agent works with")
 
     # Critical rules
     print()
     add_rules = prompt("Add critical rules (must-do actions)? (y/n)", "n")
     critical_rules = []
-    if add_rules.lower() == 'y':
+    if add_rules.lower() == "y":
         critical_rules = prompt_list("Enter critical rules")
 
     return PersonaConfig(
@@ -349,90 +353,109 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
     ]
 
     # Responsibilities
-    lines.extend([
-        "## Responsibilities",
-        "",
-    ])
+    lines.extend(
+        [
+            "## Responsibilities",
+            "",
+        ]
+    )
     for i, resp in enumerate(config.responsibilities, 1):
         lines.append(f"{i}. {resp}")
     lines.append("")
 
     # Working directories
     if config.working_directories:
-        lines.extend([
-            "## Working Directory",
-            "",
-        ])
+        lines.extend(
+            [
+                "## Working Directory",
+                "",
+            ]
+        )
         for name, path in config.working_directories.items():
             lines.append(f"- **{name}**: `{path}`")
         lines.append("")
 
     # Tech stack
     if config.tech_stack:
-        lines.extend([
-            "## Tech Stack",
-            "",
-        ])
+        lines.extend(
+            [
+                "## Tech Stack",
+                "",
+            ]
+        )
         for tech in config.tech_stack:
             lines.append(f"- {tech}")
         lines.append("")
 
     # Principles
-    lines.extend([
-        "## Principles",
-        "",
-    ])
+    lines.extend(
+        [
+            "## Principles",
+            "",
+        ]
+    )
     for i, principle in enumerate(config.principles, 1):
-        lines.append(f"{i}. **{principle.split(':')[0]}**" + (f": {':'.join(principle.split(':')[1:])}" if ':' in principle else ""))
+        lines.append(
+            f"{i}. **{principle.split(':')[0]}**"
+            + (f": {':'.join(principle.split(':')[1:])}" if ":" in principle else "")
+        )
     lines.append("")
 
     # Communication style
     if config.communication_style:
-        lines.extend([
-            "## Communication Style",
-            "",
-            config.communication_style,
-            "",
-        ])
+        lines.extend(
+            [
+                "## Communication Style",
+                "",
+                config.communication_style,
+                "",
+            ]
+        )
 
     # Critical rules
     if config.critical_rules:
-        lines.extend([
-            "## Critical Rules",
-            "",
-        ])
+        lines.extend(
+            [
+                "## Critical Rules",
+                "",
+            ]
+        )
         for rule in config.critical_rules:
             lines.append(f"- {rule}")
         lines.append("")
 
     # Context management (standard section)
-    lines.extend([
-        "## Context Management",
-        "",
-        "You are running in an automated pipeline with limited context window. To avoid losing work:",
-        "",
-        "1. **Work incrementally** - Complete and save files one at a time",
-        "2. **Checkpoint frequently** - After each significant change, ensure the file is written",
-        "3. **Monitor your progress** - If you notice you've been working for a while, prioritize critical items",
-        "4. **Self-assess context usage** - If you estimate you're past 80% of your context:",
-        "   - Finish the current file you're working on",
-        "   - Write a summary of remaining work",
-        "   - Complete what you can rather than leaving partial work",
-        "",
-        "If you sense context is running low, output a warning:",
-        "```",
-        "⚠️ CONTEXT WARNING: Approaching context limit. Prioritizing completion of current task.",
-        "```",
-        "",
-    ])
+    lines.extend(
+        [
+            "## Context Management",
+            "",
+            "You are running in an automated pipeline with limited context window. To avoid losing work:",
+            "",
+            "1. **Work incrementally** - Complete and save files one at a time",
+            "2. **Checkpoint frequently** - After each significant change, ensure the file is written",
+            "3. **Monitor your progress** - If you notice you've been working for a while, prioritize critical items",
+            "4. **Self-assess context usage** - If you estimate you're past 80% of your context:",
+            "   - Finish the current file you're working on",
+            "   - Write a summary of remaining work",
+            "   - Complete what you can rather than leaving partial work",
+            "",
+            "If you sense context is running low, output a warning:",
+            "```",
+            "⚠️ CONTEXT WARNING: Approaching context limit. Prioritizing completion of current task.",
+            "```",
+            "",
+        ]
+    )
 
     # Model recommendation
-    lines.extend([
-        "## Model",
-        "",
-        f"Recommended model: `{config.model}`",
-        "",
-    ])
+    lines.extend(
+        [
+            "## Model",
+            "",
+            f"Recommended model: `{config.model}`",
+            "",
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -451,28 +474,32 @@ def generate_override_yaml(config: PersonaConfig) -> str:
     for rule in config.critical_rules or config.principles[:2]:
         lines.append(f'  - "{rule}"')
 
-    lines.extend([
-        "",
-        "# Memories - facts this agent should always remember",
-        "memories:",
-        '  - "Example memory: add project-specific context here"',
-        "",
-        "# Critical actions - must be done before completing any task",
-        "critical_actions:",
-    ])
+    lines.extend(
+        [
+            "",
+            "# Memories - facts this agent should always remember",
+            "memories:",
+            '  - "Example memory: add project-specific context here"',
+            "",
+            "# Critical actions - must be done before completing any task",
+            "critical_actions:",
+        ]
+    )
 
     for rule in config.critical_rules or ["Verify work meets requirements"]:
         lines.append(f'  - "{rule}"')
 
-    lines.extend([
-        "",
-        f"# Model override (recommended: {config.model})",
-        f"# model: \"{config.model}\"",
-        "",
-        "# Budget override (optional)",
-        "# max_budget_usd: 10.00",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            f"# Model override (recommended: {config.model})",
+            f'# model: "{config.model}"',
+            "",
+            "# Budget override (optional)",
+            "# max_budget_usd: 10.00",
+            "",
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -515,11 +542,13 @@ def list_personas(project_root: Path):
 
         # Extract first line (role)
         content = agent_file.read_text()
-        first_line = content.split('\n')[0]
-        role = first_line.replace('# ', '').replace(' Agent', '')
+        first_line = content.split("\n")[0]
+        role = first_line.replace("# ", "").replace(" Agent", "")
 
         # Check for override
-        override_file = project_root / "tooling" / ".automation" / "overrides" / f"{name}.override.yaml"
+        override_file = (
+            project_root / "tooling" / ".automation" / "overrides" / f"{name}.override.yaml"
+        )
         has_override = "✓" if override_file.exists() else " "
 
         print(f"  {Colors.GREEN}{name:15}{Colors.NC} │ {role:25} │ Override: {has_override}")
@@ -573,10 +602,14 @@ def validate_persona(name: str, project_root: Path) -> bool:
 def main():
     parser = argparse.ArgumentParser(description="Create custom agent personas")
     parser.add_argument("--name", help="Quick create with this name")
-    parser.add_argument("--template", help="Use this template (developer, reviewer, architect, etc.)")
+    parser.add_argument(
+        "--template", help="Use this template (developer, reviewer, architect, etc.)"
+    )
     parser.add_argument("--list", action="store_true", help="List existing personas")
     parser.add_argument("--validate", help="Validate a persona file")
-    parser.add_argument("--from-template", action="store_true", help="Create from template selection")
+    parser.add_argument(
+        "--from-template", action="store_true", help="Create from template selection"
+    )
     args = parser.parse_args()
 
     # Find project root

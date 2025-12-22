@@ -44,6 +44,7 @@ KNOWLEDGE_GRAPH_DIR = MEMORY_DIR / "knowledge"
 @dataclass
 class MemoryEntry:
     """A single shared memory entry."""
+
     id: str
     timestamp: str
     agent: str
@@ -56,22 +57,23 @@ class MemoryEntry:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'MemoryEntry':
+    def from_dict(cls, data: dict) -> "MemoryEntry":
         return cls(**data)
 
     def matches_query(self, query: str) -> bool:
         """Check if entry matches a search query."""
         query_lower = query.lower()
         return (
-            query_lower in self.content.lower() or
-            any(query_lower in tag.lower() for tag in self.tags) or
-            query_lower in self.agent.lower()
+            query_lower in self.content.lower()
+            or any(query_lower in tag.lower() for tag in self.tags)
+            or query_lower in self.agent.lower()
         )
 
 
 @dataclass
 class Decision:
     """A tracked decision in the knowledge graph."""
+
     id: str
     timestamp: str
     agent: str
@@ -85,13 +87,14 @@ class Decision:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'Decision':
+    def from_dict(cls, data: dict) -> "Decision":
         return cls(**data)
 
 
 @dataclass
 class HandoffSummary:
     """Summary passed from one agent to another."""
+
     id: str
     timestamp: str
     from_agent: str
@@ -108,7 +111,7 @@ class HandoffSummary:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'HandoffSummary':
+    def from_dict(cls, data: dict) -> "HandoffSummary":
         return cls(**data)
 
     def to_markdown(self) -> str:
@@ -187,20 +190,30 @@ class SharedMemory:
     def _save(self):
         """Save memory entries to disk."""
         file_path = self._get_file_path()
-        with open(file_path, 'w') as f:
-            json.dump({
-                "story_key": self.story_key,
-                "last_updated": datetime.now().isoformat(),
-                "entries": [e.to_dict() for e in self.entries]
-            }, f, indent=2)
+        with open(file_path, "w") as f:
+            json.dump(
+                {
+                    "story_key": self.story_key,
+                    "last_updated": datetime.now().isoformat(),
+                    "entries": [e.to_dict() for e in self.entries],
+                },
+                f,
+                indent=2,
+            )
 
     def _generate_id(self) -> str:
         """Generate a unique ID for an entry."""
         import uuid
+
         return f"mem_{uuid.uuid4().hex[:8]}"
 
-    def add(self, agent: str, content: str, tags: Optional[list[str]] = None,
-            references: Optional[list[str]] = None) -> MemoryEntry:
+    def add(
+        self,
+        agent: str,
+        content: str,
+        tags: Optional[list[str]] = None,
+        references: Optional[list[str]] = None,
+    ) -> MemoryEntry:
         """Add a new memory entry."""
         entry = MemoryEntry(
             id=self._generate_id(),
@@ -209,14 +222,19 @@ class SharedMemory:
             content=content,
             tags=tags or [],
             story_key=self.story_key,
-            references=references or []
+            references=references or [],
         )
         self.entries.append(entry)
         self._save()
         return entry
 
-    def search(self, query: str, agent: Optional[str] = None,
-               tags: Optional[list[str]] = None, limit: int = 10) -> list[MemoryEntry]:
+    def search(
+        self,
+        query: str,
+        agent: Optional[str] = None,
+        tags: Optional[list[str]] = None,
+        limit: int = 10,
+    ) -> list[MemoryEntry]:
         """Search memory entries."""
         results = []
 
@@ -285,37 +303,43 @@ class KnowledgeGraph:
                 with open(file_path) as f:
                     data = json.load(f)
                     self.decisions = {
-                        k: Decision.from_dict(v)
-                        for k, v in data.get("decisions", {}).items()
+                        k: Decision.from_dict(v) for k, v in data.get("decisions", {}).items()
                     }
                     self.topic_index = data.get("topic_index", {})
-                    self.handoffs = [
-                        HandoffSummary.from_dict(h)
-                        for h in data.get("handoffs", [])
-                    ]
+                    self.handoffs = [HandoffSummary.from_dict(h) for h in data.get("handoffs", [])]
             except (json.JSONDecodeError, KeyError):
                 pass
 
     def _save(self):
         """Save knowledge graph to disk."""
         file_path = self._get_file_path()
-        with open(file_path, 'w') as f:
-            json.dump({
-                "story_key": self.story_key,
-                "last_updated": datetime.now().isoformat(),
-                "decisions": {k: v.to_dict() for k, v in self.decisions.items()},
-                "topic_index": self.topic_index,
-                "handoffs": [h.to_dict() for h in self.handoffs]
-            }, f, indent=2)
+        with open(file_path, "w") as f:
+            json.dump(
+                {
+                    "story_key": self.story_key,
+                    "last_updated": datetime.now().isoformat(),
+                    "decisions": {k: v.to_dict() for k, v in self.decisions.items()},
+                    "topic_index": self.topic_index,
+                    "handoffs": [h.to_dict() for h in self.handoffs],
+                },
+                f,
+                indent=2,
+            )
 
     def _generate_id(self) -> str:
         """Generate a unique decision ID."""
         import uuid
+
         return f"dec_{uuid.uuid4().hex[:8]}"
 
-    def add_decision(self, agent: str, topic: str, decision: str,
-                     context: Optional[dict[str, Any]] = None,
-                     supersedes: Optional[str] = None) -> Decision:
+    def add_decision(
+        self,
+        agent: str,
+        topic: str,
+        decision: str,
+        context: Optional[dict[str, Any]] = None,
+        supersedes: Optional[str] = None,
+    ) -> Decision:
         """Record a decision in the knowledge graph."""
         decision_id = self._generate_id()
 
@@ -331,7 +355,7 @@ class KnowledgeGraph:
             decision=decision,
             context=context or {},
             supersedes=supersedes,
-            status="active"
+            status="active",
         )
 
         self.decisions[decision_id] = dec
@@ -383,37 +407,66 @@ class KnowledgeGraph:
             "topic": best.topic,
             "timestamp": best.timestamp,
             "context": best.context,
-            "confidence": "high" if matches[0][0] > 2 else "medium"
+            "confidence": "high" if matches[0][0] > 2 else "medium",
         }
 
     def _extract_keywords(self, text: str) -> list[str]:
         """Extract relevant keywords from text."""
         # Remove common question words
-        stop_words = {'what', 'which', 'who', 'how', 'why', 'when', 'where', 'is',
-                      'are', 'was', 'were', 'did', 'does', 'do', 'the', 'a', 'an',
-                      'decided', 'recommended', 'suggested', 'approach', 'about'}
+        stop_words = {
+            "what",
+            "which",
+            "who",
+            "how",
+            "why",
+            "when",
+            "where",
+            "is",
+            "are",
+            "was",
+            "were",
+            "did",
+            "does",
+            "do",
+            "the",
+            "a",
+            "an",
+            "decided",
+            "recommended",
+            "suggested",
+            "approach",
+            "about",
+        }
 
-        words = re.findall(r'\b\w+\b', text.lower())
+        words = re.findall(r"\b\w+\b", text.lower())
         return [w for w in words if w not in stop_words and len(w) > 2]
 
     def get_decisions_by_agent(self, agent: str) -> list[Decision]:
         """Get all active decisions by an agent."""
-        return [d for d in self.decisions.values()
-                if d.agent == agent and d.status == "active"]
+        return [d for d in self.decisions.values() if d.agent == agent and d.status == "active"]
 
     def get_decisions_by_topic(self, topic: str) -> list[Decision]:
         """Get all decisions for a topic."""
         topic_key = topic.lower().replace(" ", "-")
         decision_ids = self.topic_index.get(topic_key, [])
-        return [self.decisions[did] for did in decision_ids
-                if did in self.decisions and self.decisions[did].status == "active"]
+        return [
+            self.decisions[did]
+            for did in decision_ids
+            if did in self.decisions and self.decisions[did].status == "active"
+        ]
 
-    def add_handoff(self, from_agent: str, to_agent: str, story_key: str,
-                    summary: str, key_decisions: Optional[list[str]] = None,
-                    blockers_resolved: Optional[list[str]] = None,
-                    watch_out_for: Optional[list[str]] = None,
-                    files_touched: Optional[list[str]] = None,
-                    next_steps: Optional[list[str]] = None) -> HandoffSummary:
+    def add_handoff(
+        self,
+        from_agent: str,
+        to_agent: str,
+        story_key: str,
+        summary: str,
+        key_decisions: Optional[list[str]] = None,
+        blockers_resolved: Optional[list[str]] = None,
+        watch_out_for: Optional[list[str]] = None,
+        files_touched: Optional[list[str]] = None,
+        next_steps: Optional[list[str]] = None,
+    ) -> HandoffSummary:
         """Create a handoff summary between agents."""
         import uuid
 
@@ -428,7 +481,7 @@ class KnowledgeGraph:
             blockers_resolved=blockers_resolved or [],
             watch_out_for=watch_out_for or [],
             files_touched=files_touched or [],
-            next_steps=next_steps or []
+            next_steps=next_steps or [],
         )
 
         self.handoffs.append(handoff)
@@ -462,7 +515,9 @@ class KnowledgeGraph:
         if self.handoffs:
             lines.append("### Recent Handoffs")
             for handoff in self.handoffs[-5:]:
-                lines.append(f"- {handoff.from_agent} → {handoff.to_agent}: {handoff.summary[:100]}...")
+                lines.append(
+                    f"- {handoff.from_agent} → {handoff.to_agent}: {handoff.summary[:100]}..."
+                )
             lines.append("")
 
         return "\n".join(lines)
@@ -479,24 +534,29 @@ def get_knowledge_graph(story_key: Optional[str] = None) -> KnowledgeGraph:
     return KnowledgeGraph(story_key)
 
 
-def record_decision(agent: str, topic: str, decision: str,
-                    story_key: Optional[str] = None,
-                    context: Optional[dict[str, Any]] = None) -> Decision:
+def record_decision(
+    agent: str,
+    topic: str,
+    decision: str,
+    story_key: Optional[str] = None,
+    context: Optional[dict[str, Any]] = None,
+) -> Decision:
     """Quick function to record a decision."""
     kg = get_knowledge_graph(story_key)
     return kg.add_decision(agent, topic, decision, context)
 
 
-def share_learning(agent: str, content: str,
-                   story_key: Optional[str] = None,
-                   tags: Optional[list[str]] = None) -> MemoryEntry:
+def share_learning(
+    agent: str, content: str, story_key: Optional[str] = None, tags: Optional[list[str]] = None
+) -> MemoryEntry:
     """Quick function to share a learning."""
     memory = get_shared_memory(story_key)
     return memory.add(agent, content, tags)
 
 
-def create_handoff(from_agent: str, to_agent: str, story_key: str,
-                   summary: str, **kwargs) -> HandoffSummary:
+def create_handoff(
+    from_agent: str, to_agent: str, story_key: str, summary: str, **kwargs
+) -> HandoffSummary:
     """Quick function to create a handoff."""
     kg = get_knowledge_graph(story_key)
     return kg.add_handoff(from_agent, to_agent, story_key, summary, **kwargs)
@@ -516,12 +576,17 @@ if __name__ == "__main__":
     memory = SharedMemory(story_key="demo-story")
 
     # Add some entries
-    memory.add("ARCHITECT", "Decided to use PostgreSQL for user data",
-               tags=["database", "decision"])
-    memory.add("DEV", "Implemented user service with repository pattern",
-               tags=["implementation", "patterns"])
-    memory.add("REVIEWER", "Found missing input validation in auth module",
-               tags=["review", "security"])
+    memory.add(
+        "ARCHITECT", "Decided to use PostgreSQL for user data", tags=["database", "decision"]
+    )
+    memory.add(
+        "DEV",
+        "Implemented user service with repository pattern",
+        tags=["implementation", "patterns"],
+    )
+    memory.add(
+        "REVIEWER", "Found missing input validation in auth module", tags=["review", "security"]
+    )
 
     # Search
     print("Search results for 'database':")
@@ -536,12 +601,21 @@ if __name__ == "__main__":
     kg = KnowledgeGraph(story_key="demo-story")
 
     # Add decisions
-    kg.add_decision("ARCHITECT", "authentication", "Use JWT with refresh tokens",
-                    context={"reason": "Stateless, scalable"})
-    kg.add_decision("ARCHITECT", "database", "PostgreSQL for user data",
-                    context={"reason": "ACID compliance needed"})
-    kg.add_decision("DEV", "state-management", "Use Redux Toolkit",
-                    context={"reason": "Team familiarity"})
+    kg.add_decision(
+        "ARCHITECT",
+        "authentication",
+        "Use JWT with refresh tokens",
+        context={"reason": "Stateless, scalable"},
+    )
+    kg.add_decision(
+        "ARCHITECT",
+        "database",
+        "PostgreSQL for user data",
+        context={"reason": "ACID compliance needed"},
+    )
+    kg.add_decision(
+        "DEV", "state-management", "Use Redux Toolkit", context={"reason": "Team familiarity"}
+    )
 
     # Query
     print("Query: 'What authentication approach was decided?'")
@@ -557,7 +631,7 @@ if __name__ == "__main__":
         summary="Story context created with all acceptance criteria defined",
         key_decisions=["Use existing UserService", "Follow repository pattern"],
         watch_out_for=["Rate limiting on profile uploads"],
-        next_steps=["Implement user profile endpoint", "Add validation", "Write tests"]
+        next_steps=["Implement user profile endpoint", "Add validation", "Write tests"],
     )
 
     print("\n" + handoff.to_markdown())
