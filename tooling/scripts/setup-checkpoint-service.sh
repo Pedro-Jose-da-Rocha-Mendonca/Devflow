@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 ################################################################################
 # Setup Checkpoint Service - macOS LaunchAgent
 #

@@ -227,7 +227,7 @@ if (Get-Command python -ErrorAction SilentlyContinue) {
 } elseif (Get-Command py -ErrorAction SilentlyContinue) {
     $pythonCmd = "py"
 } else {
-    Write-ColorOutput "Error: Python not found. Please install Python 3.8+" -Color Red
+    Write-ColorOutput "Error: Python not found. Please install Python 3.9+" -Color Red
     exit 1
 }
 

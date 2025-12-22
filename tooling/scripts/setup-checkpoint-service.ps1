@@ -16,7 +16,7 @@
 
 .NOTES
     Version: 1.0.0
-    Requires: PowerShell 5.1+, Python 3.8+, Administrator rights for install/uninstall
+    Requires: PowerShell 5.1+, Python 3.9+, Administrator rights for install/uninstall
 #>
 
 #Requires -Version 5.1

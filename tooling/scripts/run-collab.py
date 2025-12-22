@@ -537,8 +537,16 @@ def main():
         print_routing_decision(result, router)
         return 0
     
-    # Parse agents if provided
-    agents = args.agents.split(',') if args.agents else None
+    # Parse and validate agents if provided
+    agents = None
+    if args.agents:
+        agents = [a.strip().upper() for a in args.agents.split(',')]
+        valid_agents = {"SM", "DEV", "BA", "ARCHITECT", "PM", "WRITER", "MAINTAINER", "REVIEWER", "SECURITY"}
+        invalid_agents = [a for a in agents if a not in valid_agents]
+        if invalid_agents:
+            print(f"\n{Colors.RED}Error: Invalid agent name(s): {', '.join(invalid_agents)}{Colors.END}")
+            print(f"Valid agents are: {', '.join(sorted(valid_agents))}")
+            return 1
     
     # Execute based on mode
     try:

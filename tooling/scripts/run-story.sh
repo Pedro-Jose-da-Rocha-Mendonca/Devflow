@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 ################################################################################
 # RUN-STORY - Simple Automated Story Implementation
 #
@@ -29,11 +29,27 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SPRINT_STATUS="$PROJECT_ROOT/docs/sprint-status.yaml"
 
-# Load configuration
-source "$PROJECT_ROOT/.automation/config.sh"
+# Load configuration (with existence check)
+CONFIG_FILE="$PROJECT_ROOT/.automation/config.sh"
+if [[ -f "$CONFIG_FILE" ]]; then
+    source "$CONFIG_FILE"
+else
+    echo -e "${YELLOW}Warning: Configuration file not found at $CONFIG_FILE${NC}"
+    echo -e "${YELLOW}Using default settings. Run init-project-workflow.sh to set up configuration.${NC}"
+    # Set defaults
+    AUTO_COMMIT=${AUTO_COMMIT:-false}
+    DEFAULT_MODEL=${DEFAULT_MODEL:-sonnet}
+fi
 
-# Load CLI library
-source "$SCRIPT_DIR/lib/claude-cli.sh"
+# Load CLI library (with existence check)
+CLI_LIB="$SCRIPT_DIR/lib/claude-cli.sh"
+if [[ -f "$CLI_LIB" ]]; then
+    source "$CLI_LIB"
+else
+    echo -e "${RED}Error: Required library not found at $CLI_LIB${NC}"
+    echo -e "${RED}Please ensure the Devflow installation is complete.${NC}"
+    exit 1
+fi
 
 # Expand abbreviated story key (e.g., "3-5" -> "3-5-build-goal-detail-screen-with-edit-delete")
 expand_story_key() {

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 ################################################################################
 # NEW-DOC - Documentation Template Generator
 #

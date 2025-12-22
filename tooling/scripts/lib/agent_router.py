@@ -260,7 +260,24 @@ class AgentRouter:
     
     def analyze_task(self, description: str, 
                      files: Optional[List[str]] = None) -> TaskAnalysis:
-        """Analyze a task to determine type and complexity."""
+        """
+        Analyze a task to determine type and complexity.
+        
+        Args:
+            description: Natural language description of the task to analyze.
+                        Keywords in the description are matched against patterns
+                        to determine task type (bugfix, security, feature, etc.)
+            files: Optional list of file paths related to the task. Used to:
+                   - Detect security-sensitive files (.pem, .key, .env)
+                   - Identify documentation tasks (.md, .rst files)
+                   - Detect test-related work (test_ prefixed files)
+                   - Infer architectural scope from config files
+                   If None, analysis is based solely on the description.
+        
+        Returns:
+            TaskAnalysis object containing detected task type, complexity level,
+            matched patterns, file contexts, and confidence score (0.0-1.0).
+        """
         description_lower = description.lower()
         
         # Detect task type from patterns

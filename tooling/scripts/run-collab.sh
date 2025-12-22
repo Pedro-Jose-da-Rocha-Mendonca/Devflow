@@ -88,7 +88,7 @@ main() {
     # Check for Python
     PYTHON_CMD=$(detect_python)
     if [[ -z "$PYTHON_CMD" ]]; then
-        echo -e "${RED}Error: Python 3 not found. Please install Python 3.8+${NC}"
+        echo -e "${RED}Error: Python 3 not found. Please install Python 3.9+${NC}"
         exit 1
     fi
     

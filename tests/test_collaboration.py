@@ -232,7 +232,8 @@ class TestAgentRouter:
         from lib.agent_router import AgentRouter, TaskType
         
         router = AgentRouter()
-        analysis = router.analyze_task("Add user profile page with photo upload")
+        # Use a task description without "profile" which triggers performance detection
+        analysis = router.analyze_task("Add user settings page with photo upload")
         
         # Default to FEATURE if no specific patterns match
         assert analysis.task_type in [TaskType.FEATURE, TaskType.DOCUMENTATION]

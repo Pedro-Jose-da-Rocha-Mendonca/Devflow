@@ -475,15 +475,13 @@ class TestParseTokenUsage:
     """Tests for parse_token_usage function."""
 
     def test_parse_total_format(self):
-        """Test parsing 'Token usage: X/Y' format."""
+        """Test parsing 'Token usage: X/Y' format returns None (cannot determine split)."""
         output = "Processing complete. Token usage: 45000/200000"
         result = parse_token_usage(output)
 
-        assert result is not None
-        input_tokens, output_tokens = result
-        # Expects 80/20 split of 45000
-        assert input_tokens == 36000
-        assert output_tokens == 9000
+        # Total-only format now returns None since we can't accurately determine
+        # input/output split. This is intentional - arbitrary 80/20 split was inaccurate.
+        assert result is None
 
     def test_parse_in_out_format(self):
         """Test parsing 'X in / Y out' format."""

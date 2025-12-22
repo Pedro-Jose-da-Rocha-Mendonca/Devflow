@@ -8,7 +8,7 @@
 
 .NOTES
     Version: 1.0.0
-    Requires: PowerShell 5.1+, Python 3.8+
+    Requires: PowerShell 5.1+, Python 3.9+
 #>
 
 #Requires -Version 5.1

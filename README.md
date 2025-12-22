@@ -31,14 +31,14 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 ### Prerequisites
 
 **macOS/Linux:**
-- [Claude Code CLI](https://claude.com/claude-code) - `brew install claude-code`
-- Python 3.8+
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) - See [installation guide](https://docs.anthropic.com/en/docs/claude-code/getting-started)
+- Python 3.9+
 - Git
-- zsh (default on macOS)
+- Bash or Zsh shell
 
 **Windows:**
-- [Claude Code CLI](https://claude.com/claude-code) - `npm install -g @anthropic-ai/claude-code`
-- Python 3.8+ (from python.org or Microsoft Store)
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) - See [installation guide](https://docs.anthropic.com/en/docs/claude-code/getting-started)
+- Python 3.9+ (from python.org or Microsoft Store)
 - Git for Windows
 - PowerShell 5.1+ (included with Windows 10/11)
 
@@ -528,7 +528,46 @@ devflow-help
 ./run-story.sh 3-5 --agents AR<TAB>  # Completes to ARCHITECT
 ```
 
-## 📜 License
+## � Security Considerations
+
+### API Key Management
+
+Devflow relies on the Claude Code CLI for API authentication. The CLI handles API keys securely:
+
+- **API keys are managed by Claude Code CLI** - Devflow never directly handles or stores API keys
+- **Keys are stored in the Claude CLI's secure configuration**, not in Devflow's project files
+- **Never commit API keys** - The `.gitignore` should exclude any files containing sensitive data
+
+**Best practices:**
+
+1. **Use Claude CLI's built-in authentication**:
+   ```bash
+   claude login  # Authenticate via the CLI
+   ```
+
+2. **For CI/CD environments**, use environment variables:
+   ```bash
+   export ANTHROPIC_API_KEY="your-key-here"
+   ```
+
+3. **Verify your `.gitignore` includes**:
+   ```
+   .env
+   .env.local
+   *.pem
+   *.key
+   tooling/.automation/config.sh  # Contains environment-specific settings
+   ```
+
+4. **Review logs before sharing** - Cost tracking logs in `tooling/.automation/logs/` may contain session metadata
+
+### Data Privacy
+
+- Session cost data is stored locally in `tooling/.automation/costs/`
+- No data is sent to external servers by Devflow (only to Anthropic's API via Claude CLI)
+- Context checkpoints may contain code snippets - review before sharing
+
+## �📜 License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
@@ -544,5 +583,5 @@ Free to use in commercial and personal projects.
 <!-- VERSION_START - Auto-updated by update_version.py -->
 **Version**: 1.7.0
 **Status**: Production Ready
-**Last Updated**: 2025-01-13
+**Last Updated**: 2025-12-22
 <!-- VERSION_END -->

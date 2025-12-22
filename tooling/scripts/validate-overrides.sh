@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 ################################################################################
 # Validate Overrides - Override YAML Validation and Linting
 #

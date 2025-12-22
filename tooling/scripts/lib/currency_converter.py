@@ -10,6 +10,21 @@ Usage:
     converter = CurrencyConverter()
     print(converter.format(1.77, "EUR"))  # €1.63
     print(converter.format_all(1.77))     # $1.77 | €1.63 | £1.40 | R$10.80
+
+Exchange Rate Notice:
+    Default exchange rates are STATIC approximations and will become stale.
+    Last updated: December 2025
+    
+    For accurate conversions, you should:
+    1. Use a config file with current rates:
+       converter = CurrencyConverter(config_path=Path("currency_config.json"))
+    
+    2. Set custom rates directly:
+       converter.set_rates({"EUR": 0.95, "GBP": 0.82})
+    
+    3. Use environment variables:
+       export CURRENCY_RATE_EUR=0.95
+       export CURRENCY_RATE_GBP=0.82
 """
 
 from typing import Dict, List, Optional
@@ -22,10 +37,16 @@ class CurrencyConverter:
     Convert and format USD amounts to multiple currencies.
 
     Supports customizable exchange rates via config file or direct setting.
+    
+    Warning:
+        Default exchange rates are static approximations from December 2025.
+        For production use, provide current rates via config file or set_rates().
     """
 
     # Default exchange rates (USD to target currency)
-    # These are approximate rates - update in config for accurate values
+    # WARNING: These are approximate rates from December 2025
+    # Update via config file or set_rates() for accurate values
+    # Source: Approximate market rates - NOT suitable for financial calculations
     DEFAULT_RATES = {
         "USD": 1.0,
         "EUR": 0.92,
@@ -235,22 +256,44 @@ class CurrencyConverter:
             json.dump(config, f, indent=2)
 
 
-# Global converter instance
+# Thread-safe global converter storage
+import threading
+
+_converter_lock = threading.Lock()
 _converter: Optional[CurrencyConverter] = None
 
 
 def get_converter() -> CurrencyConverter:
-    """Get or create the global converter instance."""
+    """
+    Get or create the global converter instance (thread-safe).
+    
+    Returns:
+        A shared CurrencyConverter instance.
+        
+    Note:
+        The converter is shared across threads since exchange rates
+        are read-only after initialization. If you need to modify
+        rates for a specific thread, create a new instance instead.
+    """
     global _converter
     if _converter is None:
-        _converter = CurrencyConverter()
+        with _converter_lock:
+            # Double-check pattern for thread safety
+            if _converter is None:
+                _converter = CurrencyConverter()
     return _converter
 
 
 def set_converter(converter: CurrencyConverter):
-    """Set the global converter instance."""
+    """
+    Set the global converter instance (thread-safe).
+    
+    Args:
+        converter: The CurrencyConverter instance to use globally.
+    """
     global _converter
-    _converter = converter
+    with _converter_lock:
+        _converter = converter
 
 
 # Convenience functions

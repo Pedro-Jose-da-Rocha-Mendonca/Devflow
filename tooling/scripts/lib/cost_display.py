@@ -22,7 +22,7 @@ from pathlib import Path
 # Add parent for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from cost_tracker import CostTracker, SessionCost
+from cost_tracker import CostTracker, SessionCost, PRICING
 from currency_converter import CurrencyConverter, get_converter
 
 
@@ -238,14 +238,30 @@ class CostDisplay:
             for entry in session.entries:
                 key = (entry.agent, entry.model)
                 if key not in breakdown:
-                    breakdown[key] = {"input": 0, "output": 0, "cost": 0}
+                    breakdown[key] = {"input": 0, "output": 0, "cost": 0, "input_tokens": 0, "output_tokens": 0}
 
-                # Estimate input/output cost split
-                input_cost = entry.cost_usd * 0.2  # Rough estimate
-                output_cost = entry.cost_usd * 0.8
-                breakdown[key]["input"] += input_cost
-                breakdown[key]["output"] += output_cost
+                breakdown[key]["input_tokens"] += entry.input_tokens
+                breakdown[key]["output_tokens"] += entry.output_tokens
                 breakdown[key]["cost"] += entry.cost_usd
+
+            # Calculate actual input/output costs based on model pricing
+            for (agent, model), data in breakdown.items():
+                model_lower = model.lower()
+                pricing = PRICING.get(model_lower, PRICING.get("sonnet"))
+                if pricing:
+                    input_cost = (data["input_tokens"] / 1_000_000) * pricing["input"]
+                    output_cost = (data["output_tokens"] / 1_000_000) * pricing["output"]
+                else:
+                    # Fallback: estimate based on token ratio
+                    total_tokens = data["input_tokens"] + data["output_tokens"]
+                    if total_tokens > 0:
+                        input_ratio = data["input_tokens"] / total_tokens
+                        input_cost = data["cost"] * input_ratio
+                        output_cost = data["cost"] * (1 - input_ratio)
+                    else:
+                        input_cost = output_cost = 0
+                data["input"] = input_cost
+                data["output"] = output_cost
 
             for (agent, model), data in breakdown.items():
                 lines.append(self._content_line(

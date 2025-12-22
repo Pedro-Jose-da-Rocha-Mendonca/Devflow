@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#
+# Pre-commit hook: Sync version across project when CHANGELOG.md changes
+#
+# This hook automatically runs update_version.py when CHANGELOG.md is staged,
+# ensuring all version references stay in sync.
+#
+# To install this hook, run:
+#   git config core.hooksPath .githooks
+#
+# Or manually copy to .git/hooks/pre-commit
+
+set -e
+
+# Check if CHANGELOG.md is staged for commit
+if git diff --cached --name-only | grep -q "^CHANGELOG.md$"; then
+    echo "📋 CHANGELOG.md modified, syncing version..."
+    
+    # Get the project root (where this hook is located)
+    REPO_ROOT="$(git rev-parse --show-toplevel)"
+    
+    # Run the version sync script
+    if python3 "$REPO_ROOT/tooling/scripts/update_version.py"; then
+        # Stage the updated files
+        git add "$REPO_ROOT/README.md" \
+                "$REPO_ROOT/pyproject.toml" \
+                "$REPO_ROOT/tooling/scripts/lib/__init__.py" 2>/dev/null || true
+        echo "✓ Version synced and files staged"
+    else
+        echo "⚠ Version sync failed, but continuing with commit"
+    fi
+fi
+
+exit 0

@@ -15,7 +15,7 @@ Usage:
 import os
 import json
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 
 
@@ -55,7 +55,7 @@ class CostConfig:
     # Currency settings
     display_currency: str = "USD"
     currency_rates: Dict[str, float] = field(default_factory=lambda: DEFAULT_CURRENCY_RATES.copy())
-    display_currencies: list = field(default_factory=lambda: DEFAULT_DISPLAY_CURRENCIES.copy())
+    display_currencies: List[str] = field(default_factory=lambda: DEFAULT_DISPLAY_CURRENCIES.copy())
 
     @classmethod
     def from_env(cls) -> 'CostConfig':

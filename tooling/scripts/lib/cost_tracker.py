@@ -34,6 +34,14 @@ try:
     ENHANCED_ERRORS = True
 except ImportError:
     ENHANCED_ERRORS = False
+    # Warn user about degraded functionality (only once)
+    warnings.warn(
+        "Enhanced error handling not available (errors.py not found). "
+        "Using basic error classes. For better error messages, ensure "
+        "errors.py is in the lib directory.",
+        ImportWarning,
+        stacklevel=2
+    )
     # Fallback error classes
     class CostTrackingError(Exception):
         pass
@@ -44,18 +52,22 @@ except ImportError:
     class CalculationError(Exception):
         pass
 
-# Token pricing per 1M tokens (USD) - December 2024
+# Token pricing per 1M tokens (USD)
+# Last updated: December 2025
+# Source: https://www.anthropic.com/pricing
+# NOTE: Verify pricing at source before production use - rates may change
 PRICING = {
-    # Claude 4 models
-    "claude-opus-4-5-20251101": {"input": 15.00, "output": 75.00},
-    "claude-sonnet-4-5-20251101": {"input": 3.00, "output": 15.00},
+    # Claude 3.5 models (current generation)
+    "claude-3-5-sonnet-20241022": {"input": 3.00, "output": 15.00},
+    "claude-3-5-haiku-20241022": {"input": 0.80, "output": 4.00},
+    # Claude 3 models
+    "claude-3-opus-20240229": {"input": 15.00, "output": 75.00},
+    "claude-3-sonnet-20240229": {"input": 3.00, "output": 15.00},
+    "claude-3-haiku-20240307": {"input": 0.25, "output": 1.25},
+    # Short aliases (for convenience)
     "opus": {"input": 15.00, "output": 75.00},
     "sonnet": {"input": 3.00, "output": 15.00},
     "haiku": {"input": 0.80, "output": 4.00},
-    # Aliases
-    "claude-opus-4": {"input": 15.00, "output": 75.00},
-    "claude-sonnet-4": {"input": 3.00, "output": 15.00},
-    "claude-haiku-3.5": {"input": 0.80, "output": 4.00},
 }
 
 # Default budget thresholds
@@ -584,53 +596,95 @@ def parse_token_usage(output: str) -> Optional[Tuple[int, int]]:
     - "Token usage: 45000/200000"
     - "Tokens: 45000 in / 12000 out"
     - "Input: 30000, Output: 8000"
+    - "input_tokens: X, output_tokens: Y"
 
     Returns:
         Tuple of (input_tokens, output_tokens) or None if not found
+        
+    Note:
+        When only total tokens are available (Pattern 1), we cannot determine
+        the exact split. Returns None in this case to avoid inaccurate estimates.
+        The caller should handle this appropriately.
     """
     import re
 
-    # Pattern 1: "Token usage: X/Y" (total/limit)
-    match = re.search(r'Token usage:\s*(\d+)/(\d+)', output, re.IGNORECASE)
-    if match:
-        total = int(match.group(1))
-        # Estimate 80% input, 20% output
-        return (int(total * 0.8), int(total * 0.2))
+    # Pattern 1: Explicit input/output tokens (most accurate)
+    input_match = re.search(r'input[_\s]*tokens?[:\s]+(\d+)', output, re.IGNORECASE)
+    output_match = re.search(r'output[_\s]*tokens?[:\s]+(\d+)', output, re.IGNORECASE)
+    if input_match and output_match:
+        return (int(input_match.group(1)), int(output_match.group(1)))
 
     # Pattern 2: "X in / Y out"
     match = re.search(r'(\d+)\s*in\s*/\s*(\d+)\s*out', output, re.IGNORECASE)
     if match:
         return (int(match.group(1)), int(match.group(2)))
 
-    # Pattern 3: Input: X, Output: Y (case-insensitive)
+    # Pattern 3: "Input: X, Output: Y" or "Input: X Output: Y"
     input_match = re.search(r'input[:\s]+(\d+)', output, re.IGNORECASE)
     output_match = re.search(r'output[:\s]+(\d+)', output, re.IGNORECASE)
     if input_match and output_match:
         return (int(input_match.group(1)), int(output_match.group(1)))
 
+    # Pattern 4: "Token usage: X/Y" (total/limit) - cannot determine split
+    # Return None rather than guessing, let caller decide how to handle
+    match = re.search(r'Token usage:\s*(\d+)/(\d+)', output, re.IGNORECASE)
+    if match:
+        # Log warning that we couldn't determine the split
+        total = int(match.group(1))
+        warnings.warn(
+            f"Found total token count ({total}) but cannot determine input/output split. "
+            "Token usage will not be tracked for this call.",
+            UserWarning
+        )
+        return None
+
     return None
 
 
-# Module-level convenience functions
-_current_tracker: Optional[CostTracker] = None
+# Thread-safe module-level tracker storage
+import threading
+
+_tracker_local = threading.local()
 
 
 def get_tracker() -> Optional[CostTracker]:
-    """Get the current global tracker."""
-    return _current_tracker
+    """
+    Get the current thread-local tracker.
+    
+    Returns:
+        The CostTracker for the current thread, or None if not set.
+        
+    Note:
+        Each thread has its own tracker instance to avoid race conditions
+        in multi-threaded scenarios (e.g., swarm mode with parallel agents).
+    """
+    return getattr(_tracker_local, 'tracker', None)
 
 
 def set_tracker(tracker: CostTracker):
-    """Set the current global tracker."""
-    global _current_tracker
-    _current_tracker = tracker
+    """
+    Set the current thread-local tracker.
+    
+    Args:
+        tracker: The CostTracker instance to use for this thread.
+    """
+    _tracker_local.tracker = tracker
 
 
 def start_tracking(story_key: str, budget_limit_usd: float = 15.00) -> CostTracker:
-    """Start a new tracking session."""
-    global _current_tracker
-    _current_tracker = CostTracker(story_key, budget_limit_usd)
-    return _current_tracker
+    """
+    Start a new tracking session for the current thread.
+    
+    Args:
+        story_key: Identifier for the story being tracked.
+        budget_limit_usd: Maximum budget for this session.
+        
+    Returns:
+        A new CostTracker instance, also set as the thread-local tracker.
+    """
+    tracker = CostTracker(story_key, budget_limit_usd)
+    _tracker_local.tracker = tracker
+    return tracker
 
 
 if __name__ == "__main__":

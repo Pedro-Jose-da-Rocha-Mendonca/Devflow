@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 ################################################################################
 # INIT-PROJECT-WORKFLOW - Claude Code Workflow Initialization
 #
@@ -32,7 +32,7 @@ print_banner() {
     echo -e "${CYAN}║         CLAUDE CODE WORKFLOW INITIALIZATION                   ║${NC}"
     echo -e "${CYAN}╠═══════════════════════════════════════════════════════════════╣${NC}"
     echo -e "${CYAN}║  Automated Development Workflow Setup                         ║${NC}"
-    echo -e "${CYAN}║  Version 1.0                                                  ║${NC}"
+    echo -e "${CYAN}║  Version 1.7.0                                                ║${NC}"
     echo -e "${CYAN}╚═══════════════════════════════════════════════════════════════╝${NC}"
     echo ""
 }
