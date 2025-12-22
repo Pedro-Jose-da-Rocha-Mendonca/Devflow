@@ -17,7 +17,8 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 - **Full Automation** - Context → Development → Testing → Review → Commit pipeline
 - **Greenfield + Brownfield** - Supports both new features AND existing codebase maintenance
 - **Agent Personalization** - Agent overrides and persistent agent memory
-- **Claude Code Integration** - Native slash commands (`/story`, `/develop`, `/review`, etc.)
+- **Claude Code Integration** - Native slash commands (`/story`, `/swarm`, `/pair`, `/route`, etc.)
+- **Multi-Agent Collaboration** - Swarm mode, pair programming, and auto-routing
 - **Project Agnostic** - Works with Flutter, Node.js, Python, Rust, Go, Ruby, etc.
 - **Guided Setup** - Interactive wizard guides you through installation
 
@@ -121,30 +122,6 @@ notepad config.ps1
 .\run-story.ps1 -StoryKey "3-5" -NoCommit
 ```
 
-## 🏗️ Architecture
-
-### Directory Structure
-
-```
-your-project/
-├── tooling/                        # Add this to any project
-│   ├── .automation/
-│   │   ├── agents/                # 8 AI agent personas
-│   │   ├── overrides/             # Agent personalization (survives updates)
-│   │   ├── memory/                # Persistent agent learning
-│   │   ├── checkpoints/           # Auto-created context saves
-│   │   ├── logs/                  # Execution logs
-│   │   └── config.sh              # Your configuration
-│   ├── scripts/
-│   │   ├── run-story.sh           # Main workflow runner
-│   │   └── lib/                   # Core libraries
-│   └── docs/
-│       ├── sprint-status.yaml     # Sprint tracking
-│       └── *.md                   # Story specifications
-├── app/                           # Your actual project
-└── ...
-```
-
 ### Agent Personas
 
 | Agent | Model | Cost | Use Case |
@@ -158,21 +135,128 @@ your-project/
 | **MAINTAINER** | Opus/Sonnet | Varies | Bug fixes, refactoring, tech debt |
 | **REVIEWER** (Adversarial) | Opus | High | Critical code review, finds problems |
 
-### Budget Controls
+## 💻 Claude Slash Commands
 
+Devflow provides native slash commands for Claude Code:
+
+### Core Commands
+
+| Command | Description |
+|---------|-------------|
+| `/story <key>` | Run full story pipeline (context + dev + review) |
+| `/develop <key>` | Run development phase only |
+| `/review <key>` | Run code review phase |
+| `/agent <name>` | Invoke a specific agent |
+| `/adversarial <key>` | Critical review with Opus |
+
+### Collaboration Commands (NEW!)
+
+| Command | Description |
+|---------|-------------|
+| `/swarm <key>` | Multi-agent debate/consensus mode |
+| `/pair <key>` | DEV + REVIEWER pair programming |
+| `/route <task>` | Auto-route to best agents |
+| `/collab <key>` | Unified collaboration CLI |
+
+### Utility Commands
+
+| Command | Description |
+|---------|-------------|
+| `/memory <key>` | View/query shared agent memory |
+| `/handoff <key>` | View handoff summaries between agents |
+| `/checkpoint` | Create/restore context checkpoints |
+| `/costs` | View cost dashboard and analytics |
+| `/personalize` | Agent personalization wizard |
+| `/devflow <cmd>` | Run any Devflow command |
+
+**Examples:**
 ```bash
-# In config.sh
-export MAX_BUDGET_CONTEXT=3.00   # Auto-abort at $3
-export MAX_BUDGET_DEV=15.00      # Auto-abort at $15
-export MAX_BUDGET_REVIEW=5.00    # Auto-abort at $5
+/swarm 3-5                          # Run swarm with default agents
+/swarm 3-5 --agents ARCHITECT,DEV   # Custom agents
+/pair 3-5                           # Pair programming mode
+/route "fix login bug"              # Auto-route to specialists
+/memory 3-5 --query "auth decisions" # Query knowledge graph
 ```
 
-### Cost Management
+## 🤖 Multi-Agent Collaboration
+
+Devflow supports advanced multi-agent collaboration modes:
+
+### Swarm Mode (Multi-Agent Debate)
+
+Multiple agents work together, debating and iterating until consensus:
+
+```bash
+# Run swarm with default agents (ARCHITECT, DEV, REVIEWER)
+./run-story.sh 3-5 --swarm
+
+# Custom agent selection
+./run-story.sh 3-5 --swarm --agents ARCHITECT,DEV,REVIEWER,SECURITY
+
+# Control iterations
+./run-story.sh 3-5 --swarm --max-iter 5
+```
+
+**How it works:**
+1. All agents analyze the task
+2. Agents provide feedback on each other's work
+3. Issues are addressed iteratively
+4. Continues until consensus or max iterations
+
+### Pair Programming Mode
+
+DEV and REVIEWER work together in real-time:
+
+```bash
+./run-story.sh 3-5 --pair
+```
+
+**How it works:**
+1. DEV implements code in small chunks
+2. REVIEWER provides immediate feedback
+3. DEV addresses issues before continuing
+4. Higher quality code with fewer late-stage revisions
+
+### Auto-Route Mode (Intelligent Agent Selection)
+
+Let Devflow automatically select the best agents:
+
+```bash
+# Auto-detect task type and select appropriate agents
+./run-story.sh "fix authentication bug" --auto-route
+
+# Works with any task description
+./run-story.sh "add user profile feature" --auto-route
+```
+
+**How it works:**
+- Analyzes task description for keywords
+- Considers file types and complexity
+- Routes to appropriate specialists (e.g., security → SECURITY agent)
+
+### Shared Memory & Knowledge Graph
+
+Agents now share context and learnings:
+
+```bash
+# View shared memory for a story
+python tooling/scripts/run-collab.py 3-5 --memory
+
+# Query the knowledge graph
+python tooling/scripts/run-collab.py 3-5 --query "What did ARCHITECT decide about auth?"
+```
+
+**Features:**
+- Cross-agent shared memory pool
+- Decision tracking with knowledge graph
+- Automatic handoff summaries between agents
+- Queryable project knowledge base
+
+### Budget Controls
 
 Claude Code CLI provides built-in cost tracking. The workflow scripts add budget controls:
 
 ```bash
-# Budget controls abort if exceeded
 export MAX_BUDGET_CONTEXT=3.00   # Context creation: $3 max
 export MAX_BUDGET_DEV=15.00      # Development: $15 max
 export MAX_BUDGET_REVIEW=5.00    # Code review: $5 max
@@ -182,134 +266,68 @@ export MAX_BUDGET_REVIEW=5.00    # Code review: $5 max
 - Opus for development and critical reviews (higher quality)
 - Sonnet for planning, context, documentation (cost-effective)
 
-## 🔧 Configuration
+## ⌨️ Shell Completion
 
-### Basic Setup
+Enable tab-completion for faster command entry.
 
-```bash
-# tooling/.automation/config.sh
-export PROJECT_NAME="my-app"
-export PROJECT_TYPE="flutter"        # or: node, python, rust, etc.
-export CLAUDE_MODEL_DEV="opus"       # Development model
-export CLAUDE_MODEL_PLANNING="sonnet" # Planning model
-export AUTO_COMMIT="true"            # Auto-commit after dev
-export AUTO_PR="false"               # Auto-create PR (needs gh CLI)
-```
-
-## 🔧 Brownfield Workflows
-
-For existing codebases, use brownfield modes to fix bugs, refactor code, and manage technical debt.
-
-### Bug Fixes
+### Zsh (macOS/Linux)
 
 ```bash
-# Fix a bug with a documented report
-./run-story.sh login-crash --bugfix
+# Option 1: Add to fpath (recommended)
+mkdir -p ~/.zsh/completions
+cp tooling/completions/_run-story ~/.zsh/completions/
 
-# Fix a bug by description
-./run-story.sh "users can't logout on mobile" --bugfix
+# Add to ~/.zshrc:
+fpath=(~/.zsh/completions $fpath)
+autoload -Uz compinit && compinit
+
+# Reload shell
+source ~/.zshrc
 ```
-
-### Refactoring
 
 ```bash
-# Refactor a specific component
-./run-story.sh auth-service --refactor
-
-# Refactor with a spec file
-# Create: tooling/docs/refactors/auth-service.md
-./run-story.sh auth-service --refactor
+# Option 2: Direct source
+# Add to ~/.zshrc:
+source /path/to/devflow/tooling/completions/_run-story
 ```
 
-### Investigation (Read-Only)
+### Bash (Linux)
 
 ```bash
-# Investigate how a feature works
-./run-story.sh payment-flow --investigate
+# Option 1: System-wide (requires sudo)
+sudo cp tooling/completions/run-story-completion.bash /etc/bash_completion.d/devflow
 
-# Explore architecture
-./run-story.sh database-layer --investigate
+# Option 2: User only - add to ~/.bashrc:
+source /path/to/devflow/tooling/completions/run-story-completion.bash
 ```
 
-### Quick Fixes
+### PowerShell (Windows)
+
+```powershell
+# Add to your PowerShell profile ($PROFILE):
+. C:\path\to\devflow\tooling\completions\DevflowCompletion.ps1
+
+# Or import as module:
+Import-Module C:\path\to\devflow\tooling\completions\DevflowCompletion.ps1
+
+# View available commands
+devflow-help
+```
+
+### What Gets Completed
+
+- **Modes**: `--swarm`, `--pair`, `--auto-route`, `--sequential`
+- **Agents**: `SM`, `DEV`, `BA`, `ARCHITECT`, `PM`, `WRITER`, `MAINTAINER`, `REVIEWER`
+- **Models**: `opus`, `sonnet`, `haiku`
+- **Options**: `--budget`, `--max-iterations`, `--quiet`, etc.
+
+**Example usage:**
 
 ```bash
-# Make small, targeted changes
-./run-story.sh "fix typo in header" --quickfix
-./run-story.sh "update copyright year" --quickfix
+# Type and press Tab:
+./run-story.sh 3-5 --sw<TAB>     # Completes to --swarm
+./run-story.sh 3-5 --agents AR<TAB>  # Completes to ARCHITECT
 ```
-
-### Migrations
-
-```bash
-# Run a planned migration
-./run-story.sh react-18-upgrade --migrate
-
-# Create: tooling/docs/migrations/react-18-upgrade.md
-```
-
-### Technical Debt
-
-```bash
-# Resolve technical debt
-./run-story.sh legacy-api-cleanup --tech-debt
-```
-
-### Brownfield Directory Structure
-
-```
-tooling/docs/
-├── bugs/              # Bug reports and fix summaries
-├── refactors/         # Refactoring specs and summaries
-├── investigations/    # Investigation reports
-├── migrations/        # Migration plans and logs
-└── tech-debt/         # Technical debt items
-```
-
-## 🛠️ Available Commands
-
-### Claude Code Slash Commands
-
-Use native Claude Code slash commands for all workflows:
-
-| Command | Description |
-|---------|-------------|
-| `/story <key>` | Run full story pipeline (context + dev + review) |
-| `/develop <key>` | Run development phase only |
-| `/review <key>` | Run standard code review |
-| `/adversarial <key>` | Run critical code review (Opus) |
-| `/bugfix <id>` | Fix a bug |
-| `/agent <name>` | Invoke a specific agent |
-| `/devflow <cmd>` | Run any workflow command |
-
-## 🔒 Security & Privacy
-
-### Data Handling
-
-- **No data collection** - All processing local or via Claude API
-- **Git-friendly** - Sensitive files in `.gitignore`
-- **API keys** - Use environment variables, never committed
-
-### Recommended `.gitignore`
-
-```gitignore
-# Already included in tooling/.gitignore
-tooling/.automation/logs/
-tooling/.automation/checkpoints/
-tooling/.automation/config.sh     # Keep your config local
-```
-
-### Budget Protection
-
-```bash
-# Hard limits prevent runaway costs
-export MAX_BUDGET_DEV=15.00
-# Script aborts if exceeded
-```
-
-## 🤝 Contributing
-
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## 📜 License
 
@@ -323,14 +341,9 @@ Free to use in commercial and personal projects.
 - Agent override system inspired by [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD)
 - Agent-based architecture influenced by AutoGPT, CrewAI
 
-## 📞 Support
 
-- **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/discussions)
-
----
-
-**Version**: 1.5.2
+<!-- VERSION_START - Auto-updated by update_version.py -->
+**Version**: 1.7.0
 **Status**: Production Ready
-**Last Updated**: 2025-12-21
+**Last Updated**: 2025-01-13
+<!-- VERSION_END -->

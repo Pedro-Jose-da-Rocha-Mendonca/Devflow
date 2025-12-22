@@ -29,6 +29,24 @@ Example entry:
 
 This applies to ALL commits being pushed, not just major releases.
 
+### Version Synchronization
+
+**CRITICAL**: After updating `CHANGELOG.md` with a new version, you MUST sync versions across all files:
+
+```bash
+# Sync README.md and pyproject.toml from CHANGELOG version
+python3 tooling/scripts/update_version.py --sync-pyproject
+```
+
+This updates:
+- `README.md` - Version number and last updated date
+- `pyproject.toml` - Package version
+
+You can verify versions are in sync with:
+```bash
+python3 tooling/scripts/update_version.py --check
+```
+
 ### Changelog History Preservation
 
 **IMPORTANT**: The changelog is a historical record. Previous version entries document what was released at that point in time. When making changes:

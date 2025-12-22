@@ -5,6 +5,129 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2025-01-13
+
+### Added
+- **Multi-Agent Collaboration System** - Advanced agent collaboration capabilities
+  - **Swarm Mode** (`--swarm`) - Multi-agent debate/consensus with automatic iteration
+    - Configurable consensus types: unanimous, majority, quorum, reviewer_approval
+    - Parallel execution support for first iteration
+    - Automatic issue tracking and resolution loops
+    - Budget limits and cost tracking per swarm session
+  - **Pair Programming Mode** (`--pair`) - DEV + REVIEWER interleaved collaboration
+    - Real-time feedback loops during implementation
+    - Chunk-based development with immediate review
+    - Automatic revision cycles for blocking issues
+    - Approval rate tracking
+  - **Auto-Route Mode** (`--auto-route`) - Intelligent agent selection
+    - Task type detection (bugfix, security, feature, refactor, etc.)
+    - Complexity analysis (trivial to critical)
+    - Dynamic agent selection based on task patterns
+    - File type and context awareness
+
+- **Shared Memory System** (`shared_memory.py`) - Cross-agent knowledge sharing
+  - Shared memory pool for all agents to read/write
+  - Tagging and search functionality
+  - Persistence across sessions
+  - Context generation for agent prompts
+
+- **Knowledge Graph** - Queryable decision tracking
+  - Record and track agent decisions
+  - Natural language queries ("What did ARCHITECT decide about auth?")
+  - Decision superseding and status tracking
+  - Topic-based indexing
+
+- **Agent Handoff System** (`agent_handoff.py`) - Structured handoffs between agents
+  - Automatic handoff summary generation
+  - Git diff analysis for file changes
+  - Decision and blocker tracking
+  - Warning propagation to next agent
+  - Markdown export for handoff documents
+
+- **Agent Router** (`agent_router.py`) - Dynamic agent selection
+  - Task complexity estimation
+  - Pattern-based task type detection
+  - Specialty matching for optimal agent selection
+  - Workflow recommendations (sequential, parallel, swarm, pair)
+  - Routing explanations with confidence scores
+
+- **Swarm Orchestrator** (`swarm_orchestrator.py`) - Multi-agent coordination
+  - Consensus detection algorithms
+  - Issue extraction from agent responses
+  - Vote determination (approve/reject/abstain)
+  - Cost estimation and budget enforcement
+  - Iteration result tracking
+
+- **Shell Tab Completion** - Autocomplete for commands
+  - Zsh completion script (`tooling/completions/_run-story`)
+  - Bash completion script (`tooling/completions/run-story-completion.bash`)
+  - PowerShell completion module (`tooling/completions/DevflowCompletion.ps1`)
+  - Completion for modes, agents, models, and all options
+  - Comma-separated agent list completion
+
+- **PowerShell Collaboration Script** (`run-collab.ps1`) - Windows native CLI
+  - Full feature parity with shell scripts
+  - Native PowerShell parameter handling
+  - Proper Windows path support
+  - Color output support
+
+- **New Claude Slash Commands** - Extended command set for collaboration
+  - `/swarm <story-key>` - Run multi-agent swarm mode (debate/consensus)
+  - `/pair <story-key>` - Run pair programming mode (DEV + REVIEWER)
+  - `/route <task>` - Auto-route task to best agents
+  - `/collab <story-key>` - Unified collaboration CLI with mode selection
+  - `/memory <story-key>` - View or query shared agent memory
+  - `/handoff <story-key>` - View handoff summaries between agents
+  - `/checkpoint` - Create or restore context checkpoints
+  - `/costs` - View cost dashboard and spending analytics
+
+### Changed
+- **Cross-Platform Compatibility** - Enhanced support for all platforms
+  - `run-collab.py` now detects Claude CLI on Windows, macOS, and Linux
+  - Cross-platform config/cache directory detection (XDG, Library, AppData)
+  - ANSI color support with Windows compatibility
+  - Path normalization for Windows
+  - Shell quoting for both Unix and Windows
+  - Safe filename sanitization for Windows restrictions
+
+- **Pair Programming Engine** (`pair_programming.py`) - Real-time collaboration
+  - Code chunk parsing and categorization
+  - Reviewer feedback extraction
+  - Revision loop management
+  - Session result summaries
+
+- **Unified Collaboration CLI** (`run-collab.py`) - Single entry point
+  - `--swarm` mode with custom agents
+  - `--pair` mode for pair programming
+  - `--auto` mode for intelligent routing
+  - `--memory` to view shared memory
+  - `--query` to query knowledge graph
+  - `--route-only` to preview routing decisions
+
+- **Collaboration Test Suite** (`test_collaboration.py`) - Comprehensive tests
+  - SharedMemory tests
+  - KnowledgeGraph tests
+  - AgentRouter tests
+  - HandoffGenerator tests
+  - SwarmOrchestrator tests
+  - PairProgramming tests
+  - Integration tests
+
+### Changed
+- **run-story.sh** - Extended with collaborative modes
+  - Added `--swarm` option for multi-agent debate
+  - Added `--pair` option for pair programming
+  - Added `--auto-route` option for intelligent routing
+  - Added `--agents` option for custom agent selection
+  - Added `--max-iter` option for iteration control
+
+### Documentation
+- **README.md** - Added Multi-Agent Collaboration section
+  - Swarm mode usage examples
+  - Pair programming mode examples
+  - Auto-route mode examples
+  - Shared memory and knowledge graph usage
+
 ## [1.6.0] - 2025-12-21
 
 ### Added

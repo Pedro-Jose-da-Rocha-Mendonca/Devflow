@@ -76,6 +76,11 @@ print_usage() {
     echo "  --adversarial   Run adversarial review (critical, finds problems)"
     echo "  --context       Create story context only"
     echo ""
+    echo "COLLABORATIVE MODES (Multi-Agent):"
+    echo "  --swarm         Multi-agent debate/consensus mode"
+    echo "  --pair          DEV + REVIEWER pair programming"
+    echo "  --auto-route    Auto-select best agents for the task"
+    echo ""
     echo "BROWNFIELD MODES (Existing Codebase):"
     echo "  --bugfix        Fix a bug (key = bug ID or description)"
     echo "  --refactor      Refactor code (key = refactor target or ID)"
@@ -88,6 +93,8 @@ print_usage() {
     echo "  --no-commit     Disable auto-commit after changes"
     echo "  --with-pr       Enable auto-PR creation (requires gh CLI)"
     echo "  --model <name>  Use specific Claude model (sonnet|opus|haiku)"
+    echo "  --agents <list> Comma-separated agent list (for swarm mode)"
+    echo "  --max-iter <n>  Max iterations for swarm/pair modes (default: 3)"
     echo ""
     echo "Environment Variables:"
     echo "  AUTO_COMMIT=true|false    Enable/disable auto-commit (default: true)"
@@ -98,6 +105,12 @@ print_usage() {
     echo "  ./run-story.sh 3-5                    # Full story pipeline"
     echo "  ./run-story.sh 3-5 --develop          # Development only"
     echo "  ./run-story.sh 3-5 --model opus       # Use Claude Opus"
+    echo ""
+    echo "COLLABORATIVE EXAMPLES:"
+    echo "  ./run-story.sh 3-5 --swarm                         # Multi-agent debate"
+    echo "  ./run-story.sh 3-5 --pair                          # DEV+REVIEWER pair"
+    echo "  ./run-story.sh 3-5 --swarm --agents DEV,REVIEWER   # Custom agents"
+    echo "  ./run-story.sh 'fix auth bug' --auto-route         # Auto-select agents"
     echo ""
     echo "BROWNFIELD EXAMPLES:"
     echo "  ./run-story.sh login-crash --bugfix           # Fix bug"
@@ -121,6 +134,8 @@ main() {
 
     # Parse options
     local mode="full"
+    local collab_agents=""
+    local max_iterations=3
     export AUTO_COMMIT="${AUTO_COMMIT:-true}"
     export AUTO_PR="${AUTO_PR:-false}"
 
@@ -138,6 +153,34 @@ main() {
                 ;;
             "--adversarial"|"--adv")
                 mode="adversarial"
+                ;;
+            # Collaborative modes
+            "--swarm")
+                mode="swarm"
+                ;;
+            "--pair")
+                mode="pair"
+                ;;
+            "--auto-route"|"--auto")
+                mode="auto-route"
+                ;;
+            "--agents")
+                shift
+                if [[ $# -eq 0 ]]; then
+                    echo "Error: --agents requires an argument"
+                    print_usage
+                    exit 1
+                fi
+                collab_agents="$1"
+                ;;
+            "--max-iter"|"--max-iterations")
+                shift
+                if [[ $# -eq 0 ]]; then
+                    echo "Error: --max-iter requires an argument"
+                    print_usage
+                    exit 1
+                fi
+                max_iterations="$1"
                 ;;
             # Brownfield modes
             "--bugfix"|"--bug")
@@ -216,6 +259,45 @@ main() {
     fi
 
     case "$mode" in
+        # ═══════════════════════════════════════════════════════════════
+        # COLLABORATIVE MODES - Multi-agent collaboration
+        # ═══════════════════════════════════════════════════════════════
+        "swarm")
+            echo -e "${YELLOW}▶ Running swarm mode (multi-agent debate)...${NC}"
+            echo ""
+            local swarm_args="$story_key --swarm"
+            if [[ -n "$collab_agents" ]]; then
+                swarm_args="$swarm_args --agents $collab_agents"
+            fi
+            swarm_args="$swarm_args --max-iterations $max_iterations"
+            python3 "$SCRIPT_DIR/run-collab.py" $swarm_args
+            local exit_code=$?
+            
+            if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
+                auto_commit_changes "$story_key"
+            fi
+            ;;
+        "pair")
+            echo -e "${YELLOW}▶ Running pair programming mode (DEV + REVIEWER)...${NC}"
+            echo ""
+            python3 "$SCRIPT_DIR/run-collab.py" "$story_key" --pair --max-revisions "$max_iterations"
+            local exit_code=$?
+            
+            if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
+                auto_commit_changes "$story_key"
+            fi
+            ;;
+        "auto-route")
+            echo -e "${YELLOW}▶ Running auto-route mode (intelligent agent selection)...${NC}"
+            echo ""
+            python3 "$SCRIPT_DIR/run-collab.py" "$story_key" --auto
+            local exit_code=$?
+            
+            if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
+                auto_commit_changes "$story_key"
+            fi
+            ;;
+
         # ═══════════════════════════════════════════════════════════════
         # GREENFIELD MODES - New feature development
         # ═══════════════════════════════════════════════════════════════
