@@ -154,22 +154,6 @@ Copy-Item config.ps1.template config.ps1
 notepad config.ps1
 ```
 
-**Running Stories on Windows:**
-
-```powershell
-# Full pipeline with live monitoring
-.\run-story.ps1 -StoryKey "3-5"
-
-# Development only
-.\run-story.ps1 -StoryKey "3-5" -Develop
-
-# With specific model
-.\run-story.ps1 -StoryKey "3-5" -Model opus
-
-# Disable auto-commit
-.\run-story.ps1 -StoryKey "3-5" -NoCommit
-```
-
 ### Agent Personas
 
 | Agent | Model | Cost | Use Case |
