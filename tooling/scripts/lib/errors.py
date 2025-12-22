@@ -6,19 +6,20 @@ Provides user-friendly error messages with context and suggested fixes.
 
 Usage:
     from lib.errors import CostTrackingError, handle_error
-    
+
     try:
         # ... code ...
     except Exception as e:
         handle_error(e, context="loading session")
 """
 
+import json
 import sys
 import traceback
-from pathlib import Path
-from typing import Optional, Dict, Any
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+from typing import Any, Optional
 
 
 class ErrorCode(Enum):
@@ -27,28 +28,28 @@ class ErrorCode(Enum):
     CONFIG_NOT_FOUND = 101
     CONFIG_PARSE_ERROR = 102
     CONFIG_INVALID_VALUE = 103
-    
+
     # File/storage errors (2xx)
     FILE_NOT_FOUND = 201
     FILE_READ_ERROR = 202
     FILE_WRITE_ERROR = 203
     DIRECTORY_NOT_FOUND = 204
     PERMISSION_DENIED = 205
-    
+
     # Session errors (3xx)
     SESSION_NOT_FOUND = 301
     SESSION_CORRUPTED = 302
     SESSION_SAVE_FAILED = 303
-    
+
     # Budget errors (4xx)
     BUDGET_EXCEEDED = 401
     BUDGET_INVALID = 402
-    
+
     # Calculation errors (5xx)
     UNKNOWN_MODEL = 501
     INVALID_TOKENS = 502
     CALCULATION_ERROR = 503
-    
+
     # General errors (9xx)
     UNKNOWN_ERROR = 999
 
@@ -60,14 +61,14 @@ class ErrorContext:
     file_path: Optional[Path] = None
     model: Optional[str] = None
     agent: Optional[str] = None
-    tokens: Optional[Dict[str, int]] = None
+    tokens: Optional[dict[str, int]] = None
     budget: Optional[float] = None
-    additional: Optional[Dict[str, Any]] = None
+    additional: Optional[dict[str, Any]] = None
 
 
 class CostTrackingError(Exception):
     """Base exception for cost tracking errors."""
-    
+
     def __init__(
         self,
         message: str,
@@ -82,11 +83,11 @@ class CostTrackingError(Exception):
         self.suggestion = suggestion
         self.cause = cause
         super().__init__(self.format_message())
-    
+
     def format_message(self) -> str:
         """Format the error message with context."""
         parts = [f"[{self.code.name}] {self.message}"]
-        
+
         if self.context:
             parts.append(f"\n  Operation: {self.context.operation}")
             if self.context.file_path:
@@ -95,13 +96,13 @@ class CostTrackingError(Exception):
                 parts.append(f"  Model: {self.context.model}")
             if self.context.agent:
                 parts.append(f"  Agent: {self.context.agent}")
-        
+
         if self.suggestion:
             parts.append(f"\n  💡 Suggestion: {self.suggestion}")
-        
+
         if self.cause:
             parts.append(f"\n  Caused by: {type(self.cause).__name__}: {self.cause}")
-        
+
         return "\n".join(parts)
 
 
@@ -204,7 +205,7 @@ def create_error(
     template = ERROR_MESSAGES.get(code, {"message": "Unknown error", "suggestion": None})
     message = custom_message or template["message"]
     suggestion = template.get("suggestion")
-    
+
     # Select appropriate error class
     if code.value < 200:
         error_class = ConfigurationError
@@ -216,7 +217,7 @@ def create_error(
         error_class = CalculationError
     else:
         error_class = CostTrackingError
-    
+
     return error_class(
         message=message,
         code=code,
@@ -229,23 +230,23 @@ def create_error(
 def format_error_for_user(error: Exception, verbose: bool = False) -> str:
     """Format an error for user-friendly display."""
     lines = []
-    
+
     # Header
     lines.append("━" * 60)
     lines.append("❌ Error Occurred")
     lines.append("━" * 60)
-    
+
     if isinstance(error, CostTrackingError):
         lines.append(f"\n{error.format_message()}")
     else:
         lines.append(f"\n{type(error).__name__}: {error}")
-    
+
     if verbose:
         lines.append("\n📋 Stack Trace:")
         lines.append(traceback.format_exc())
-    
+
     lines.append("\n" + "━" * 60)
-    
+
     return "\n".join(lines)
 
 
@@ -257,7 +258,7 @@ def handle_error(
 ) -> None:
     """
     Handle an error with user-friendly output.
-    
+
     Args:
         error: The exception that occurred
         context: Description of what was being done
@@ -267,7 +268,7 @@ def handle_error(
     # Create context if not a CostTrackingError
     if not isinstance(error, CostTrackingError):
         error_context = ErrorContext(operation=context)
-        
+
         # Try to determine error type
         if isinstance(error, FileNotFoundError):
             error = create_error(
@@ -287,10 +288,10 @@ def handle_error(
                 context=error_context,
                 cause=error
             )
-    
+
     # Output error
     print(format_error_for_user(error, verbose=verbose), file=sys.stderr)
-    
+
     if exit_on_error:
         sys.exit(1)
 
@@ -298,7 +299,7 @@ def handle_error(
 def wrap_errors(operation: str):
     """
     Decorator to wrap function errors with context.
-    
+
     Usage:
         @wrap_errors("loading session")
         def load_session(path):
@@ -317,59 +318,55 @@ def wrap_errors(operation: str):
                     context=context,
                     custom_message=str(e),
                     cause=e
-                )
+                ) from e
         return wrapper
     return decorator
 
 
-# Import json here to avoid circular imports
-import json
-
-
 class ErrorReporter:
     """Collect and report multiple errors."""
-    
+
     def __init__(self):
         self.errors: list = []
         self.warnings: list = []
-    
+
     def add_error(self, error: Exception, context: str = ""):
         """Add an error to the collection."""
         self.errors.append((error, context))
-    
+
     def add_warning(self, message: str, context: str = ""):
         """Add a warning to the collection."""
         self.warnings.append((message, context))
-    
+
     def has_errors(self) -> bool:
         """Check if any errors were recorded."""
         return len(self.errors) > 0
-    
+
     def has_warnings(self) -> bool:
         """Check if any warnings were recorded."""
         return len(self.warnings) > 0
-    
+
     def format_report(self) -> str:
         """Format all errors and warnings as a report."""
         lines = []
-        
+
         if self.errors:
             lines.append(f"\n❌ {len(self.errors)} Error(s):")
             for i, (error, context) in enumerate(self.errors, 1):
                 lines.append(f"  {i}. [{context}] {error}")
-        
+
         if self.warnings:
             lines.append(f"\n⚠️  {len(self.warnings)} Warning(s):")
             for i, (message, context) in enumerate(self.warnings, 1):
                 lines.append(f"  {i}. [{context}] {message}")
-        
+
         return "\n".join(lines)
-    
+
     def print_report(self):
         """Print the error report."""
         if self.errors or self.warnings:
             print(self.format_report(), file=sys.stderr)
-    
+
     def clear(self):
         """Clear all errors and warnings."""
         self.errors.clear()
@@ -422,7 +419,7 @@ def is_verbose() -> bool:
 if __name__ == "__main__":
     # Demo error handling
     print("Error Handling Demo\n")
-    
+
     # Create and display different error types
     errors = [
         create_error(
@@ -449,7 +446,7 @@ if __name__ == "__main__":
             )
         ),
     ]
-    
+
     for error in errors:
         print(format_error_for_user(error))
         print()

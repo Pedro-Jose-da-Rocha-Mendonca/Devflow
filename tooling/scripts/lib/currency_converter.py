@@ -14,22 +14,23 @@ Usage:
 Exchange Rate Notice:
     Default exchange rates are STATIC approximations and will become stale.
     Last updated: December 2025
-    
+
     For accurate conversions, you should:
     1. Use a config file with current rates:
        converter = CurrencyConverter(config_path=Path("currency_config.json"))
-    
+
     2. Set custom rates directly:
        converter.set_rates({"EUR": 0.95, "GBP": 0.82})
-    
+
     3. Use environment variables:
        export CURRENCY_RATE_EUR=0.95
        export CURRENCY_RATE_GBP=0.82
 """
 
-from typing import Dict, List, Optional
-from pathlib import Path
 import json
+import threading
+from pathlib import Path
+from typing import Optional
 
 
 class CurrencyConverter:
@@ -37,7 +38,7 @@ class CurrencyConverter:
     Convert and format USD amounts to multiple currencies.
 
     Supports customizable exchange rates via config file or direct setting.
-    
+
     Warning:
         Default exchange rates are static approximations from December 2025.
         For production use, provide current rates via config file or set_rates().
@@ -90,8 +91,8 @@ class CurrencyConverter:
 
     def __init__(
         self,
-        rates: Optional[Dict[str, float]] = None,
-        display_currencies: Optional[List[str]] = None,
+        rates: Optional[dict[str, float]] = None,
+        display_currencies: Optional[list[str]] = None,
         config_path: Optional[Path] = None
     ):
         """
@@ -118,7 +119,7 @@ class CurrencyConverter:
     def _load_config(self, config_path: Path):
         """Load exchange rates from config file."""
         try:
-            with open(config_path, 'r') as f:
+            with open(config_path) as f:
                 config = json.load(f)
 
             if "currency_rates" in config:
@@ -183,7 +184,7 @@ class CurrencyConverter:
         self,
         amount_usd: float,
         separator: str = " | ",
-        currencies: Optional[List[str]] = None
+        currencies: Optional[list[str]] = None
     ) -> str:
         """
         Format amount in all display currencies.
@@ -209,7 +210,7 @@ class CurrencyConverter:
         """
         return self.format_all(amount_usd, separator="/")
 
-    def format_table_row(self, amount_usd: float) -> Dict[str, str]:
+    def format_table_row(self, amount_usd: float) -> dict[str, str]:
         """
         Get formatted amounts as dictionary for table display.
 
@@ -221,11 +222,11 @@ class CurrencyConverter:
             for currency in self.display_currencies
         }
 
-    def set_rates(self, rates: Dict[str, float]):
+    def set_rates(self, rates: dict[str, float]):
         """Update exchange rates."""
         self.rates.update(rates)
 
-    def set_display_currencies(self, currencies: List[str]):
+    def set_display_currencies(self, currencies: list[str]):
         """Set which currencies to display."""
         self.display_currencies = [c.upper() for c in currencies]
 
@@ -233,7 +234,7 @@ class CurrencyConverter:
         """Get exchange rate for a currency."""
         return self.rates.get(currency.upper(), 1.0)
 
-    def list_currencies(self) -> List[Dict]:
+    def list_currencies(self) -> list[dict]:
         """List all supported currencies with their rates."""
         return [
             {
@@ -257,8 +258,6 @@ class CurrencyConverter:
 
 
 # Thread-safe global converter storage
-import threading
-
 _converter_lock = threading.Lock()
 _converter: Optional[CurrencyConverter] = None
 
@@ -266,10 +265,10 @@ _converter: Optional[CurrencyConverter] = None
 def get_converter() -> CurrencyConverter:
     """
     Get or create the global converter instance (thread-safe).
-    
+
     Returns:
         A shared CurrencyConverter instance.
-        
+
     Note:
         The converter is shared across threads since exchange rates
         are read-only after initialization. If you need to modify
@@ -287,7 +286,7 @@ def get_converter() -> CurrencyConverter:
 def set_converter(converter: CurrencyConverter):
     """
     Set the global converter instance (thread-safe).
-    
+
     Args:
         converter: The CurrencyConverter instance to use globally.
     """
@@ -324,16 +323,16 @@ if __name__ == "__main__":
     for currency in ["USD", "EUR", "GBP", "BRL", "JPY"]:
         print(f"  {currency}: {converter.format(amount, currency)}")
 
-    print(f"\nAll display currencies:")
+    print("\nAll display currencies:")
     print(f"  {converter.format_all(amount)}")
 
-    print(f"\nCompact format:")
+    print("\nCompact format:")
     print(f"  {converter.format_compact(amount)}")
 
-    print(f"\nTable row:")
+    print("\nTable row:")
     for code, formatted in converter.format_table_row(amount).items():
         print(f"  {code}: {formatted}")
 
-    print(f"\nSupported currencies:")
+    print("\nSupported currencies:")
     for curr in converter.list_currencies():
         print(f"  {curr['code']}: {curr['name']} ({curr['symbol']}) - Rate: {curr['rate']}")

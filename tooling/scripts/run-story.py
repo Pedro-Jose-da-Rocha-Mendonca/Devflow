@@ -26,14 +26,13 @@ Examples:
     python run-story.py 3-5 --native --show-costs
 """
 
-import os
-import sys
-import subprocess
 import argparse
-import time
+import os
+import subprocess
+import sys
 import threading
+import time
 from pathlib import Path
-from datetime import datetime
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -130,9 +129,8 @@ class NativeRunner:
 
         # Import cost modules
         try:
+            from cost_display import CompactCostDisplay, CostDisplay
             from cost_tracker import CostTracker
-            from cost_display import CostDisplay, CompactCostDisplay
-            from currency_converter import get_converter
 
             self.CostTracker = CostTracker
             self.CostDisplay = CostDisplay

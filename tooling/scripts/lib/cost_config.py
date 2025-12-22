@@ -12,12 +12,11 @@ Usage:
     print(config.currency_rates)
 """
 
-import os
 import json
-from pathlib import Path
-from typing import Dict, List, Optional
+import os
 from dataclasses import dataclass, field
-
+from pathlib import Path
+from typing import Optional
 
 # Default values
 DEFAULT_BUDGET_LIMIT = 15.00
@@ -54,8 +53,8 @@ class CostConfig:
 
     # Currency settings
     display_currency: str = "USD"
-    currency_rates: Dict[str, float] = field(default_factory=lambda: DEFAULT_CURRENCY_RATES.copy())
-    display_currencies: List[str] = field(default_factory=lambda: DEFAULT_DISPLAY_CURRENCIES.copy())
+    currency_rates: dict[str, float] = field(default_factory=lambda: DEFAULT_CURRENCY_RATES.copy())
+    display_currencies: list[str] = field(default_factory=lambda: DEFAULT_DISPLAY_CURRENCIES.copy())
 
     @classmethod
     def from_env(cls) -> 'CostConfig':
@@ -101,7 +100,7 @@ class CostConfig:
             return config
 
         try:
-            with open(config_path, 'r') as f:
+            with open(config_path) as f:
                 data = json.load(f)
 
             # Budget limits
@@ -163,7 +162,7 @@ class CostConfig:
             return self.budget_review
         return self.budget_dev  # Default
 
-    def get_thresholds(self) -> Dict[str, float]:
+    def get_thresholds(self) -> dict[str, float]:
         """Get budget thresholds as decimal values."""
         return {
             'warning': self.warning_percent / 100.0,

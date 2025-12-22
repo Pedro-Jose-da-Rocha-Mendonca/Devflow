@@ -25,16 +25,15 @@ Examples:
     python run-collab.py "fix login bug" --auto
 """
 
-import os
-import sys
 import argparse
 import json
+import os
 import platform
 import shutil
-import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 SCRIPT_DIR = Path(__file__).parent
 sys.path.insert(0, str(SCRIPT_DIR / "lib"))
@@ -47,19 +46,19 @@ IS_LINUX = platform.system() == "Linux"
 
 def detect_claude_cli() -> Optional[str]:
     """Detect Claude CLI across platforms.
-    
+
     Returns:
         Path to Claude CLI or None if not found.
     """
     # Check common CLI names
     cli_names = ["claude", "claude-code"]
-    
+
     for cli_name in cli_names:
         # Check if in PATH
         cli_path = shutil.which(cli_name)
         if cli_path:
             return cli_path
-    
+
     # Platform-specific fallback locations
     if IS_WINDOWS:
         # Check common Windows install locations
@@ -77,20 +76,20 @@ def detect_claude_cli() -> Optional[str]:
             Path("/opt/claude/bin/claude"),
             Path.home() / ".local" / "bin" / "claude"
         ]
-    
+
     for path in possible_paths:
         if path.exists() and path.is_file():
             return str(path)
-    
+
     return None
 
 
 def get_shell_quote(s: str) -> str:
     """Quote a string for shell use, cross-platform.
-    
+
     Args:
         s: String to quote.
-        
+
     Returns:
         Quoted string appropriate for current platform.
     """
@@ -107,16 +106,16 @@ def get_shell_quote(s: str) -> str:
 
 def normalize_path(path: Path) -> Path:
     """Normalize path for cross-platform use.
-    
+
     Args:
         path: Path to normalize.
-        
+
     Returns:
         Normalized Path object.
     """
     # Resolve to absolute path
     path = path.resolve()
-    
+
     # On Windows, ensure we use the correct separators
     if IS_WINDOWS:
         return Path(str(path).replace('/', '\\'))
@@ -125,7 +124,7 @@ def normalize_path(path: Path) -> Path:
 
 def get_config_dir() -> Path:
     """Get the configuration directory for storing data.
-    
+
     Returns:
         Path to configuration directory.
     """
@@ -142,7 +141,7 @@ def get_config_dir() -> Path:
 
 def get_cache_dir() -> Path:
     """Get the cache directory for temporary data.
-    
+
     Returns:
         Path to cache directory.
     """
@@ -156,33 +155,17 @@ def get_cache_dir() -> Path:
         return Path(xdg_cache) / "devflow"
 
 # Import collaboration modules
-from lib.shared_memory import (
-    SharedMemory, KnowledgeGraph, 
-    get_shared_memory, get_knowledge_graph,
-    share_learning, record_decision
-)
-from lib.agent_router import (
-    AgentRouter, RoutingResult, TaskType,
-    route_task, explain_route
-)
-from lib.agent_handoff import (
-    HandoffGenerator, WorkTracker,
-    create_handoff, get_agent_context
-)
-from lib.swarm_orchestrator import (
-    SwarmOrchestrator, SwarmConfig, SwarmResult,
-    ConsensusType, run_swarm, run_dev_review_loop
-)
-from lib.pair_programming import (
-    PairSession, PairConfig, PairSessionResult,
-    run_pair_session
-)
+from lib.agent_handoff import HandoffGenerator, create_handoff  # noqa: E402
+from lib.agent_router import AgentRouter, RoutingResult  # noqa: E402
+from lib.pair_programming import PairConfig, PairSession  # noqa: E402
+from lib.shared_memory import get_knowledge_graph, get_shared_memory, share_learning  # noqa: E402
+from lib.swarm_orchestrator import ConsensusType, SwarmConfig, SwarmOrchestrator  # noqa: E402
 
 
 # Colors for terminal output (with Windows support)
 class Colors:
     """ANSI color codes with Windows compatibility."""
-    
+
     # Enable ANSI colors on Windows
     if IS_WINDOWS:
         try:
@@ -191,14 +174,14 @@ class Colors:
             kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
         except Exception:
             pass  # Fall back to no colors
-    
+
     # Check if colors should be enabled
     _use_colors = (
-        sys.stdout.isatty() and 
+        sys.stdout.isatty() and
         os.environ.get("NO_COLOR") is None and
         os.environ.get("TERM") != "dumb"
     )
-    
+
     if _use_colors:
         HEADER = '\033[95m'
         BLUE = '\033[94m'
@@ -246,12 +229,12 @@ def print_section(title: str, content: str = ""):
 def run_auto_mode(story_key: str, task: str, args: argparse.Namespace):
     """Run with automatic agent routing."""
     print_section("Auto-Routing Mode")
-    
+
     router = AgentRouter()
     result = router.route(task)
-    
+
     print_routing_decision(result, router)
-    
+
     # Decide execution mode based on routing
     if result.workflow == "swarm":
         print(f"\n{Colors.YELLOW}→ Using swarm mode for multi-agent collaboration{Colors.END}")
@@ -264,10 +247,10 @@ def run_auto_mode(story_key: str, task: str, args: argparse.Namespace):
         return run_sequential_mode(story_key, task, result.agents, args)
 
 
-def run_swarm_mode(story_key: str, task: str, agents: List[str], args: argparse.Namespace):
+def run_swarm_mode(story_key: str, task: str, agents: list[str], args: argparse.Namespace):
     """Run swarm mode with multi-agent debate."""
     print_section("Swarm Mode", f"Agents: {', '.join(agents)}")
-    
+
     config = SwarmConfig(
         max_iterations=args.max_iterations,
         consensus_type=ConsensusType[args.consensus.upper()],
@@ -275,61 +258,61 @@ def run_swarm_mode(story_key: str, task: str, agents: List[str], args: argparse.
         verbose=not args.quiet,
         budget_limit_usd=args.budget
     )
-    
+
     orchestrator = SwarmOrchestrator(story_key, config)
     result = orchestrator.run_swarm(agents, task)
-    
+
     # Print result
     print(f"\n{Colors.GREEN}{result.to_summary()}{Colors.END}")
-    
+
     # Save result
     save_result(story_key, "swarm", result.to_dict())
-    
+
     return result
 
 
 def run_pair_mode(story_key: str, task: str, args: argparse.Namespace):
     """Run pair programming mode."""
     print_section("Pair Programming Mode", "DEV + REVIEWER interleaved")
-    
+
     config = PairConfig(
         max_revisions_per_chunk=args.max_revisions,
         verbose=not args.quiet,
         dev_model=args.model,
         reviewer_model=args.model
     )
-    
+
     session = PairSession(story_key, task, config)
     result = session.run()
-    
+
     # Print result
     print(f"\n{Colors.GREEN}{result.to_summary()}{Colors.END}")
-    
+
     # Save result
     save_result(story_key, "pair", result.to_dict())
-    
+
     return result
 
 
-def run_sequential_mode(story_key: str, task: str, agents: List[str], args: argparse.Namespace):
+def run_sequential_mode(story_key: str, task: str, agents: list[str], args: argparse.Namespace):
     """Run sequential agent execution with handoffs."""
     print_section("Sequential Mode", f"Pipeline: {' → '.join(agents)}")
-    
-    shared_memory = get_shared_memory(story_key)
-    kg = get_knowledge_graph(story_key)
+
+    get_shared_memory(story_key)
+    get_knowledge_graph(story_key)
     handoff_gen = HandoffGenerator(story_key)
-    
+
     results = []
     previous_output = ""
-    
+
     for i, agent in enumerate(agents):
         print(f"\n{Colors.CYAN}▶ Running {agent}...{Colors.END}")
-        
+
         # Get context including handoffs
         context = handoff_gen.generate_context_for_agent(agent)
-        
+
         # Build prompt
-        prompt = f"""You are the {agent} agent.
+        f"""You are the {agent} agent.
 
 {context}
 
@@ -341,10 +324,10 @@ def run_sequential_mode(story_key: str, task: str, agents: List[str], args: argp
 
 Complete your part of this task according to your role.
 """
-        
+
         # Invoke agent (simplified - in real use would call Claude CLI)
-        print(f"  → Generating response...")
-        
+        print("  → Generating response...")
+
         # For demo, we'll note the handoff
         if i > 0:
             prev_agent = agents[i-1]
@@ -355,22 +338,22 @@ Complete your part of this task according to your role.
                 summary=f"Completed {prev_agent} phase, handing off to {agent}"
             )
             print(f"  → Handoff from {prev_agent}: {handoff.id}")
-        
+
         # Record in shared memory
-        share_learning(agent, f"Processed task: {task[:50]}...", story_key, 
+        share_learning(agent, f"Processed task: {task[:50]}...", story_key,
                        tags=["sequential", agent.lower()])
-        
+
         results.append({
             "agent": agent,
             "status": "completed",
             "timestamp": datetime.now().isoformat()
         })
-    
+
     print(f"\n{Colors.GREEN}✅ Sequential pipeline complete!{Colors.END}")
-    
+
     # Save result
     save_result(story_key, "sequential", {"agents": agents, "results": results})
-    
+
     return results
 
 
@@ -379,15 +362,15 @@ def save_result(story_key: str, mode: str, result: dict):
     # Use cross-platform cache directory for results
     results_dir = get_cache_dir() / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Sanitize story_key for filename (Windows compatibility)
     safe_key = "".join(c if c.isalnum() or c in "-_" else "_" for c in story_key)
-    
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"{safe_key}_{mode}_{timestamp}.json"
-    
+
     filepath = normalize_path(results_dir / filename)
-    
+
     with open(filepath, 'w', encoding='utf-8') as f:
         json.dump({
             "story_key": story_key,
@@ -396,17 +379,17 @@ def save_result(story_key: str, mode: str, result: dict):
             "platform": platform.system(),
             "result": result
         }, f, indent=2, default=str, ensure_ascii=False)
-    
+
     print(f"\n{Colors.CYAN}📁 Result saved to: {filepath}{Colors.END}")
 
 
 def show_memory(story_key: str):
     """Display shared memory and knowledge graph."""
     print_section("Shared Memory & Knowledge Graph")
-    
+
     memory = get_shared_memory(story_key)
     kg = get_knowledge_graph(story_key)
-    
+
     print(memory.to_context_string())
     print()
     print(kg.to_context_string())
@@ -415,10 +398,10 @@ def show_memory(story_key: str):
 def query_knowledge(story_key: str, question: str):
     """Query the knowledge graph."""
     print_section(f"Knowledge Query: {question}")
-    
+
     kg = get_knowledge_graph(story_key)
     result = kg.query(question)
-    
+
     if result:
         print(f"\n{Colors.GREEN}Answer:{Colors.END} {result['decision']}")
         print(f"{Colors.CYAN}Source:{Colors.END} {result['agent']} ({result['timestamp'][:10]})")
@@ -442,11 +425,11 @@ Examples:
   python run-collab.py 3-5 --query "What did ARCHITECT decide about auth?"
         """
     )
-    
+
     # Positional argument
     parser.add_argument('story_key', nargs='?', default=None,
                         help='Story key or task description')
-    
+
     # Mode selection
     mode_group = parser.add_mutually_exclusive_group()
     mode_group.add_argument('--auto', action='store_true', default=True,
@@ -457,7 +440,7 @@ Examples:
                            help='DEV + REVIEWER pair programming')
     mode_group.add_argument('--sequential', action='store_true',
                            help='Traditional sequential pipeline')
-    
+
     # Utility modes
     parser.add_argument('--memory', action='store_true',
                         help='Show shared memory and knowledge graph')
@@ -465,11 +448,11 @@ Examples:
                         help='Query the knowledge graph')
     parser.add_argument('--route-only', action='store_true',
                         help='Just show routing decision, don\'t execute')
-    
+
     # Agent selection
     parser.add_argument('--agents', type=str,
                         help='Comma-separated list of agents (for swarm/sequential)')
-    
+
     # Swarm options
     parser.add_argument('--max-iterations', type=int, default=3,
                         help='Maximum swarm iterations (default: 3)')
@@ -478,11 +461,11 @@ Examples:
                         help='Consensus type (default: reviewer_approval)')
     parser.add_argument('--parallel', action='store_true',
                         help='Enable parallel agent execution')
-    
+
     # Pair programming options
     parser.add_argument('--max-revisions', type=int, default=3,
                         help='Max revisions per chunk in pair mode (default: 3)')
-    
+
     # General options
     parser.add_argument('--model', type=str, default='opus',
                         choices=['opus', 'sonnet', 'haiku'],
@@ -493,13 +476,13 @@ Examples:
                         help='Reduce output verbosity')
     parser.add_argument('--task', type=str,
                         help='Override task description')
-    
+
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
-    
+
     # Handle utility modes first
     if args.memory:
         if not args.story_key:
@@ -507,28 +490,28 @@ def main():
             return 1
         show_memory(args.story_key)
         return 0
-    
+
     if args.query:
         if not args.story_key:
             print(f"{Colors.RED}Error: story_key required for --query{Colors.END}")
             return 1
         query_knowledge(args.story_key, args.query)
         return 0
-    
+
     # Validate story key
     if not args.story_key:
         print(f"{Colors.RED}Error: story_key or task description required{Colors.END}")
         print("Use --help for usage information")
         return 1
-    
+
     print_banner()
-    
+
     story_key = args.story_key
     task = args.task or f"Implement story: {story_key}"
-    
+
     print(f"{Colors.BOLD}Story/Task:{Colors.END} {story_key}")
     print(f"{Colors.BOLD}Mode:{Colors.END} ", end="")
-    
+
     # Route-only mode
     if args.route_only:
         print("Route Analysis Only")
@@ -536,7 +519,7 @@ def main():
         result = router.route(task)
         print_routing_decision(result, router)
         return 0
-    
+
     # Parse and validate agents if provided
     agents = None
     if args.agents:
@@ -547,7 +530,7 @@ def main():
             print(f"\n{Colors.RED}Error: Invalid agent name(s): {', '.join(invalid_agents)}{Colors.END}")
             print(f"Valid agents are: {', '.join(sorted(valid_agents))}")
             return 1
-    
+
     # Execute based on mode
     try:
         if args.swarm:
@@ -555,25 +538,25 @@ def main():
             if not agents:
                 agents = ["ARCHITECT", "DEV", "REVIEWER"]
             run_swarm_mode(story_key, task, agents, args)
-        
+
         elif args.pair:
             print("Pair Programming")
             run_pair_mode(story_key, task, args)
-        
+
         elif args.sequential:
             print("Sequential")
             if not agents:
                 agents = ["SM", "DEV", "REVIEWER"]
             run_sequential_mode(story_key, task, agents, args)
-        
+
         else:  # auto mode
             print("Auto-Route")
             run_auto_mode(story_key, task, args)
-        
+
         print(f"\n{Colors.GREEN}{'═'*60}{Colors.END}")
         print(f"{Colors.GREEN}✅ Collaboration complete!{Colors.END}")
         return 0
-        
+
     except KeyboardInterrupt:
         print(f"\n{Colors.YELLOW}⚠️ Interrupted by user{Colors.END}")
         return 130

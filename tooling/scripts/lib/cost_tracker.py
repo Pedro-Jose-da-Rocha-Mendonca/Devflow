@@ -12,15 +12,15 @@ Usage:
     print(tracker.get_session_summary())
 """
 
-import os
 import json
+import sys
+import threading
 import uuid
+import warnings
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import List, Dict, Tuple, Optional
-import sys
-import warnings
+from typing import Optional
 
 # Add parent directory for imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -28,8 +28,14 @@ sys.path.insert(0, str(Path(__file__).parent))
 # Try to import enhanced error handling
 try:
     from errors import (
-        CostTrackingError, SessionError, BudgetError, CalculationError,
-        ErrorCode, ErrorContext, create_error, log_warning, log_debug
+        BudgetError,
+        CalculationError,
+        CostTrackingError,
+        ErrorCode,
+        ErrorContext,
+        SessionError,
+        create_error,
+        log_warning,
     )
     ENHANCED_ERRORS = True
 except ImportError:
@@ -105,7 +111,7 @@ class SessionCost:
     start_time: str
     end_time: Optional[str] = None
     budget_limit_usd: float = 15.00
-    entries: List[CostEntry] = field(default_factory=list)
+    entries: list[CostEntry] = field(default_factory=list)
 
     @property
     def total_input_tokens(self) -> int:
@@ -151,7 +157,7 @@ class SessionCost:
             }
         }
 
-    def get_cost_by_agent(self) -> Dict[str, float]:
+    def get_cost_by_agent(self) -> dict[str, float]:
         """Get cost breakdown by agent."""
         costs = {}
         for entry in self.entries:
@@ -160,7 +166,7 @@ class SessionCost:
             costs[entry.agent] += entry.cost_usd
         return costs
 
-    def get_cost_by_model(self) -> Dict[str, float]:
+    def get_cost_by_model(self) -> dict[str, float]:
         """Get cost breakdown by model."""
         costs = {}
         for entry in self.entries:
@@ -169,7 +175,7 @@ class SessionCost:
             costs[entry.model] += entry.cost_usd
         return costs
 
-    def get_tokens_by_agent(self) -> Dict[str, Dict[str, int]]:
+    def get_tokens_by_agent(self) -> dict[str, dict[str, int]]:
         """Get token breakdown by agent."""
         tokens = {}
         for entry in self.entries:
@@ -191,7 +197,7 @@ class CostTracker:
         self,
         story_key: str = "unknown",
         budget_limit_usd: float = 15.00,
-        thresholds: Optional[Dict[str, float]] = None,
+        thresholds: Optional[dict[str, float]] = None,
         auto_save: bool = True
     ):
         self.story_key = story_key
@@ -221,15 +227,15 @@ class CostTracker:
     def calculate_cost(self, model: str, input_tokens: int, output_tokens: int) -> float:
         """
         Calculate cost for a given usage.
-        
+
         Args:
             model: Model name (opus, sonnet, haiku, or full Claude model name)
             input_tokens: Number of input tokens (must be >= 0)
             output_tokens: Number of output tokens (must be >= 0)
-        
+
         Returns:
             Calculated cost in USD
-        
+
         Raises:
             CalculationError: If token counts are invalid
         """
@@ -243,7 +249,7 @@ class CostTracker:
                     custom_message=error_msg
                 )
             raise CalculationError(error_msg)
-        
+
         if output_tokens < 0:
             error_msg = f"Invalid output_tokens: {output_tokens}. Token count cannot be negative."
             if ENHANCED_ERRORS:
@@ -253,16 +259,14 @@ class CostTracker:
                     custom_message=error_msg
                 )
             raise CalculationError(error_msg)
-        
+
         model_lower = model.lower()
 
         # Find pricing
         pricing = None
-        matched_model = None
         for key, price in PRICING.items():
             if key in model_lower or model_lower in key:
                 pricing = price
-                matched_model = key
                 break
 
         if not pricing:
@@ -272,7 +276,7 @@ class CostTracker:
                 f"Unknown model '{model}'. Using sonnet pricing as default. "
                 f"Supported models: {', '.join(k for k in PRICING.keys() if not k.startswith('claude-'))}"
             )
-            warnings.warn(warning_msg, UserWarning)
+            warnings.warn(warning_msg, UserWarning, stacklevel=2)
             if ENHANCED_ERRORS:
                 log_warning(warning_msg)
 
@@ -325,7 +329,7 @@ class CostTracker:
         self.current_agent = agent
         self.current_model = model
 
-    def check_budget(self) -> Tuple[bool, str, str]:
+    def check_budget(self) -> tuple[bool, str, str]:
         """
         Check budget status.
 
@@ -372,22 +376,22 @@ class CostTracker:
             )
 
         return (
-            True, 
-            "ok", 
+            True,
+            "ok",
             f"🟢 Budget OK: {usage_pct*100:.0f}% used (${total_cost:.2f}/${self.budget_limit_usd:.2f})"
         )
 
-    def get_session_summary(self) -> Dict:
+    def get_session_summary(self) -> dict:
         """Get session summary as dictionary."""
         return self.session.to_dict()
 
     def save_session(self) -> bool:
         """
         Save session to disk.
-        
+
         Returns:
             True if save was successful, False otherwise
-        
+
         Note:
             Attempts to save session data to disk. On failure, prints an error
             message but does not raise an exception to avoid disrupting workflow.
@@ -400,12 +404,12 @@ class CostTracker:
         try:
             # Ensure directory exists
             SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
-            
+
             with open(filepath, 'w') as f:
                 json.dump(self.session.to_dict(), f, indent=2)
             return True
-            
-        except PermissionError as e:
+
+        except PermissionError:
             error_msg = (
                 f"Permission denied when saving session to {filepath}. "
                 f"Check directory permissions. Session data is preserved in memory."
@@ -415,7 +419,7 @@ class CostTracker:
             else:
                 print(f"Error: {error_msg}", file=sys.stderr)
             return False
-            
+
         except OSError as e:
             error_msg = (
                 f"Failed to save session to {filepath}: {e}. "
@@ -426,7 +430,7 @@ class CostTracker:
             else:
                 print(f"Error: {error_msg}", file=sys.stderr)
             return False
-            
+
         except Exception as e:
             error_msg = (
                 f"Unexpected error saving session: {type(e).__name__}: {e}. "
@@ -438,7 +442,7 @@ class CostTracker:
                 print(f"Error: {error_msg}", file=sys.stderr)
             return False
 
-    def end_session(self) -> Dict:
+    def end_session(self) -> dict:
         """End session and save final state."""
         self.session.end_time = datetime.now().isoformat()
         self.save_session()
@@ -448,13 +452,13 @@ class CostTracker:
     def load_session(session_file: Path) -> Optional[SessionCost]:
         """
         Load a session from file.
-        
+
         Args:
             session_file: Path to the session JSON file
-        
+
         Returns:
             SessionCost object if successful, None if file cannot be loaded
-        
+
         Note:
             Returns None instead of raising to allow graceful handling of
             corrupted or missing files in bulk operations.
@@ -466,9 +470,9 @@ class CostTracker:
             else:
                 print(f"Warning: {warning_msg}", file=sys.stderr)
             return None
-        
+
         try:
-            with open(session_file, 'r') as f:
+            with open(session_file) as f:
                 data = json.load(f)
 
             # Validate required fields
@@ -527,7 +531,7 @@ class CostTracker:
             return None
 
     @staticmethod
-    def get_historical_sessions(days: int = 30) -> List[SessionCost]:
+    def get_historical_sessions(days: int = 30) -> list[SessionCost]:
         """Get historical sessions from the last N days."""
         sessions = []
 
@@ -545,7 +549,7 @@ class CostTracker:
         return sessions
 
     @staticmethod
-    def get_aggregate_stats(days: int = 30) -> Dict:
+    def get_aggregate_stats(days: int = 30) -> dict:
         """Get aggregate statistics for the last N days."""
         sessions = CostTracker.get_historical_sessions(days)
 
@@ -588,7 +592,7 @@ class CostTracker:
         }
 
 
-def parse_token_usage(output: str) -> Optional[Tuple[int, int]]:
+def parse_token_usage(output: str) -> Optional[tuple[int, int]]:
     """
     Parse token usage from Claude CLI output.
 
@@ -600,7 +604,7 @@ def parse_token_usage(output: str) -> Optional[Tuple[int, int]]:
 
     Returns:
         Tuple of (input_tokens, output_tokens) or None if not found
-        
+
     Note:
         When only total tokens are available (Pattern 1), we cannot determine
         the exact split. Returns None in this case to avoid inaccurate estimates.
@@ -634,7 +638,7 @@ def parse_token_usage(output: str) -> Optional[Tuple[int, int]]:
         warnings.warn(
             f"Found total token count ({total}) but cannot determine input/output split. "
             "Token usage will not be tracked for this call.",
-            UserWarning
+            UserWarning, stacklevel=2
         )
         return None
 
@@ -642,18 +646,16 @@ def parse_token_usage(output: str) -> Optional[Tuple[int, int]]:
 
 
 # Thread-safe module-level tracker storage
-import threading
-
 _tracker_local = threading.local()
 
 
 def get_tracker() -> Optional[CostTracker]:
     """
     Get the current thread-local tracker.
-    
+
     Returns:
         The CostTracker for the current thread, or None if not set.
-        
+
     Note:
         Each thread has its own tracker instance to avoid race conditions
         in multi-threaded scenarios (e.g., swarm mode with parallel agents).
@@ -664,7 +666,7 @@ def get_tracker() -> Optional[CostTracker]:
 def set_tracker(tracker: CostTracker):
     """
     Set the current thread-local tracker.
-    
+
     Args:
         tracker: The CostTracker instance to use for this thread.
     """
@@ -674,11 +676,11 @@ def set_tracker(tracker: CostTracker):
 def start_tracking(story_key: str, budget_limit_usd: float = 15.00) -> CostTracker:
     """
     Start a new tracking session for the current thread.
-    
+
     Args:
         story_key: Identifier for the story being tracked.
         budget_limit_usd: Maximum budget for this session.
-        
+
     Returns:
         A new CostTracker instance, also set as the thread-local tracker.
     """

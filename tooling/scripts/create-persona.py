@@ -15,14 +15,10 @@ Usage:
 """
 
 import argparse
-import json
-import os
-import re
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+
 
 # Colors for terminal output
 class Colors:
@@ -166,13 +162,13 @@ class PersonaConfig:
     role: str
     focus: str
     model: str = "sonnet"
-    responsibilities: List[str] = field(default_factory=list)
-    principles: List[str] = field(default_factory=list)
-    working_directories: Dict[str, str] = field(default_factory=dict)
-    tech_stack: List[str] = field(default_factory=list)
-    critical_rules: List[str] = field(default_factory=list)
+    responsibilities: list[str] = field(default_factory=list)
+    principles: list[str] = field(default_factory=list)
+    working_directories: dict[str, str] = field(default_factory=dict)
+    tech_stack: list[str] = field(default_factory=list)
+    critical_rules: list[str] = field(default_factory=list)
     communication_style: str = ""
-    custom_sections: Dict[str, str] = field(default_factory=dict)
+    custom_sections: dict[str, str] = field(default_factory=dict)
 
 
 def print_header():
@@ -190,7 +186,7 @@ def prompt(message: str, default: str = "", required: bool = False) -> str:
         display = f"{Colors.BLUE}{message}{Colors.NC} [{default}]: "
     else:
         display = f"{Colors.BLUE}{message}{Colors.NC}: "
-    
+
     while True:
         value = input(display).strip()
         if not value and default:
@@ -201,11 +197,11 @@ def prompt(message: str, default: str = "", required: bool = False) -> str:
         return value
 
 
-def prompt_list(message: str, min_items: int = 0) -> List[str]:
+def prompt_list(message: str, min_items: int = 0) -> list[str]:
     """Prompt for a list of items."""
     print(f"{Colors.BLUE}{message}{Colors.NC}")
-    print(f"  (Enter items one per line, empty line to finish)")
-    
+    print("  (Enter items one per line, empty line to finish)")
+
     items = []
     while True:
         item = input(f"  {len(items) + 1}. ").strip()
@@ -215,22 +211,22 @@ def prompt_list(message: str, min_items: int = 0) -> List[str]:
             print(f"{Colors.YELLOW}Please enter at least {min_items} item(s).{Colors.NC}")
             continue
         items.append(item)
-    
+
     return items
 
 
-def prompt_choice(message: str, choices: List[str], default: str = "") -> str:
+def prompt_choice(message: str, choices: list[str], default: str = "") -> str:
     """Prompt for a choice from a list."""
     print(f"{Colors.BLUE}{message}{Colors.NC}")
     for i, choice in enumerate(choices, 1):
         marker = " (default)" if choice == default else ""
         print(f"  {i}. {choice}{marker}")
-    
+
     while True:
         value = input("Choice: ").strip()
         if not value and default:
             return default
-        
+
         # Accept number or text
         if value.isdigit():
             idx = int(value) - 1
@@ -238,7 +234,7 @@ def prompt_choice(message: str, choices: List[str], default: str = "") -> str:
                 return choices[idx]
         elif value in choices:
             return value
-        
+
         print(f"{Colors.YELLOW}Please enter a valid choice.{Colors.NC}")
 
 
@@ -246,18 +242,18 @@ def interactive_create() -> PersonaConfig:
     """Interactive persona creation wizard."""
     print(f"{Colors.BOLD}Let's create your custom agent persona!{Colors.NC}")
     print()
-    
+
     # Basic info
     name = prompt("Persona name (e.g., 'qa', 'frontend-dev')", required=True)
     name = name.lower().replace(" ", "-")
-    
+
     # Check for template
     print()
     print(f"{Colors.BOLD}Would you like to start from a template?{Colors.NC}")
     templates = list(PERSONA_TEMPLATES.keys())
     templates.insert(0, "none (start fresh)")
     template = prompt_choice("Select template", templates, "none (start fresh)")
-    
+
     if template != "none (start fresh)" and template in PERSONA_TEMPLATES:
         tpl = PERSONA_TEMPLATES[template]
         role = prompt("Role", tpl["role"])
@@ -265,11 +261,11 @@ def interactive_create() -> PersonaConfig:
         model = prompt_choice("Model", ["sonnet", "opus", "haiku"], tpl["model"])
         responsibilities = tpl["responsibilities"].copy()
         principles = tpl["principles"].copy()
-        
+
         print()
         print(f"{Colors.GREEN}Template loaded!{Colors.NC} Default responsibilities and principles applied.")
         modify = prompt("Would you like to modify them? (y/n)", "n")
-        
+
         if modify.lower() == 'y':
             print()
             print("Current responsibilities:")
@@ -277,7 +273,7 @@ def interactive_create() -> PersonaConfig:
                 print(f"  - {r}")
             if prompt("Modify responsibilities? (y/n)", "n").lower() == 'y':
                 responsibilities = prompt_list("Enter responsibilities", 1)
-            
+
             print()
             print("Current principles:")
             for p in principles:
@@ -288,20 +284,20 @@ def interactive_create() -> PersonaConfig:
         role = prompt("Role (e.g., 'Senior QA Engineer')", required=True)
         focus = prompt("Focus (one-line description)", required=True)
         model = prompt_choice("Model", ["sonnet", "opus", "haiku"], "sonnet")
-        
+
         print()
         responsibilities = prompt_list("What are this agent's responsibilities?", 2)
-        
+
         print()
         principles = prompt_list("What principles should this agent follow?", 2)
-    
+
     # Communication style
     print()
     communication_style = prompt(
         "Communication style (e.g., 'Technical and detailed', 'Friendly and explanatory')",
         "Professional and clear"
     )
-    
+
     # Working directories (optional)
     print()
     add_dirs = prompt("Add working directories? (y/n)", "n")
@@ -314,21 +310,21 @@ def interactive_create() -> PersonaConfig:
                 break
             dir_path = input("  Path: ").strip()
             working_dirs[dir_name] = dir_path
-    
+
     # Tech stack (optional)
     print()
     add_tech = prompt("Add tech stack context? (y/n)", "n")
     tech_stack = []
     if add_tech.lower() == 'y':
         tech_stack = prompt_list("Enter technologies this agent works with")
-    
+
     # Critical rules
     print()
     add_rules = prompt("Add critical rules (must-do actions)? (y/n)", "n")
     critical_rules = []
     if add_rules.lower() == 'y':
         critical_rules = prompt_list("Enter critical rules")
-    
+
     return PersonaConfig(
         name=name,
         role=role,
@@ -351,7 +347,7 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
         f"You are a {config.role}. {config.focus}",
         "",
     ]
-    
+
     # Responsibilities
     lines.extend([
         "## Responsibilities",
@@ -360,7 +356,7 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
     for i, resp in enumerate(config.responsibilities, 1):
         lines.append(f"{i}. {resp}")
     lines.append("")
-    
+
     # Working directories
     if config.working_directories:
         lines.extend([
@@ -370,7 +366,7 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
         for name, path in config.working_directories.items():
             lines.append(f"- **{name}**: `{path}`")
         lines.append("")
-    
+
     # Tech stack
     if config.tech_stack:
         lines.extend([
@@ -380,7 +376,7 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
         for tech in config.tech_stack:
             lines.append(f"- {tech}")
         lines.append("")
-    
+
     # Principles
     lines.extend([
         "## Principles",
@@ -389,7 +385,7 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
     for i, principle in enumerate(config.principles, 1):
         lines.append(f"{i}. **{principle.split(':')[0]}**" + (f": {':'.join(principle.split(':')[1:])}" if ':' in principle else ""))
     lines.append("")
-    
+
     # Communication style
     if config.communication_style:
         lines.extend([
@@ -398,7 +394,7 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
             config.communication_style,
             "",
         ])
-    
+
     # Critical rules
     if config.critical_rules:
         lines.extend([
@@ -408,7 +404,7 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
         for rule in config.critical_rules:
             lines.append(f"- {rule}")
         lines.append("")
-    
+
     # Context management (standard section)
     lines.extend([
         "## Context Management",
@@ -429,7 +425,7 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
         "```",
         "",
     ])
-    
+
     # Model recommendation
     lines.extend([
         "## Model",
@@ -437,7 +433,7 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
         f"Recommended model: `{config.model}`",
         "",
     ])
-    
+
     return "\n".join(lines)
 
 
@@ -451,10 +447,10 @@ def generate_override_yaml(config: PersonaConfig) -> str:
         "# Additional rules (appended to base agent rules)",
         "additional_rules:",
     ]
-    
+
     for rule in config.critical_rules or config.principles[:2]:
         lines.append(f'  - "{rule}"')
-    
+
     lines.extend([
         "",
         "# Memories - facts this agent should always remember",
@@ -464,10 +460,10 @@ def generate_override_yaml(config: PersonaConfig) -> str:
         "# Critical actions - must be done before completing any task",
         "critical_actions:",
     ])
-    
+
     for rule in config.critical_rules or ["Verify work meets requirements"]:
         lines.append(f'  - "{rule}"')
-    
+
     lines.extend([
         "",
         f"# Model override (recommended: {config.model})",
@@ -477,7 +473,7 @@ def generate_override_yaml(config: PersonaConfig) -> str:
         "# max_budget_usd: 10.00",
         "",
     ])
-    
+
     return "\n".join(lines)
 
 
@@ -485,91 +481,91 @@ def save_persona(config: PersonaConfig, project_root: Path) -> tuple:
     """Save the persona files."""
     agents_dir = project_root / "tooling" / ".automation" / "agents"
     overrides_dir = project_root / "tooling" / ".automation" / "overrides"
-    
+
     agents_dir.mkdir(parents=True, exist_ok=True)
     overrides_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Save agent file
     agent_file = agents_dir / f"{config.name}.md"
     agent_content = generate_persona_markdown(config)
     agent_file.write_text(agent_content)
-    
+
     # Save override template
     override_file = overrides_dir / f"{config.name}.override.yaml"
     if not override_file.exists():
         override_content = generate_override_yaml(config)
         override_file.write_text(override_content)
-    
+
     return agent_file, override_file
 
 
 def list_personas(project_root: Path):
     """List existing personas."""
     agents_dir = project_root / "tooling" / ".automation" / "agents"
-    
+
     print(f"{Colors.BOLD}Available Agent Personas:{Colors.NC}")
     print()
-    
+
     if not agents_dir.exists():
         print(f"  {Colors.YELLOW}No agents directory found.{Colors.NC}")
         return
-    
+
     for agent_file in sorted(agents_dir.glob("*.md")):
         name = agent_file.stem
-        
+
         # Extract first line (role)
         content = agent_file.read_text()
         first_line = content.split('\n')[0]
         role = first_line.replace('# ', '').replace(' Agent', '')
-        
+
         # Check for override
         override_file = project_root / "tooling" / ".automation" / "overrides" / f"{name}.override.yaml"
         has_override = "✓" if override_file.exists() else " "
-        
+
         print(f"  {Colors.GREEN}{name:15}{Colors.NC} │ {role:25} │ Override: {has_override}")
-    
+
     print()
 
 
 def validate_persona(name: str, project_root: Path) -> bool:
     """Validate a persona file."""
     agent_file = project_root / "tooling" / ".automation" / "agents" / f"{name}.md"
-    
+
     if not agent_file.exists():
         print(f"{Colors.RED}✗ Agent file not found: {agent_file}{Colors.NC}")
         return False
-    
+
     print(f"{Colors.BOLD}Validating persona: {name}{Colors.NC}")
     print()
-    
+
     content = agent_file.read_text()
     errors = []
     warnings = []
-    
+
     # Check for required sections
     required_sections = ["Responsibilities", "Principles"]
     for section in required_sections:
         if f"## {section}" not in content:
             errors.append(f"Missing required section: {section}")
-    
+
     # Check for role definition
     if not content.startswith("# "):
         errors.append("Missing role heading (should start with '# Role Agent')")
-    
+
     # Check for context management
     if "Context Management" not in content:
         warnings.append("Missing Context Management section (recommended)")
-    
+
     # Print results
     for error in errors:
         print(f"  {Colors.RED}✗ ERROR:{Colors.NC} {error}")
-    
+
     for warning in warnings:
         print(f"  {Colors.YELLOW}⚠ WARNING:{Colors.NC} {warning}")
-    
+
     if not errors and not warnings:
         print(f"  {Colors.GREEN}✓ Persona is valid!{Colors.NC}")
-    
+
     print()
     return len(errors) == 0
 
@@ -582,28 +578,28 @@ def main():
     parser.add_argument("--validate", help="Validate a persona file")
     parser.add_argument("--from-template", action="store_true", help="Create from template selection")
     args = parser.parse_args()
-    
+
     # Find project root
     script_dir = Path(__file__).parent
     project_root = script_dir.parent.parent
-    
+
     print_header()
-    
+
     if args.list:
         list_personas(project_root)
         return
-    
+
     if args.validate:
         valid = validate_persona(args.validate, project_root)
         sys.exit(0 if valid else 1)
-    
+
     if args.name and args.template:
         # Quick create with template
         if args.template not in PERSONA_TEMPLATES:
             print(f"{Colors.RED}Unknown template: {args.template}{Colors.NC}")
             print(f"Available: {', '.join(PERSONA_TEMPLATES.keys())}")
             sys.exit(1)
-        
+
         tpl = PERSONA_TEMPLATES[args.template]
         config = PersonaConfig(
             name=args.name,
@@ -620,15 +616,15 @@ def main():
         for name, tpl in PERSONA_TEMPLATES.items():
             print(f"  {Colors.GREEN}{name:15}{Colors.NC} - {tpl['role']}: {tpl['focus']}")
         print()
-        
+
         template = prompt_choice(
             "Select a template",
             list(PERSONA_TEMPLATES.keys()),
         )
-        
+
         persona_name = prompt("Persona name", template)
         tpl = PERSONA_TEMPLATES[template]
-        
+
         config = PersonaConfig(
             name=persona_name,
             role=tpl["role"],
@@ -640,11 +636,11 @@ def main():
     else:
         # Interactive mode
         config = interactive_create()
-    
+
     # Save files
     print()
     agent_file, override_file = save_persona(config, project_root)
-    
+
     print(f"{Colors.GREEN}✓ Persona created successfully!{Colors.NC}")
     print()
     print(f"  Agent file:    {agent_file}")

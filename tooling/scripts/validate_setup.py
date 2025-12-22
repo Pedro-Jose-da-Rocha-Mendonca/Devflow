@@ -238,7 +238,7 @@ class SetupValidator:
         """Test core cost tracker functionality."""
         try:
             sys.path.insert(0, str(LIB_DIR))
-            from cost_tracker import CostTracker, PRICING
+            from cost_tracker import PRICING, CostTracker
 
             # Check pricing is defined
             if not PRICING:
@@ -299,7 +299,7 @@ class SetupValidator:
         }
 
         configured = 0
-        for var, (desc, default) in env_vars.items():
+        for var, (_desc, _default) in env_vars.items():
             value = os.getenv(var)
             if value:
                 configured += 1

@@ -15,14 +15,14 @@ Usage:
 
 import os
 import sys
-from datetime import datetime, timedelta
-from typing import Optional, Dict, List
+from datetime import datetime
 from pathlib import Path
+from typing import Optional
 
 # Add parent for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from cost_tracker import CostTracker, SessionCost, PRICING
+from cost_tracker import PRICING, CostTracker
 from currency_converter import CurrencyConverter, get_converter
 
 
@@ -245,7 +245,7 @@ class CostDisplay:
                 breakdown[key]["cost"] += entry.cost_usd
 
             # Calculate actual input/output costs based on model pricing
-            for (agent, model), data in breakdown.items():
+            for (_agent, model), data in breakdown.items():
                 model_lower = model.lower()
                 pricing = PRICING.get(model_lower, PRICING.get("sonnet"))
                 if pricing:

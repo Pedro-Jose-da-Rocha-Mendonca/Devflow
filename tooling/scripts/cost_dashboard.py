@@ -21,12 +21,15 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+# Lowercase generic types for Python 3.9+ compatibility
+# Using 'list' instead of 'List' from typing
+
 # Add lib directory for imports
 sys.path.insert(0, str(Path(__file__).parent / "lib"))
 
-from cost_tracker import CostTracker, SessionCost, SESSIONS_DIR, COSTS_DIR
-from currency_converter import CurrencyConverter, get_converter
-from cost_display import Colors, CostDisplay
+from cost_display import Colors
+from cost_tracker import SESSIONS_DIR, CostTracker, SessionCost
+from currency_converter import get_converter
 
 
 class CostDashboard:
@@ -160,7 +163,7 @@ class CostDashboard:
 
         print('\n'.join(lines))
 
-    def show_history(self, sessions: List[SessionCost], limit: int = 10):
+    def show_history(self, sessions: list[SessionCost], limit: int = 10):
         """Display session history."""
         sessions = sessions[:limit]
 
@@ -332,7 +335,7 @@ class CostDashboard:
                     end = datetime.fromisoformat(session.end_time)
                     duration = end - start
                     duration_str = f"{int(duration.total_seconds() // 60)}m"
-                except:
+                except (ValueError, TypeError):
                     duration_str = "N/A"
             else:
                 duration_str = "Running"
@@ -349,7 +352,7 @@ class CostDashboard:
 
         print('\n'.join(lines))
 
-    def export_data(self, filepath: str, sessions: Optional[List[SessionCost]] = None):
+    def export_data(self, filepath: str, sessions: Optional[list[SessionCost]] = None):
         """Export cost data to file."""
         if sessions is None:
             sessions = CostTracker.get_historical_sessions(days=365)
@@ -372,7 +375,7 @@ class CostDashboard:
         print(f"  Sessions: {len(sessions)}")
         print(f"  Total Cost: ${sum(s.total_cost_usd for s in sessions):.2f}")
 
-    def _export_csv(self, path: Path, sessions: List[SessionCost]):
+    def _export_csv(self, path: Path, sessions: list[SessionCost]):
         """Export to CSV."""
         with open(path, 'w', newline='') as f:
             writer = csv.writer(f)
@@ -399,7 +402,7 @@ class CostDashboard:
                     round(session.budget_used_percent, 2)
                 ])
 
-    def _export_json(self, path: Path, sessions: List[SessionCost]):
+    def _export_json(self, path: Path, sessions: list[SessionCost]):
         """Export to JSON."""
         data = {
             'exported_at': datetime.now().isoformat(),
@@ -411,7 +414,7 @@ class CostDashboard:
         with open(path, 'w') as f:
             json.dump(data, f, indent=2)
 
-    def _export_markdown(self, path: Path, sessions: List[SessionCost]):
+    def _export_markdown(self, path: Path, sessions: list[SessionCost]):
         """Export to Markdown."""
         total_cost = sum(s.total_cost_usd for s in sessions)
         total_tokens = sum(s.total_tokens for s in sessions)

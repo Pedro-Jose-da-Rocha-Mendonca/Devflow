@@ -12,12 +12,12 @@ Usage:
     python3 personalize_agent.py --all        # Personalize all agents
 """
 
-import os
-import sys
 import argparse
 import shutil
+import sys
 from pathlib import Path
-from typing import Optional, Dict, List
+from typing import Optional
+
 
 # Colors for terminal output
 class Colors:
@@ -54,7 +54,7 @@ def print_step(step_num: int, title: str):
     print(f"\n{Colors.BOLD}{Colors.BLUE}═══ Step {step_num}: {title} ═══{Colors.END}\n")
 
 
-def get_available_agents() -> List[str]:
+def get_available_agents() -> list[str]:
     """Get list of available agents."""
     agents = []
     if AGENTS_DIR.exists():
@@ -63,11 +63,11 @@ def get_available_agents() -> List[str]:
     return sorted(agents)
 
 
-def get_agent_templates(agent_name: str) -> List[Dict]:
+def get_agent_templates(agent_name: str) -> list[dict]:
     """Get available templates for an agent."""
     templates = []
     agent_template_dir = TEMPLATES_DIR / agent_name
-    
+
     if agent_template_dir.exists():
         for file in agent_template_dir.glob("*.yaml"):
             if file.name != "README.md":
@@ -79,17 +79,17 @@ def get_agent_templates(agent_name: str) -> List[Dict]:
                     'path': file,
                     'description': first_line
                 })
-    
+
     return templates
 
 
-def prompt_choice(prompt: str, options: List[str], default: int = 0) -> int:
+def prompt_choice(prompt: str, options: list[str], default: int = 0) -> int:
     """Prompt user to choose from options."""
     print(f"{Colors.YELLOW}{prompt}{Colors.END}")
     for i, opt in enumerate(options):
         marker = "→" if i == default else " "
         print(f"  {marker} [{i + 1}] {opt}")
-    
+
     while True:
         try:
             response = input(f"\nEnter choice [1-{len(options)}] (default: {default + 1}): ").strip()
@@ -120,18 +120,18 @@ def prompt_input(prompt: str, default: str = "") -> str:
     return input(f"{Colors.YELLOW}{prompt}: {Colors.END}").strip()
 
 
-def prompt_list(prompt: str, existing: List[str] = None) -> List[str]:
+def prompt_list(prompt: str, existing: list[str] = None) -> list[str]:
     """Prompt for a list of items."""
     print(f"{Colors.YELLOW}{prompt}{Colors.END}")
     print(f"{Colors.CYAN}(Enter items one per line, empty line to finish){Colors.END}")
-    
+
     if existing:
-        print(f"\nCurrent items:")
+        print("\nCurrent items:")
         for item in existing:
             print(f"  - {item}")
         if not prompt_yes_no("Keep these items?", default=True):
             existing = []
-    
+
     items = existing or []
     print("\nEnter new items:")
     while True:
@@ -139,21 +139,21 @@ def prompt_list(prompt: str, existing: List[str] = None) -> List[str]:
         if not item:
             break
         items.append(item)
-    
+
     return items
 
 
-def get_user_profile() -> Dict:
+def get_user_profile() -> dict:
     """Get or create user profile."""
     profile_path = OVERRIDES_DIR / "user-profile.yaml"
-    
+
     if profile_path.exists():
         print(f"{Colors.GREEN}Found existing user profile{Colors.END}")
         if not prompt_yes_no("Update user profile?", default=False):
             return {}
-    
+
     print_step(1, "User Profile")
-    
+
     profile = {
         'name': prompt_input("Your name", "Developer"),
         'technical_level': prompt_choice(
@@ -163,16 +163,16 @@ def get_user_profile() -> Dict:
         ),
         'communication_style': prompt_choice(
             "Preferred communication style:",
-            ["Concise - brief and to the point", 
+            ["Concise - brief and to the point",
              "Balanced - moderate detail",
              "Detailed - thorough explanations"],
             default=1
         )
     }
-    
+
     level_map = ["junior", "mid", "senior", "principal"]
     style_map = ["concise", "balanced", "detailed"]
-    
+
     return {
         'user': {
             'name': profile['name'],
@@ -182,79 +182,79 @@ def get_user_profile() -> Dict:
     }
 
 
-def customize_agent(agent_name: str) -> Optional[Dict]:
+def customize_agent(agent_name: str) -> Optional[dict]:
     """Run customization wizard for a single agent."""
     print(f"\n{Colors.BOLD}Personalizing: {agent_name.upper()} Agent{Colors.END}")
     print("=" * 50)
-    
+
     # Check for templates
     templates = get_agent_templates(agent_name)
-    
+
     override = {}
-    
+
     # Step 1: Template selection
     if templates:
         print_step(1, "Select Base Template")
         print(f"Found {len(templates)} pre-built persona(s) for {agent_name}:\n")
-        
+
         options = ["Start from scratch (no template)"]
         for t in templates:
             options.append(f"{t['name']}: {t['description']}")
-        
+
         choice = prompt_choice("Choose a starting point:", options, default=1)
-        
+
         if choice > 0:
             template = templates[choice - 1]
             print(f"\n{Colors.GREEN}Using template: {template['name']}{Colors.END}")
             # Copy template content (in a real implementation, parse YAML)
             shutil.copy(template['path'], OVERRIDES_DIR / f"{agent_name}.override.yaml")
             print(f"Template copied to: {agent_name}.override.yaml")
-            
+
             if not prompt_yes_no("Customize further?", default=True):
                 return None
-    
+
     # Step 2: Persona customization
     print_step(2, "Persona Definition")
-    
+
     if prompt_yes_no("Define a custom persona?", default=True):
         override['persona'] = {
             'role': prompt_input("Role title", f"Senior {agent_name.title()} Specialist"),
-            'identity': prompt_input("Identity description", 
+            'identity': prompt_input("Identity description",
                                     "A focused professional who delivers quality work"),
         }
-        
+
         print("\nDefine your core principles (what guides your decisions):")
         principles = prompt_list("Principles:")
         if principles:
             override['persona']['principles'] = principles
-    
+
     # Step 3: Rules
     print_step(3, "Additional Rules")
-    
+
     if prompt_yes_no("Add custom coding/working rules?", default=True):
         rules = prompt_list("Enter rules the agent should follow:")
         if rules:
             override['additional_rules'] = rules
-    
+
     # Step 4: Memories
     print_step(4, "Project Context (Memories)")
-    
+
     if prompt_yes_no("Add project-specific knowledge?", default=True):
         memories = prompt_list("Enter facts the agent should always remember:")
         if memories:
             override['memories'] = memories
-    
+
     # Step 5: Critical actions
     print_step(5, "Critical Actions")
-    
+
     if prompt_yes_no("Define actions that must happen before completing tasks?", default=True):
         actions = prompt_list("Enter critical verification steps:")
         if actions:
             override['critical_actions'] = actions
-    
+
     # Step 6: Model and budget
     print_step(6, "Model & Budget")
-    
+
     if prompt_yes_no("Configure model and budget?", default=False):
         model_choice = prompt_choice(
             "Preferred model:",
@@ -262,27 +262,26 @@ def customize_agent(agent_name: str) -> Optional[Dict]:
             default=0
         )
         override['model'] = "sonnet" if model_choice == 0 else "opus"
-        
+
         budget = prompt_input("Max budget per task (USD)", "15.00")
         try:
             override['max_budget_usd'] = float(budget)
         except ValueError:
             pass
-    
+
     return override if override else None
 
 
-def save_override(agent_name: str, override: Dict):
+def save_override(agent_name: str, override: dict):
     """Save override to YAML file."""
-    import yaml
-    
+
     override_path = OVERRIDES_DIR / f"{agent_name}.override.yaml"
-    
+
     # Add header comment
     content = f"# {agent_name.title()} Agent Override\n"
-    content += f"# Generated by Personalization Wizard\n"
-    content += f"# Customize further as needed\n\n"
-    
+    content += "# Generated by Personalization Wizard\n"
+    content += "# Customize further as needed\n\n"
+
     # Simple YAML-like output (avoiding yaml dependency issues)
     def write_yaml(data, indent=0):
         result = ""
@@ -300,9 +299,9 @@ def save_override(agent_name: str, override: Dict):
             else:
                 result += f"{prefix}{key}: \"{value}\"\n"
         return result
-    
+
     content += write_yaml(override)
-    
+
     override_path.write_text(content)
     print(f"\n{Colors.GREEN}✅ Saved: {override_path}{Colors.END}")
 
@@ -314,14 +313,14 @@ def main():
     parser.add_argument('agent', nargs='?', help='Agent name to personalize')
     parser.add_argument('--all', action='store_true', help='Personalize all agents')
     parser.add_argument('--list', action='store_true', help='List available agents and templates')
-    
+
     args = parser.parse_args()
-    
+
     print_banner()
-    
+
     # Ensure directories exist
     OVERRIDES_DIR.mkdir(parents=True, exist_ok=True)
-    
+
     # List mode
     if args.list:
         print(f"{Colors.BOLD}Available Agents:{Colors.END}")
@@ -332,7 +331,7 @@ def main():
             for t in templates:
                 print(f"      - {t['name']}: {t['description']}")
         return
-    
+
     # Get user profile first
     profile = get_user_profile()
     if profile:
@@ -345,10 +344,10 @@ def main():
                 content += f"  {key}: \"{value}\"\n"
         profile_path.write_text(content)
         print(f"\n{Colors.GREEN}✅ User profile saved{Colors.END}")
-    
+
     # Determine agents to personalize
     agents = get_available_agents()
-    
+
     if args.all:
         agents_to_personalize = agents
     elif args.agent:
@@ -362,18 +361,18 @@ def main():
         print_step(2, "Select Agent to Personalize")
         options = agents + ["All agents"]
         choice = prompt_choice("Which agent would you like to personalize?", options)
-        
+
         if choice == len(agents):
             agents_to_personalize = agents
         else:
             agents_to_personalize = [agents[choice]]
-    
+
     # Personalize each agent
     for agent in agents_to_personalize:
         override = customize_agent(agent)
         if override:
             save_override(agent, override)
-    
+
     print(f"\n{Colors.GREEN}{Colors.BOLD}✨ Personalization complete!{Colors.END}")
     print(f"\nYour overrides are in: {OVERRIDES_DIR}")
     print("They will be applied automatically when running agents.")

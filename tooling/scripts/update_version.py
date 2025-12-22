@@ -92,7 +92,7 @@ def update_readme_version(readme_path: Path, version: str) -> bool:
 
     # Pattern to match the version block (with or without markers)
     pattern = r"(<!-- VERSION_START.*?-->.*?)?\*\*Version\*\*: \d+\.\d+\.\d+\n\*\*Status\*\*: ([^\n]+)\n\*\*Last Updated\*\*: \d{4}-\d{2}-\d{2}(.*?<!-- VERSION_END -->)?"
-    
+
     # Check if markers exist
     if "<!-- VERSION_START" in content:
         replacement = f"""<!-- VERSION_START - Auto-updated by update_version.py -->
@@ -106,7 +106,7 @@ def update_readme_version(readme_path: Path, version: str) -> bool:
 **Last Updated**: {today}"""
 
     new_content, count = re.subn(pattern, replacement, content, flags=re.DOTALL)
-    
+
     if count == 0:
         print("Error: Could not find version block in README.md")
         return False
@@ -124,9 +124,9 @@ def update_pyproject_version(pyproject_path: Path, version: str) -> bool:
     content = pyproject_path.read_text()
     pattern = r'version = "\d+\.\d+\.\d+"'
     replacement = f'version = "{version}"'
-    
+
     new_content, count = re.subn(pattern, replacement, content, count=1)
-    
+
     if count == 0:
         print("Warning: Could not find version in pyproject.toml")
         return False
@@ -144,9 +144,9 @@ def update_init_version(init_path: Path, version: str) -> bool:
     content = init_path.read_text()
     pattern = r'__version__ = "\d+\.\d+\.\d+"'
     replacement = f'__version__ = "{version}"'
-    
+
     new_content, count = re.subn(pattern, replacement, content, count=1)
-    
+
     if count == 0:
         print("Warning: Could not find __version__ in __init__.py")
         return False
@@ -200,8 +200,8 @@ def main():
 
     if args.check:
         all_match = all(
-            v == target_version 
-            for v in [readme_version, pyproject_version, init_version] 
+            v == target_version
+            for v in [readme_version, pyproject_version, init_version]
             if v is not None
         )
         if all_match:
@@ -213,7 +213,7 @@ def main():
 
     # Update all files
     success = True
-    
+
     if update_readme_version(readme_path, target_version):
         print(f"✓ Updated README.md to version {target_version}")
     else:

@@ -24,25 +24,25 @@ Usage:
     print(handoff.to_markdown())
 """
 
-import os
 import re
 import subprocess
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Tuple
-import json
+from typing import Any, Optional
 
 # Import shared memory for integration
 try:
     from shared_memory import (
-        KnowledgeGraph, SharedMemory, HandoffSummary,
-        get_knowledge_graph, get_shared_memory
+        HandoffSummary,
+        get_knowledge_graph,
+        get_shared_memory,
     )
 except ImportError:
     from lib.shared_memory import (
-        KnowledgeGraph, SharedMemory, HandoffSummary,
-        get_knowledge_graph, get_shared_memory
+        HandoffSummary,
+        get_knowledge_graph,
+        get_shared_memory,
     )
 
 
@@ -56,7 +56,7 @@ class FileChange:
     status: str  # added, modified, deleted
     additions: int = 0
     deletions: int = 0
-    
+
     def to_dict(self) -> dict:
         return {
             "path": self.path,
@@ -74,14 +74,14 @@ class AgentWorkSummary:
     start_time: str
     end_time: str
     description: str
-    files_changed: List[FileChange] = field(default_factory=list)
-    decisions_made: List[str] = field(default_factory=list)
-    blockers_encountered: List[str] = field(default_factory=list)
-    blockers_resolved: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    questions_for_next: List[str] = field(default_factory=list)
-    artifacts_created: List[str] = field(default_factory=list)
-    
+    files_changed: list[FileChange] = field(default_factory=list)
+    decisions_made: list[str] = field(default_factory=list)
+    blockers_encountered: list[str] = field(default_factory=list)
+    blockers_resolved: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    questions_for_next: list[str] = field(default_factory=list)
+    artifacts_created: list[str] = field(default_factory=list)
+
     def to_dict(self) -> dict:
         return {
             "agent": self.agent,
@@ -104,7 +104,7 @@ HANDOFF_TEMPLATES = {
     ("SM", "DEV"): {
         "focus_areas": [
             "Story acceptance criteria",
-            "Technical context and constraints", 
+            "Technical context and constraints",
             "Related files and patterns to follow",
             "Known blockers or dependencies"
         ],
@@ -184,28 +184,28 @@ HANDOFF_TEMPLATES = {
 
 class HandoffGenerator:
     """Generates structured handoffs between agents."""
-    
+
     def __init__(self, story_key: str, project_root: Optional[Path] = None):
         self.story_key = story_key
         self.project_root = project_root or PROJECT_ROOT
         self.knowledge_graph = get_knowledge_graph(story_key)
         self.shared_memory = get_shared_memory(story_key)
-    
-    def get_git_changes(self, since_commit: Optional[str] = None) -> List[FileChange]:
+
+    def get_git_changes(self, since_commit: Optional[str] = None) -> list[FileChange]:
         """Get list of changed files from git."""
         try:
             if since_commit:
                 cmd = ["git", "diff", "--numstat", since_commit]
             else:
                 cmd = ["git", "diff", "--numstat", "HEAD~1"]
-            
+
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
                 cwd=str(self.project_root)
             )
-            
+
             changes = []
             for line in result.stdout.strip().split('\n'):
                 if not line:
@@ -215,25 +215,25 @@ class HandoffGenerator:
                     additions = int(parts[0]) if parts[0] != '-' else 0
                     deletions = int(parts[1]) if parts[1] != '-' else 0
                     path = parts[2]
-                    
+
                     status = "modified"
                     if additions > 0 and deletions == 0:
                         status = "added"
                     elif additions == 0 and deletions > 0:
                         status = "deleted"
-                    
+
                     changes.append(FileChange(
                         path=path,
                         status=status,
                         additions=additions,
                         deletions=deletions
                     ))
-            
+
             return changes
         except Exception:
             return []
-    
-    def get_staged_changes(self) -> List[FileChange]:
+
+    def get_staged_changes(self) -> list[FileChange]:
         """Get staged changes from git."""
         try:
             result = subprocess.run(
@@ -242,7 +242,7 @@ class HandoffGenerator:
                 text=True,
                 cwd=str(self.project_root)
             )
-            
+
             changes = []
             for line in result.stdout.strip().split('\n'):
                 if not line:
@@ -255,17 +255,17 @@ class HandoffGenerator:
                         additions=int(parts[0]) if parts[0] != '-' else 0,
                         deletions=int(parts[1]) if parts[1] != '-' else 0
                     ))
-            
+
             return changes
         except Exception:
             return []
-    
-    def extract_decisions_from_memory(self, agent: str) -> List[str]:
+
+    def extract_decisions_from_memory(self, agent: str) -> list[str]:
         """Extract decisions made by an agent from shared memory."""
         decisions = self.knowledge_graph.get_decisions_by_agent(agent)
         return [f"{d.topic}: {d.decision}" for d in decisions]
-    
-    def extract_warnings_from_log(self, log_content: str) -> List[str]:
+
+    def extract_warnings_from_log(self, log_content: str) -> list[str]:
         """Extract warnings from agent log output."""
         warnings = []
         warning_patterns = [
@@ -275,44 +275,44 @@ class HandoffGenerator:
             r'Watch out.*?:\s*(.+)',
             r'Note:\s*(.+)',
         ]
-        
+
         for pattern in warning_patterns:
             matches = re.findall(pattern, log_content, re.IGNORECASE)
             warnings.extend(matches)
-        
+
         return list(set(warnings))[:5]  # Dedupe and limit
-    
+
     def generate(self, from_agent: str, to_agent: str,
                  work_summary: str,
-                 decisions_made: Optional[List[str]] = None,
-                 blockers_resolved: Optional[List[str]] = None,
-                 warnings: Optional[List[str]] = None,
-                 files_changed: Optional[List[FileChange]] = None,
-                 next_steps: Optional[List[str]] = None,
+                 decisions_made: Optional[list[str]] = None,
+                 blockers_resolved: Optional[list[str]] = None,
+                 warnings: Optional[list[str]] = None,
+                 files_changed: Optional[list[FileChange]] = None,
+                 next_steps: Optional[list[str]] = None,
                  log_content: Optional[str] = None) -> HandoffSummary:
         """Generate a handoff from one agent to another."""
-        
+
         # Auto-detect file changes if not provided
         if files_changed is None:
             files_changed = self.get_git_changes()
-        
+
         # Auto-extract decisions from memory
         if decisions_made is None:
             decisions_made = self.extract_decisions_from_memory(from_agent)
-        
+
         # Auto-extract warnings from log
         if warnings is None and log_content:
             warnings = self.extract_warnings_from_log(log_content)
-        
+
         # Get template for this transition
         template = HANDOFF_TEMPLATES.get((from_agent, to_agent), {})
-        
+
         # Generate next steps if not provided
         if next_steps is None:
             next_steps = self._generate_next_steps(
                 from_agent, to_agent, files_changed, template
             )
-        
+
         # Create handoff
         handoff = self.knowledge_graph.add_handoff(
             from_agent=from_agent,
@@ -325,22 +325,22 @@ class HandoffGenerator:
             files_touched=[f.path for f in files_changed] if files_changed else [],
             next_steps=next_steps or []
         )
-        
+
         # Also record in shared memory
         self.shared_memory.add(
             agent=from_agent,
             content=f"Handed off to {to_agent}: {work_summary}",
             tags=["handoff", to_agent.lower()]
         )
-        
+
         return handoff
-    
+
     def _generate_next_steps(self, from_agent: str, to_agent: str,
-                            files: List[FileChange],
-                            template: dict) -> List[str]:
+                            files: list[FileChange],
+                            template: dict) -> list[str]:
         """Generate suggested next steps for the receiving agent."""
         steps = []
-        
+
         # Generic steps based on agent transition
         if to_agent == "DEV":
             steps.append("Review the acceptance criteria in the story context")
@@ -348,41 +348,41 @@ class HandoffGenerator:
                 steps.append(f"Examine the {len(files)} files that have context")
             steps.append("Implement the required functionality")
             steps.append("Write tests for the implementation")
-        
+
         elif to_agent == "REVIEWER":
             if files:
                 steps.append(f"Review the {len(files)} changed files")
             steps.append("Check for code quality and best practices")
             steps.append("Verify test coverage")
             steps.append("Provide actionable feedback")
-        
+
         elif to_agent == "ARCHITECT":
             steps.append("Analyze the requirements for design implications")
             steps.append("Document key architectural decisions")
             steps.append("Define component interfaces")
-        
+
         elif to_agent == "SM":
             steps.append("Review the completed work")
             steps.append("Update story status")
             steps.append("Prepare for next phase or story")
-        
+
         return steps
-    
+
     def get_latest_handoff_for(self, agent: str) -> Optional[HandoffSummary]:
         """Get the most recent handoff for an agent."""
         return self.knowledge_graph.get_latest_handoff(agent)
-    
+
     def generate_context_for_agent(self, agent: str) -> str:
         """Generate full context string for an agent including handoffs."""
         lines = [f"## Context for {agent}", ""]
-        
+
         # Get latest handoff
         handoff = self.get_latest_handoff_for(agent)
         if handoff:
             lines.append("### Handoff from Previous Agent")
             lines.append(handoff.to_markdown())
             lines.append("")
-        
+
         # Get relevant shared memory
         recent_memory = self.shared_memory.get_recent(5)
         if recent_memory:
@@ -390,7 +390,7 @@ class HandoffGenerator:
             for entry in recent_memory:
                 lines.append(f"- **{entry.agent}**: {entry.content}")
             lines.append("")
-        
+
         # Get relevant decisions
         decisions = list(self.knowledge_graph.decisions.values())
         active_decisions = [d for d in decisions if d.status == "active"]
@@ -399,27 +399,27 @@ class HandoffGenerator:
             for dec in active_decisions[-5:]:
                 lines.append(f"- **{dec.topic}** ({dec.agent}): {dec.decision}")
             lines.append("")
-        
+
         return "\n".join(lines)
 
 
 class WorkTracker:
     """Tracks work in progress for handoff generation."""
-    
+
     def __init__(self, story_key: str, agent: str):
         self.story_key = story_key
         self.agent = agent
         self.start_time = datetime.now().isoformat()
-        self.decisions: List[str] = []
-        self.blockers: List[str] = []
-        self.warnings: List[str] = []
-        self.notes: List[str] = []
-        self.files_touched: List[str] = []
+        self.decisions: list[str] = []
+        self.blockers: list[str] = []
+        self.warnings: list[str] = []
+        self.notes: list[str] = []
+        self.files_touched: list[str] = []
         self.shared_memory = get_shared_memory(story_key)
         self.knowledge_graph = get_knowledge_graph(story_key)
-    
-    def record_decision(self, topic: str, decision: str, 
-                        context: Optional[Dict[str, Any]] = None):
+
+    def record_decision(self, topic: str, decision: str,
+                        context: Optional[dict[str, Any]] = None):
         """Record a decision made during work."""
         self.decisions.append(f"{topic}: {decision}")
         self.knowledge_graph.add_decision(
@@ -428,18 +428,18 @@ class WorkTracker:
             decision=decision,
             context=context or {}
         )
-    
+
     def record_blocker(self, blocker: str, resolved: bool = False):
         """Record a blocker encountered."""
         if resolved:
             self.blockers.append(f"✅ {blocker} (resolved)")
         else:
             self.blockers.append(f"❌ {blocker}")
-    
+
     def record_warning(self, warning: str):
         """Record a warning for the next agent."""
         self.warnings.append(warning)
-    
+
     def record_note(self, note: str):
         """Record a general note."""
         self.notes.append(note)
@@ -448,20 +448,20 @@ class WorkTracker:
             content=note,
             tags=["note"]
         )
-    
+
     def record_file(self, file_path: str):
         """Record a file that was touched."""
         if file_path not in self.files_touched:
             self.files_touched.append(file_path)
-    
+
     def generate_handoff(self, to_agent: str, summary: str) -> HandoffSummary:
         """Generate a handoff based on tracked work."""
         generator = HandoffGenerator(self.story_key)
-        
+
         # Separate resolved and unresolved blockers
-        resolved = [b.replace("✅ ", "").replace(" (resolved)", "") 
+        resolved = [b.replace("✅ ", "").replace(" (resolved)", "")
                    for b in self.blockers if b.startswith("✅")]
-        
+
         return generator.generate(
             from_agent=self.agent,
             to_agent=to_agent,
@@ -495,10 +495,10 @@ def start_work_tracking(story_key: str, agent: str) -> WorkTracker:
 if __name__ == "__main__":
     # Demo usage
     print("=== Handoff System Demo ===\n")
-    
+
     # Simulate a workflow
     story_key = "demo-handoff"
-    
+
     # SM starts work
     tracker = start_work_tracking(story_key, "SM")
     tracker.record_decision(
@@ -507,23 +507,23 @@ if __name__ == "__main__":
         {"reason": "Follows established patterns"}
     )
     tracker.record_decision(
-        "testing-strategy", 
+        "testing-strategy",
         "Unit tests for service, integration for API",
         {"coverage_target": "80%"}
     )
     tracker.record_warning("Rate limiting on profile image uploads")
     tracker.record_note("Existing user.py has the patterns to follow")
-    
+
     # Generate handoff to DEV
     handoff = tracker.generate_handoff(
         to_agent="DEV",
         summary="Created story context for user profile feature. Requirements are clear, patterns are established."
     )
-    
+
     print(handoff.to_markdown())
-    
+
     print("\n" + "="*60 + "\n")
-    
+
     # DEV receives context
     generator = HandoffGenerator(story_key)
     context = generator.generate_context_for_agent("DEV")

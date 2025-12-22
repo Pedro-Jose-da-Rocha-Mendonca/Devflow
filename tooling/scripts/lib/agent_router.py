@@ -23,12 +23,11 @@ Usage:
     print(f"Confidence: {result.confidence}")
 """
 
-import os
 import re
-from pathlib import Path
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Tuple, Set
 from enum import Enum
+from pathlib import Path
+from typing import Optional
 
 
 class TaskType(Enum):
@@ -61,10 +60,10 @@ class Agent:
     """Agent configuration."""
     name: str
     model: str
-    specialties: List[str]
+    specialties: list[str]
     cost_tier: str  # low, medium, high
     max_complexity: int  # Max complexity this agent handles well
-    
+
     def __hash__(self):
         return hash(self.name)
 
@@ -79,7 +78,7 @@ AGENTS = {
         max_complexity=5
     ),
     "DEV": Agent(
-        name="DEV", 
+        name="DEV",
         model="opus",
         specialties=["implementation", "coding", "feature", "bugfix"],
         cost_tier="high",
@@ -87,7 +86,7 @@ AGENTS = {
     ),
     "BA": Agent(
         name="BA",
-        model="sonnet", 
+        model="sonnet",
         specialties=["requirements", "analysis", "user-stories", "acceptance-criteria"],
         cost_tier="low",
         max_complexity=3
@@ -188,23 +187,23 @@ FILE_SPECIALTIES = {
     '.pem': ['security'],
     '.key': ['security'],
     '.env': ['security'],
-    
+
     # Documentation
     '.md': ['documentation'],
     '.rst': ['documentation'],
     '.txt': ['documentation'],
-    
+
     # Test files
     'test_': ['testing'],
     '_test.': ['testing'],
     '.spec.': ['testing'],
-    
+
     # Config files - often architectural
     '.yaml': ['architecture', 'devops'],
     '.yml': ['architecture', 'devops'],
     '.toml': ['architecture'],
     '.json': ['configuration'],
-    
+
     # Database
     '.sql': ['database', 'migration'],
     'migration': ['migration', 'database'],
@@ -216,10 +215,10 @@ class TaskAnalysis:
     """Result of analyzing a task."""
     task_type: TaskType
     complexity: Complexity
-    detected_patterns: List[str]
-    file_contexts: List[str]
+    detected_patterns: list[str]
+    file_contexts: list[str]
     confidence: float  # 0.0 to 1.0
-    
+
     def to_dict(self) -> dict:
         return {
             "task_type": self.task_type.value,
@@ -230,16 +229,16 @@ class TaskAnalysis:
         }
 
 
-@dataclass 
+@dataclass
 class RoutingResult:
     """Result of agent routing."""
-    agents: List[str]  # Ordered list of recommended agents
+    agents: list[str]  # Ordered list of recommended agents
     workflow: str  # sequential, parallel, swarm
     task_analysis: TaskAnalysis
     reasoning: str
-    alternative_agents: List[str] = field(default_factory=list)
-    model_overrides: Dict[str, str] = field(default_factory=dict)  # agent -> model
-    
+    alternative_agents: list[str] = field(default_factory=list)
+    model_overrides: dict[str, str] = field(default_factory=dict)  # agent -> model
+
     def to_dict(self) -> dict:
         return {
             "agents": self.agents,
@@ -253,16 +252,16 @@ class RoutingResult:
 
 class AgentRouter:
     """Dynamic agent selection based on task analysis."""
-    
+
     def __init__(self, project_root: Optional[Path] = None):
         self.project_root = project_root or Path.cwd()
         self.agents = AGENTS.copy()
-    
-    def analyze_task(self, description: str, 
-                     files: Optional[List[str]] = None) -> TaskAnalysis:
+
+    def analyze_task(self, description: str,
+                     files: Optional[list[str]] = None) -> TaskAnalysis:
         """
         Analyze a task to determine type and complexity.
-        
+
         Args:
             description: Natural language description of the task to analyze.
                         Keywords in the description are matched against patterns
@@ -273,17 +272,17 @@ class AgentRouter:
                    - Detect test-related work (test_ prefixed files)
                    - Infer architectural scope from config files
                    If None, analysis is based solely on the description.
-        
+
         Returns:
             TaskAnalysis object containing detected task type, complexity level,
             matched patterns, file contexts, and confidence score (0.0-1.0).
         """
         description_lower = description.lower()
-        
+
         # Detect task type from patterns
-        type_scores: Dict[TaskType, int] = {}
-        detected_patterns: List[str] = []
-        
+        type_scores: dict[TaskType, int] = {}
+        detected_patterns: list[str] = []
+
         for task_type, patterns in TASK_PATTERNS.items():
             score = 0
             for pattern in patterns:
@@ -293,28 +292,28 @@ class AgentRouter:
                     detected_patterns.extend(matches)
             if score > 0:
                 type_scores[task_type] = score
-        
+
         # Determine primary task type
         if type_scores:
             task_type = max(type_scores.keys(), key=lambda t: type_scores[t])
         else:
             task_type = TaskType.FEATURE  # Default
-        
+
         # Analyze file contexts
-        file_contexts: List[str] = []
+        file_contexts: list[str] = []
         if files:
             for file_path in files:
                 for pattern, specialties in FILE_SPECIALTIES.items():
                     if pattern in file_path.lower():
                         file_contexts.extend(specialties)
-        
+
         # Estimate complexity
         complexity = self._estimate_complexity(description, files)
-        
+
         # Calculate confidence
-        confidence = min(1.0, 0.3 + (0.1 * len(detected_patterns)) + 
+        confidence = min(1.0, 0.3 + (0.1 * len(detected_patterns)) +
                         (0.1 * len(file_contexts)))
-        
+
         return TaskAnalysis(
             task_type=task_type,
             complexity=complexity,
@@ -322,12 +321,12 @@ class AgentRouter:
             file_contexts=list(set(file_contexts)),
             confidence=confidence
         )
-    
-    def _estimate_complexity(self, description: str, 
-                            files: Optional[List[str]] = None) -> Complexity:
+
+    def _estimate_complexity(self, description: str,
+                            files: Optional[list[str]] = None) -> Complexity:
         """Estimate task complexity."""
         score = 1
-        
+
         # Description-based heuristics
         complexity_indicators = {
             'simple': -1, 'trivial': -1, 'minor': -1, 'quick': -1,
@@ -336,12 +335,12 @@ class AgentRouter:
             'multiple': 1, 'several': 1, 'many': 2,
             'across': 1, 'throughout': 2, 'system-wide': 3
         }
-        
+
         desc_lower = description.lower()
         for indicator, delta in complexity_indicators.items():
             if indicator in desc_lower:
                 score += delta
-        
+
         # File count based
         if files:
             file_count = len(files)
@@ -349,18 +348,18 @@ class AgentRouter:
                 score += 2
             elif file_count > 5:
                 score += 1
-        
+
         # Clamp to valid range
         score = max(1, min(5, score))
-        
+
         return Complexity(score)
-    
-    def route(self, description: str, 
-              files: Optional[List[str]] = None,
+
+    def route(self, description: str,
+              files: Optional[list[str]] = None,
               prefer_cost: bool = False,
-              force_agents: Optional[List[str]] = None) -> RoutingResult:
+              force_agents: Optional[list[str]] = None) -> RoutingResult:
         """Route a task to the appropriate agent(s)."""
-        
+
         # Allow manual override
         if force_agents:
             analysis = self.analyze_task(description, files)
@@ -370,15 +369,15 @@ class AgentRouter:
                 task_analysis=analysis,
                 reasoning="Manual agent selection override"
             )
-        
+
         # Analyze the task
         analysis = self.analyze_task(description, files)
-        
+
         # Select agents based on task type and complexity
         agents, workflow, reasoning = self._select_agents(
             analysis, prefer_cost
         )
-        
+
         # Determine model overrides for complex tasks
         model_overrides = {}
         if analysis.complexity.value >= 4:
@@ -386,10 +385,10 @@ class AgentRouter:
             for agent in agents:
                 if self.agents[agent].cost_tier == "low":
                     model_overrides[agent] = "opus"
-        
+
         # Find alternative agents
         alternatives = self._find_alternatives(agents, analysis)
-        
+
         return RoutingResult(
             agents=agents,
             workflow=workflow,
@@ -398,24 +397,24 @@ class AgentRouter:
             alternative_agents=alternatives,
             model_overrides=model_overrides
         )
-    
-    def _select_agents(self, analysis: TaskAnalysis, 
-                       prefer_cost: bool) -> Tuple[List[str], str, str]:
+
+    def _select_agents(self, analysis: TaskAnalysis,
+                       prefer_cost: bool) -> tuple[list[str], str, str]:
         """Select agents based on task analysis."""
-        
+
         task_type = analysis.task_type
         complexity = analysis.complexity
-        
+
         # Define routing rules
         routing_rules = {
             TaskType.FEATURE: {
                 "simple": (["DEV"], "sequential", "Direct implementation"),
-                "complex": (["SM", "ARCHITECT", "DEV", "REVIEWER"], "sequential", 
+                "complex": (["SM", "ARCHITECT", "DEV", "REVIEWER"], "sequential",
                            "Full pipeline for complex feature")
             },
             TaskType.BUGFIX: {
                 "simple": (["MAINTAINER"], "sequential", "Simple bug fix"),
-                "complex": (["DEV", "REVIEWER"], "sequential", 
+                "complex": (["DEV", "REVIEWER"], "sequential",
                            "Complex bug requires senior review")
             },
             TaskType.SECURITY: {
@@ -468,17 +467,17 @@ class AgentRouter:
                 "complex": (["MAINTAINER"], "sequential", "Quick fix")
             }
         }
-        
+
         # Determine complexity level
         complexity_level = "simple" if complexity.value <= 2 else "complex"
-        
+
         # Get routing
         rule = routing_rules.get(task_type, {}).get(complexity_level)
         if not rule:
             rule = (["DEV"], "sequential", "Default routing")
-        
+
         agents, workflow, reasoning = rule
-        
+
         # Cost optimization
         if prefer_cost and complexity.value <= 3:
             # Replace Opus agents with Sonnet equivalents where possible
@@ -490,93 +489,93 @@ class AgentRouter:
                     cost_effective_agents.append(agent)
             agents = cost_effective_agents
             reasoning += " (cost-optimized)"
-        
+
         return agents, workflow, reasoning
-    
-    def _find_alternatives(self, primary: List[str], 
-                          analysis: TaskAnalysis) -> List[str]:
+
+    def _find_alternatives(self, primary: list[str],
+                          analysis: TaskAnalysis) -> list[str]:
         """Find alternative agents that could handle the task."""
         alternatives = []
-        
+
         for name, agent in self.agents.items():
             if name in primary:
                 continue
-            
+
             # Check if agent specialties match any file contexts or detected patterns
             matches = set(agent.specialties) & (
-                set(analysis.file_contexts) | 
-                set(p.lower() for p in analysis.detected_patterns)
+                set(analysis.file_contexts) |
+                {p.lower() for p in analysis.detected_patterns}
             )
-            
+
             if matches and agent.max_complexity >= analysis.complexity.value:
                 alternatives.append(name)
-        
+
         return alternatives[:3]  # Top 3 alternatives
-    
-    def get_workflow_for_agents(self, agents: List[str]) -> str:
+
+    def get_workflow_for_agents(self, agents: list[str]) -> str:
         """Determine the best workflow for a set of agents."""
         if len(agents) == 1:
             return "single"
-        
+
         # If includes REVIEWER and DEV, could use pair mode
         if "DEV" in agents and "REVIEWER" in agents and len(agents) == 2:
             return "pair"
-        
+
         # If includes ARCHITECT, likely needs sequential
         if "ARCHITECT" in agents:
             return "sequential"
-        
+
         # If 3+ agents with REVIEWER, consider swarm
         if len(agents) >= 3 and "REVIEWER" in agents:
             return "swarm"
-        
+
         return "sequential"
-    
+
     def explain_routing(self, result: RoutingResult) -> str:
         """Generate a human-readable explanation of the routing decision."""
         lines = [
-            f"🎯 **Task Analysis**",
+            "🎯 **Task Analysis**",
             f"  - Type: {result.task_analysis.task_type.value}",
             f"  - Complexity: {result.task_analysis.complexity.name} ({result.task_analysis.complexity.value}/5)",
             f"  - Confidence: {result.task_analysis.confidence:.0%}",
-            f"",
-            f"🤖 **Recommended Agents**",
+            "",
+            "🤖 **Recommended Agents**",
         ]
-        
+
         for i, agent in enumerate(result.agents, 1):
             agent_info = self.agents.get(agent)
             model = result.model_overrides.get(agent, agent_info.model if agent_info else "sonnet")
             lines.append(f"  {i}. **{agent}** (model: {model})")
-        
+
         lines.extend([
-            f"",
+            "",
             f"📋 **Workflow**: {result.workflow}",
             f"💡 **Reasoning**: {result.reasoning}",
         ])
-        
+
         if result.alternative_agents:
             lines.extend([
-                f"",
+                "",
                 f"🔄 **Alternatives**: {', '.join(result.alternative_agents)}"
             ])
-        
+
         if result.task_analysis.detected_patterns:
             lines.extend([
-                f"",
+                "",
                 f"🔍 **Detected patterns**: {', '.join(result.task_analysis.detected_patterns[:5])}"
             ])
-        
+
         return "\n".join(lines)
 
 
 # Convenience functions
-def route_task(description: str, files: Optional[List[str]] = None) -> RoutingResult:
+def route_task(description: str, files: Optional[list[str]] = None) -> RoutingResult:
     """Quick routing of a task."""
     router = AgentRouter()
     return router.route(description, files)
 
 
-def explain_route(description: str, files: Optional[List[str]] = None) -> str:
+def explain_route(description: str, files: Optional[list[str]] = None) -> str:
     """Get an explanation of how a task would be routed."""
     router = AgentRouter()
     result = router.route(description, files)
@@ -586,9 +585,9 @@ def explain_route(description: str, files: Optional[List[str]] = None) -> str:
 if __name__ == "__main__":
     # Demo usage
     print("=== Agent Router Demo ===\n")
-    
+
     router = AgentRouter()
-    
+
     test_cases = [
         "Fix login authentication bug in auth.py",
         "Add user profile feature with photo upload",
@@ -599,7 +598,7 @@ if __name__ == "__main__":
         "Investigate memory leak in production",
         "Migrate from React 17 to React 18",
     ]
-    
+
     for task in test_cases:
         print(f"Task: \"{task}\"")
         result = router.route(task)

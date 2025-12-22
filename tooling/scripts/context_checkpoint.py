@@ -23,7 +23,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict
+from typing import Optional
 
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -215,7 +215,7 @@ class ContextCheckpointManager:
 
         return checkpoint_file
 
-    def _create_checkpoint_summary(self, checkpoint_data: Dict, output_file: Path):
+    def _create_checkpoint_summary(self, checkpoint_data: dict, output_file: Path):
         """Create a human-readable summary of the checkpoint."""
         summary = f"""# Checkpoint Summary
 
@@ -321,7 +321,7 @@ After checkpoint, the session should be cleared and restarted with:
             self._log(f"Error resuming from checkpoint: {e}", "ERROR")
             return False
 
-    def _create_resume_prompt(self, checkpoint_data: Dict) -> str:
+    def _create_resume_prompt(self, checkpoint_data: dict) -> str:
         """Create a prompt to resume from checkpoint."""
         messages = checkpoint_data['conversation'].get('messages', [])
 
