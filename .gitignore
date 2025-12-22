@@ -21,6 +21,10 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.pytest_cache/
+.venv/
+venv/
+env/
 
 # Logs (examples for documentation)
 *.log
