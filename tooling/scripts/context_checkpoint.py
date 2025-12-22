@@ -13,25 +13,23 @@ Usage:
     python3 tooling/scripts/context_checkpoint.py --watch-logs
 """
 
-import os
-import sys
-import json
-import time
 import argparse
-import subprocess
+import json
+import os
 import re
+import signal
+import subprocess
+import sys
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, Dict, List
-import threading
-import signal
+from typing import Optional
 
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 CHECKPOINT_DIR = PROJECT_ROOT / "tooling" / ".automation" / "checkpoints"
 LOGS_DIR = PROJECT_ROOT / "tooling" / ".automation" / "logs"
 # Platform-specific CLI command
-import sys
 CLAUDE_CLI = "claude.cmd" if sys.platform == 'win32' else "claude"
 
 # Context thresholds
@@ -118,7 +116,7 @@ class ContextCheckpointManager:
 
         return None
 
-    def get_current_conversation(self) -> Dict:
+    def get_current_conversation(self) -> dict:
         """Extract current conversation from Claude session.
 
         Uses Claude CLI to get session history if available.
@@ -145,7 +143,7 @@ class ContextCheckpointManager:
             self._log(f"Error extracting conversation: {e}", "ERROR")
             return self._fallback_conversation_extract()
 
-    def _fallback_conversation_extract(self) -> Dict:
+    def _fallback_conversation_extract(self) -> dict:
         """Fallback method to extract conversation from logs."""
         # Check for recent log files
         log_files = sorted(self.logs_dir.glob("*.log"), key=lambda p: p.stat().st_mtime, reverse=True)
