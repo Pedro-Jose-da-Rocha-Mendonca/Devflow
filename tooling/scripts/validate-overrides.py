@@ -26,7 +26,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 # Colors for terminal output
 class Colors:
@@ -86,15 +86,15 @@ USER_PROFILE_SCHEMA = {
 class ValidationResult:
     """Result of validating a single file."""
     file_path: str
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    info: List[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    info: list[str] = field(default_factory=list)
     
     @property
     def is_valid(self) -> bool:
         return len(self.errors) == 0
     
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "file": self.file_path,
             "valid": self.is_valid,
@@ -110,9 +110,9 @@ class YAMLValidator:
     def __init__(self, content: str):
         self.content = content
         self.lines = content.split('\n')
-        self.data: Dict[str, Any] = {}
+        self.data: dict[str, Any] = {}
         
-    def parse(self) -> Tuple[bool, str]:
+    def parse(self) -> tuple[bool, str]:
         """Parse YAML content and return (success, error_message)."""
         try:
             self._parse_lines()
@@ -122,9 +122,8 @@ class YAMLValidator:
     
     def _parse_lines(self):
         """Parse YAML lines into a dictionary structure."""
-        current_key = None
         current_list_key = None
-        current_list: List[str] = []
+        current_list: list[str] = []
         
         for i, line in enumerate(self.lines, 1):
             # Skip empty lines and comments
@@ -145,7 +144,6 @@ class YAMLValidator:
             
             # Parse key-value pairs and lists
             stripped = line.strip()
-            indent = len(line) - len(line.lstrip())
             
             if stripped.startswith('- '):
                 # List item
@@ -177,7 +175,7 @@ class YAMLValidator:
         if current_list_key and current_list:
             self.data[current_list_key] = current_list
     
-    def check_syntax(self) -> List[str]:
+    def check_syntax(self) -> list[str]:
         """Check for common YAML syntax issues."""
         issues = []
         
@@ -318,7 +316,7 @@ def validate_user_profile(file_path: Path, verbose: bool = False) -> ValidationR
     return result
 
 
-def fix_file(file_path: Path) -> List[str]:
+def fix_file(file_path: Path) -> list[str]:
     """Auto-fix common issues in a file."""
     fixes = []
     
@@ -395,7 +393,7 @@ def main():
         print(f"{Colors.RED}Error: Overrides directory not found: {overrides_dir}{Colors.NC}")
         sys.exit(1)
     
-    results: List[ValidationResult] = []
+    results: list[ValidationResult] = []
     
     # Print header
     if not args.json:

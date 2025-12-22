@@ -15,14 +15,14 @@ Exit codes:
     2 - Critical error during validation
 """
 
+import argparse
+import json
 import os
 import sys
-import json
-import argparse
-from pathlib import Path
-from typing import List, Tuple, Dict, Optional
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Optional
 
 
 class CheckStatus(Enum):
@@ -86,7 +86,7 @@ class SetupValidator:
     def __init__(self, verbose: bool = False, fix: bool = False):
         self.verbose = verbose
         self.fix = fix
-        self.results: List[CheckResult] = []
+        self.results: list[CheckResult] = []
 
     def add_result(self, result: CheckResult):
         """Add a check result."""
@@ -187,7 +187,7 @@ class SetupValidator:
                     self.add_result(CheckResult(
                         name=f"Directory {dir_path.name}",
                         status=CheckStatus.WARN,
-                        message=f"Optional directory missing (will be created on first use)",
+                        message="Optional directory missing (will be created on first use)",
                         fix_command=f"mkdir -p {dir_path}"
                     ))
 
@@ -377,7 +377,7 @@ class SetupValidator:
                 name="Shell Scripts",
                 status=CheckStatus.WARN,
                 message=f"{len(non_executable)} scripts not executable",
-                fix_command=f"chmod +x tooling/scripts/*.sh"
+                fix_command="chmod +x tooling/scripts/*.sh"
             ))
         else:
             self.add_result(CheckResult(
