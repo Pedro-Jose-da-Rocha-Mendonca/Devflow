@@ -14,10 +14,10 @@ This intelligently selects the best agents based on task analysis:
 - Routes to appropriate specialists
 
 Task type detection examples:
-- "fix login bug" → MAINTAINER, DEV, REVIEWER
-- "security vulnerability" → SECURITY, ARCHITECT, REVIEWER
-- "new user profile feature" → BA, ARCHITECT, DEV, REVIEWER
-- "refactor auth module" → ARCHITECT, DEV, MAINTAINER
+- "fix login bug" -> MAINTAINER, DEV, REVIEWER
+- "security vulnerability" -> SECURITY, ARCHITECT, REVIEWER
+- "new user profile feature" -> BA, ARCHITECT, DEV, REVIEWER
+- "refactor auth module" -> ARCHITECT, DEV, MAINTAINER
 
 Examples:
 - `/route fix authentication timeout` - Routes to bug specialists

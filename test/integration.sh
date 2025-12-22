@@ -20,17 +20,17 @@ TESTS_FAILED=0
 
 # Test functions
 pass() {
-    echo -e "${GREEN}✓${NC} $1"
+    echo -e "${GREEN}[OK]${NC} $1"
     ((TESTS_PASSED++))
 }
 
 fail() {
-    echo -e "${RED}✗${NC} $1"
+    echo -e "${RED}[X]${NC} $1"
     ((TESTS_FAILED++))
 }
 
 info() {
-    echo -e "${YELLOW}ℹ${NC} $1"
+    echo -e "${YELLOW}[i]${NC} $1"
 }
 
 echo "======================================"

@@ -18,11 +18,11 @@ start_checkpoint_monitor() {
     local session_id="${2:-auto}"
 
     if [[ ! -f "$CHECKPOINT_SCRIPT" ]]; then
-        echo "⚠️  Checkpoint script not found, skipping monitoring"
+        echo "  Checkpoint script not found, skipping monitoring"
         return 1
     fi
 
-    echo "🔍 Starting context checkpoint monitor..."
+    echo " Starting context checkpoint monitor..."
     echo "   Watching: $log_file"
 
     # Start monitor in background
@@ -34,7 +34,7 @@ start_checkpoint_monitor() {
     local monitor_pid=$!
     echo "$monitor_pid" > "${log_file}.checkpoint.pid"
 
-    echo "✅ Checkpoint monitor started (PID: $monitor_pid)"
+    echo " Checkpoint monitor started (PID: $monitor_pid)"
     return 0
 }
 
@@ -48,10 +48,10 @@ stop_checkpoint_monitor() {
     if [[ -f "$pid_file" ]]; then
         local pid=$(cat "$pid_file")
         if kill -0 "$pid" 2>/dev/null; then
-            echo "🛑 Stopping checkpoint monitor (PID: $pid)"
+            echo " Stopping checkpoint monitor (PID: $pid)"
             kill "$pid" 2>/dev/null || true
             rm -f "$pid_file"
-            echo "✅ Checkpoint monitor stopped"
+            echo " Checkpoint monitor stopped"
         else
             rm -f "$pid_file"
         fi
@@ -65,7 +65,7 @@ create_story_checkpoint() {
     local story_key="$1"
     local reason="${2:-manual}"
 
-    echo "💾 Creating checkpoint for story: $story_key"
+    echo " Creating checkpoint for story: $story_key"
 
     python3 "$CHECKPOINT_SCRIPT" \
         --checkpoint \
@@ -110,13 +110,13 @@ resume_from_checkpoint() {
     local checkpoint_file=$(get_latest_checkpoint "$story_key")
 
     if [[ -z "$checkpoint_file" ]]; then
-        echo "❌ No checkpoint found for story: $story_key"
+        echo " No checkpoint found for story: $story_key"
         return 1
     fi
 
     local checkpoint_id=$(basename "$checkpoint_file" .json)
 
-    echo "📂 Resuming from checkpoint: $checkpoint_id"
+    echo " Resuming from checkpoint: $checkpoint_id"
 
     python3 "$CHECKPOINT_SCRIPT" \
         --resume "$checkpoint_id"
@@ -130,13 +130,13 @@ resume_from_checkpoint() {
 cleanup_old_checkpoints() {
     local keep_count="${1:-10}"
 
-    echo "🧹 Cleaning up old checkpoints (keeping last $keep_count)..."
+    echo " Cleaning up old checkpoints (keeping last $keep_count)..."
 
     local checkpoints=$(find "$CHECKPOINT_DIR" -name "checkpoint_*.json" | sort -r)
     local total=$(echo "$checkpoints" | wc -l | tr -d ' ')
 
     if [[ $total -le $keep_count ]]; then
-        echo "✅ No cleanup needed ($total checkpoints)"
+        echo " No cleanup needed ($total checkpoints)"
         return 0
     fi
 
@@ -148,7 +148,7 @@ cleanup_old_checkpoints() {
         rm -f "$file" "$summary_file"
     done
 
-    echo "✅ Deleted $delete_count old checkpoints"
+    echo " Deleted $delete_count old checkpoints"
 }
 
 ################################################################################
@@ -164,9 +164,9 @@ log_checkpoint_info() {
 ═══════════════════════════════════════════════════════════════
 
 Thresholds:
-  ⚡ Warning:   75% - Log notification
-  ⚠️  Critical:  85% - Auto-checkpoint created
-  🚨 Emergency: 95% - Force checkpoint + alert
+   Warning:   75% - Log notification
+    Critical:  85% - Auto-checkpoint created
+   Emergency: 95% - Force checkpoint + alert
 
 Checkpoint directory: $CHECKPOINT_DIR
 

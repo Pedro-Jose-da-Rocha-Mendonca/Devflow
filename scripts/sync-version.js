@@ -63,7 +63,7 @@ function updatePackageJson(version) {
       'utf-8'
     );
 
-    console.log(`✓ Updated package.json from ${oldVersion} to ${version}`);
+    console.log(`[OK] Updated package.json from ${oldVersion} to ${version}`);
     return true;
   } catch (error) {
     console.error(`Error updating package.json: ${error.message}`);
@@ -91,7 +91,7 @@ function syncVersion() {
     process.exit(1);
   }
 
-  console.log('\n✓ Version sync complete!');
+  console.log('\n[OK] Version sync complete!');
   process.exit(0);
 }
 

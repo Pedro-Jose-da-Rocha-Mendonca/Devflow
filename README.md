@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude-Code-5A67D8)](https://claude.com/claude-code)
 
-## 🚀 What is This?
+## What is This?
 
 A production-ready, portable workflow automation system that uses Claude Code CLI to implement user stories with minimal human intervention. Think "CI/CD for development" - but instead of deploying code, it writes code.
 
@@ -14,7 +14,7 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 - **Multi-Persona Agent System** - 8 specialized AI agents (SM, DEV, BA, ARCHITECT, PM, WRITER, MAINTAINER, REVIEWER)
 - **Smart Model Usage** - Opus for development, Sonnet for planning (40-60% cost savings)
 - **Context Preservation** - Automatic checkpoints prevent work loss from context limits
-- **Full Automation** - Context → Development → Testing → Review → Commit pipeline
+- **Full Automation** - Context -> Development -> Testing -> Review -> Commit pipeline
 - **Greenfield + Brownfield** - Supports both new features AND existing codebase maintenance
 - **Agent Personalization** - Agent overrides and persistent agent memory
 - **Claude Code Integration** - Native slash commands (`/story`, `/swarm`, `/pair`, `/route`, etc.)
@@ -26,7 +26,7 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 - **Project Agnostic** - Works with Flutter, Node.js, Python, Rust, Go, Ruby, etc.
 - **Guided Setup** - Interactive wizard guides you through installation
 
-## 📦 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -167,7 +167,7 @@ notepad config.ps1
 | **MAINTAINER** | Opus/Sonnet | Varies | Bug fixes, refactoring, tech debt |
 | **REVIEWER** (Adversarial) | Opus | High | Critical code review, finds problems |
 
-## 💻 Claude Slash Commands
+## Claude Slash Commands
 
 Devflow provides native slash commands for Claude Code:
 
@@ -210,7 +210,7 @@ Devflow provides native slash commands for Claude Code:
 /memory 3-5 --query "auth decisions" # Query knowledge graph
 ```
 
-## 🧠 Knowledge Graph & Shared Memory
+## Knowledge Graph & Shared Memory
 
 Devflow features a sophisticated memory system that enables agents to share context, track decisions, and maintain institutional knowledge across the entire development workflow.
 
@@ -278,7 +278,7 @@ memory.add('DEV', 'Decided to use PostgreSQL for user data', tags=['database', '
 - `tags` - Searchable categorization tags
 - `references` - Links to related entries
 
-## 🤝 Agent Handoff System
+## Agent Handoff System
 
 The Agent Handoff System ensures seamless transitions between agents with structured context preservation. When one agent finishes their work, a comprehensive handoff summary is automatically generated for the next agent.
 
@@ -317,14 +317,14 @@ print(handoff)
 
 | From | To | Focus Areas |
 |------|-----|-------------|
-| SM → DEV | Acceptance criteria, technical context, patterns to follow |
-| SM → ARCHITECT | High-level requirements, system constraints, scale requirements |
-| ARCHITECT → DEV | Architecture decisions, design patterns, interface definitions |
-| DEV → REVIEWER | Implementation approach, key decisions, test coverage |
-| REVIEWER → DEV | Issues found, required changes, approval status |
-| BA → DEV | Refined requirements, acceptance criteria, edge cases |
+| SM -> DEV | Acceptance criteria, technical context, patterns to follow |
+| SM -> ARCHITECT | High-level requirements, system constraints, scale requirements |
+| ARCHITECT -> DEV | Architecture decisions, design patterns, interface definitions |
+| DEV -> REVIEWER | Implementation approach, key decisions, test coverage |
+| REVIEWER -> DEV | Issues found, required changes, approval status |
+| BA -> DEV | Refined requirements, acceptance criteria, edge cases |
 
-## 🐝 Multi-Agent Collaboration
+## Multi-Agent Collaboration
 
 Devflow supports advanced multi-agent collaboration modes for complex development tasks.
 
@@ -396,9 +396,9 @@ Let Devflow automatically select the best agents:
 **How it works:**
 - Analyzes task description for keywords
 - Considers file types and complexity
-- Routes to appropriate specialists (e.g., security → SECURITY agent)
+- Routes to appropriate specialists (e.g., security -> SECURITY agent)
 
-## 💰 Cost Tracking & Currency Configuration
+## Cost Tracking & Currency Configuration
 
 Devflow includes a comprehensive cost tracking system with multi-currency support and budget controls.
 
@@ -493,7 +493,7 @@ python tooling/scripts/cost_dashboard.py --summary
 - **Set budget limits** - Prevent runaway costs with phase-specific limits
 - **Monitor the dashboard** - Track spending patterns across stories
 
-## ⌨️ Shell Completion
+## Shell Completion
 
 Enable tab-completion for faster command entry.
 
@@ -556,7 +556,7 @@ devflow-help
 ./run-story.sh 3-5 --agents AR<TAB>  # Completes to ARCHITECT
 ```
 
-## � Security Considerations
+##  Security Considerations
 
 ### API Key Management
 
@@ -595,13 +595,13 @@ Devflow relies on the Claude Code CLI for API authentication. The CLI handles AP
 - No data is sent to external servers by Devflow (only to Anthropic's API via Claude CLI)
 - Context checkpoints may contain code snippets - review before sharing
 
-## �📜 License
+## License
 
 MIT License - see [LICENSE](LICENSE) for details.
 
 Free to use in commercial and personal projects.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Built for [Claude Code CLI](https://claude.com/claude-code)
 - Agent override system inspired by [BMAD-METHOD](https://github.com/bmad-code-org/BMAD-METHOD)

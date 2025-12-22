@@ -239,7 +239,7 @@ class PairSession:
         """Log a message."""
         if self.config.verbose:
             timestamp = datetime.now().strftime("%H:%M:%S")
-            emoji = {"DEV": "💻", "REVIEWER": "👀", "SYSTEM": "⚙️"}.get(agent, "•")
+            emoji = {"DEV": "", "REVIEWER": "", "SYSTEM": ""}.get(agent, "•")
             print(f"[{timestamp}] {emoji} [{agent}] {message}")
 
     def _invoke_agent(self, agent: str, prompt: str) -> str:
@@ -378,10 +378,10 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
                     "## Reviewer Feedback (address these)",
                     "",
                     "**Issues to Fix:**",
-                    *[f"- ❌ {issue}" for issue in previous_feedback.must_fix],
+                    *[f"-  {issue}" for issue in previous_feedback.must_fix],
                     "",
                     "**Suggestions:**",
-                    *[f"- 💡 {sug}" for sug in previous_feedback.suggestions],
+                    *[f"-  {sug}" for sug in previous_feedback.suggestions],
                 ]
             )
             base_prompt += f"\n\n{feedback_text}\n"
@@ -523,9 +523,9 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
 
             if exchange.resolved or feedback.approved:
                 approved_chunks += 1
-                self._log("✅ Chunk approved!", "SYSTEM")
+                self._log(" Chunk approved!", "SYSTEM")
             else:
-                self._log("⚠️ Moving on with unresolved issues", "SYSTEM")
+                self._log(" Moving on with unresolved issues", "SYSTEM")
 
             self.exchanges.append(exchange)
 

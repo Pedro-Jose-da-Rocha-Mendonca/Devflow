@@ -213,7 +213,7 @@ class TestHandoffGenerator:
         
         log_content = """
         Processing file...
-        ⚠️ Memory usage is high
+        [WARNING] Memory usage is high
         WARNING: Rate limit approaching
         Note: This is a note
         Done.

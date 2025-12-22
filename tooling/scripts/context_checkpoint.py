@@ -74,7 +74,7 @@ class ContextCheckpointManager:
 
     def _signal_handler(self, signum, frame):
         """Handle shutdown signals gracefully."""
-        print(f"\n{Colors.YELLOW}📦 Shutting down checkpoint manager...{Colors.END}")
+        print(f"\n{Colors.YELLOW}Shutting down checkpoint manager...{Colors.END}")
         self.running = False
         sys.exit(0)
 
@@ -97,7 +97,7 @@ class ContextCheckpointManager:
         Looks for patterns like:
         - "Token usage: 75000/200000"
         - "Context: 75%"
-        - "⚠️ CONTEXT WARNING"
+        - " CONTEXT WARNING"
         """
         # Pattern 1: Token usage: X/Y
         match = re.search(r"Token usage:\s*(\d+)/(\d+)", output)
@@ -112,7 +112,7 @@ class ContextCheckpointManager:
             return int(match.group(1)) / 100
 
         # Pattern 3: Warning messages
-        if "⚠️ CONTEXT WARNING" in output or "Approaching context limit" in output:
+        if " CONTEXT WARNING" in output or "Approaching context limit" in output:
             return 0.90  # Assume 90% if warning present
 
         return None
@@ -184,7 +184,7 @@ class ContextCheckpointManager:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         checkpoint_id = f"checkpoint_{timestamp}_{self.checkpoint_count}"
 
-        self._log(f"💾 Creating checkpoint: {checkpoint_id}", "INFO")
+        self._log(f" Creating checkpoint: {checkpoint_id}", "INFO")
 
         # Extract current conversation
         conversation = self.get_current_conversation()
@@ -213,7 +213,7 @@ class ContextCheckpointManager:
         summary_file = self.checkpoint_dir / f"{checkpoint_id}_summary.md"
         self._create_checkpoint_summary(checkpoint_data, summary_file)
 
-        self._log(f"✅ Checkpoint saved: {checkpoint_file.name}", "SUCCESS")
+        self._log(f" Checkpoint saved: {checkpoint_file.name}", "SUCCESS")
         self.last_checkpoint_time = datetime.now()
 
         return checkpoint_file
@@ -265,7 +265,7 @@ After checkpoint, the session should be cleared and restarted with:
 
     def clear_session(self):
         """Clear the current Claude session."""
-        self._log("🧹 Clearing session...", "INFO")
+        self._log(" Clearing session...", "INFO")
         try:
             # Try to clear via CLI
             result = subprocess.run(
@@ -273,7 +273,7 @@ After checkpoint, the session should be cleared and restarted with:
             )
 
             if result.returncode == 0:
-                self._log("✅ Session cleared successfully", "SUCCESS")
+                self._log(" Session cleared successfully", "SUCCESS")
                 return True
             else:
                 self._log(f"Warning: Clear command returned {result.returncode}", "WARNING")
@@ -298,7 +298,7 @@ After checkpoint, the session should be cleared and restarted with:
             self._log(f"Checkpoint not found: {checkpoint_id}", "ERROR")
             return False
 
-        self._log(f"📂 Loading checkpoint: {checkpoint_id}", "INFO")
+        self._log(f" Loading checkpoint: {checkpoint_id}", "INFO")
 
         try:
             with open(checkpoint_file) as f:
@@ -308,7 +308,7 @@ After checkpoint, the session should be cleared and restarted with:
             resume_prompt = self._create_resume_prompt(checkpoint_data)
 
             # Start new session with resume prompt
-            self._log("🚀 Starting new session with checkpoint context...", "INFO")
+            self._log("Starting new session with checkpoint context...", "INFO")
             print("\n" + "=" * 80)
             print("RESUME PROMPT (paste this into Claude Code):")
             print("=" * 80 + "\n")
@@ -382,7 +382,7 @@ Ready to continue!
         Args:
             log_file: Path to log file to monitor
         """
-        self._log(f"👀 Watching log file: {log_file}", "INFO")
+        self._log(f" Watching log file: {log_file}", "INFO")
 
         try:
             with open(log_file) as f:
@@ -415,10 +415,10 @@ Ready to continue!
 
         if context_level >= CONTEXT_EMERGENCY_THRESHOLD:
             # EMERGENCY: Force checkpoint immediately
-            self._log(f"🚨 EMERGENCY: Context at {percentage:.1f}% - Force checkpoint!", "CRITICAL")
+            self._log(f" EMERGENCY: Context at {percentage:.1f}% - Force checkpoint!", "CRITICAL")
             checkpoint_file = self.create_checkpoint(context_level, reason="emergency")
             self._log(
-                "⚠️  MANUAL ACTION REQUIRED: Clear session and resume from checkpoint", "CRITICAL"
+                "  MANUAL ACTION REQUIRED: Clear session and resume from checkpoint", "CRITICAL"
             )
             self._log(
                 f"Run: python3 tooling/scripts/context_checkpoint.py --resume {checkpoint_file.stem}",
@@ -427,17 +427,17 @@ Ready to continue!
 
         elif context_level >= CONTEXT_CRITICAL_THRESHOLD:
             # CRITICAL: Auto-checkpoint
-            self._log(f"⚠️  CRITICAL: Context at {percentage:.1f}% - Auto checkpoint", "WARNING")
+            self._log(f"  CRITICAL: Context at {percentage:.1f}% - Auto checkpoint", "WARNING")
             checkpoint_file = self.create_checkpoint(context_level, reason="critical")
-            self._log("💡 Consider clearing session soon", "WARNING")
+            self._log(" Consider clearing session soon", "WARNING")
 
         elif context_level >= CONTEXT_WARNING_THRESHOLD:
             # WARNING: Just notify
-            self._log(f"⚡ WARNING: Context at {percentage:.1f}%", "WARNING")
+            self._log(f" WARNING: Context at {percentage:.1f}%", "WARNING")
 
     def interactive_monitor(self):
         """Run interactive monitoring mode."""
-        self._log("🎯 Starting interactive context monitor", "INFO")
+        self._log("Starting interactive context monitor", "INFO")
         self._log(
             f"Thresholds: Warning={CONTEXT_WARNING_THRESHOLD * 100}%, Critical={CONTEXT_CRITICAL_THRESHOLD * 100}%, Emergency={CONTEXT_EMERGENCY_THRESHOLD * 100}%",
             "INFO",

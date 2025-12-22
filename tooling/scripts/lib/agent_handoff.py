@@ -267,7 +267,7 @@ class HandoffGenerator:
         """Extract warnings from agent log output."""
         warnings = []
         warning_patterns = [
-            r"⚠️\s*(.+)",
+            r"\[WARNING\]\s*(.+)",
             r"WARNING:\s*(.+)",
             r"WARN:\s*(.+)",
             r"Watch out.*?:\s*(.+)",
@@ -428,9 +428,9 @@ class WorkTracker:
     def record_blocker(self, blocker: str, resolved: bool = False):
         """Record a blocker encountered."""
         if resolved:
-            self.blockers.append(f"✅ {blocker} (resolved)")
+            self.blockers.append(f" {blocker} (resolved)")
         else:
-            self.blockers.append(f"❌ {blocker}")
+            self.blockers.append(f" {blocker}")
 
     def record_warning(self, warning: str):
         """Record a warning for the next agent."""
@@ -452,9 +452,9 @@ class WorkTracker:
 
         # Separate resolved and unresolved blockers
         resolved = [
-            b.replace("✅ ", "").replace(" (resolved)", "")
+            b.replace(" ", "").replace(" (resolved)", "")
             for b in self.blockers
-            if b.startswith("✅")
+            if b.startswith("")
         ]
 
         return generator.generate(

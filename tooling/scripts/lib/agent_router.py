@@ -625,12 +625,12 @@ class AgentRouter:
     def explain_routing(self, result: RoutingResult) -> str:
         """Generate a human-readable explanation of the routing decision."""
         lines = [
-            "🎯 **Task Analysis**",
+            "**Task Analysis**",
             f"  - Type: {result.task_analysis.task_type.value}",
             f"  - Complexity: {result.task_analysis.complexity.name} ({result.task_analysis.complexity.value}/5)",
             f"  - Confidence: {result.task_analysis.confidence:.0%}",
             "",
-            "🤖 **Recommended Agents**",
+            "**Recommended Agents**",
         ]
 
         for i, agent in enumerate(result.agents, 1):
@@ -641,19 +641,19 @@ class AgentRouter:
         lines.extend(
             [
                 "",
-                f"📋 **Workflow**: {result.workflow}",
-                f"💡 **Reasoning**: {result.reasoning}",
+                f" **Workflow**: {result.workflow}",
+                f" **Reasoning**: {result.reasoning}",
             ]
         )
 
         if result.alternative_agents:
-            lines.extend(["", f"🔄 **Alternatives**: {', '.join(result.alternative_agents)}"])
+            lines.extend(["", f"**Alternatives**: {', '.join(result.alternative_agents)}"])
 
         if result.task_analysis.detected_patterns:
             lines.extend(
                 [
                     "",
-                    f"🔍 **Detected patterns**: {', '.join(result.task_analysis.detected_patterns[:5])}",
+                    f" **Detected patterns**: {', '.join(result.task_analysis.detected_patterns[:5])}",
                 ]
             )
 

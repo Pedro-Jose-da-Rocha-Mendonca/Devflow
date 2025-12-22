@@ -252,7 +252,7 @@ main() {
 
     # Check for existing checkpoint and offer to resume
     if type has_checkpoint &>/dev/null && has_checkpoint "$story_key"; then
-        echo -e "${CYAN}📂 Found existing checkpoint for story: $story_key${NC}"
+        echo -e "${CYAN} Found existing checkpoint for story: $story_key${NC}"
         echo -e "${YELLOW}Would you like to resume from the checkpoint? (y/n)${NC}"
         read -r RESUME_CHOICE
 
@@ -269,7 +269,7 @@ main() {
 
     # Create pre-start checkpoint
     if type create_story_checkpoint &>/dev/null; then
-        echo -e "${CYAN}💾 Creating pre-start checkpoint...${NC}"
+        echo -e "${CYAN} Creating pre-start checkpoint...${NC}"
         create_story_checkpoint "$story_key" "pre-start" 2>&1 | grep -v "Could not export"
         echo ""
     fi
@@ -279,7 +279,7 @@ main() {
         # COLLABORATIVE MODES - Multi-agent collaboration
         # ═══════════════════════════════════════════════════════════════
         "swarm")
-            echo -e "${YELLOW}▶ Running swarm mode (multi-agent debate)...${NC}"
+            echo -e "${YELLOW}> Running swarm mode (multi-agent debate)...${NC}"
             echo ""
             local swarm_args="$story_key --swarm"
             if [[ -n "$collab_agents" ]]; then
@@ -294,7 +294,7 @@ main() {
             fi
             ;;
         "pair")
-            echo -e "${YELLOW}▶ Running pair programming mode (DEV + REVIEWER)...${NC}"
+            echo -e "${YELLOW}> Running pair programming mode (DEV + REVIEWER)...${NC}"
             echo ""
             python3 "$SCRIPT_DIR/run-collab.py" "$story_key" --pair --max-revisions "$max_iterations"
             local exit_code=$?
@@ -304,7 +304,7 @@ main() {
             fi
             ;;
         "auto-route")
-            echo -e "${YELLOW}▶ Running auto-route mode (intelligent agent selection)...${NC}"
+            echo -e "${YELLOW}> Running auto-route mode (intelligent agent selection)...${NC}"
             echo ""
             python3 "$SCRIPT_DIR/run-collab.py" "$story_key" --auto
             local exit_code=$?
@@ -318,7 +318,7 @@ main() {
         # GREENFIELD MODES - New feature development
         # ═══════════════════════════════════════════════════════════════
         "develop")
-            echo -e "${YELLOW}▶ Running development phase...${NC}"
+            echo -e "${YELLOW}> Running development phase...${NC}"
             echo ""
             invoke_dev_story "$story_key"
             local exit_code=$?
@@ -339,19 +339,19 @@ main() {
             fi
             ;;
         "review")
-            echo -e "${YELLOW}▶ Running review phase...${NC}"
+            echo -e "${YELLOW}> Running review phase...${NC}"
             echo ""
             invoke_sm_code_review "$story_key"
             exit_code=$?
             ;;
         "adversarial")
-            echo -e "${YELLOW}▶ Running adversarial review (Opus)...${NC}"
+            echo -e "${YELLOW}> Running adversarial review (Opus)...${NC}"
             echo ""
             invoke_adversarial_review "$story_key"
             exit_code=$?
             ;;
         "context")
-            echo -e "${YELLOW}▶ Creating story context...${NC}"
+            echo -e "${YELLOW}> Creating story context...${NC}"
             echo ""
             invoke_sm_story_context "$story_key"
             exit_code=$?
@@ -361,7 +361,7 @@ main() {
         # BROWNFIELD MODES - Existing codebase maintenance
         # ═══════════════════════════════════════════════════════════════
         "bugfix")
-            echo -e "${YELLOW}▶ Running bug fix workflow...${NC}"
+            echo -e "${YELLOW}> Running bug fix workflow...${NC}"
             echo ""
             invoke_bugfix "$story_key"
             exit_code=$?
@@ -372,7 +372,7 @@ main() {
             fi
             ;;
         "refactor")
-            echo -e "${YELLOW}▶ Running refactoring workflow...${NC}"
+            echo -e "${YELLOW}> Running refactoring workflow...${NC}"
             echo ""
             invoke_refactor "$story_key"
             exit_code=$?
@@ -383,14 +383,14 @@ main() {
             fi
             ;;
         "investigate")
-            echo -e "${YELLOW}▶ Running investigation workflow...${NC}"
+            echo -e "${YELLOW}> Running investigation workflow...${NC}"
             echo ""
             invoke_investigate "$story_key"
             exit_code=$?
             # No auto-commit for investigation (read-only)
             ;;
         "quickfix")
-            echo -e "${YELLOW}▶ Running quick fix...${NC}"
+            echo -e "${YELLOW}> Running quick fix...${NC}"
             echo ""
             invoke_quickfix "$story_key"
             exit_code=$?
@@ -401,7 +401,7 @@ main() {
             fi
             ;;
         "migrate")
-            echo -e "${YELLOW}▶ Running migration workflow...${NC}"
+            echo -e "${YELLOW}> Running migration workflow...${NC}"
             echo ""
             invoke_migrate "$story_key"
             exit_code=$?
@@ -412,7 +412,7 @@ main() {
             fi
             ;;
         "tech-debt")
-            echo -e "${YELLOW}▶ Running technical debt resolution...${NC}"
+            echo -e "${YELLOW}> Running technical debt resolution...${NC}"
             echo ""
             invoke_tech_debt "$story_key"
             exit_code=$?
@@ -427,7 +427,7 @@ main() {
         # DEFAULT - Full greenfield pipeline
         # ═══════════════════════════════════════════════════════════════
         *)
-            echo -e "${YELLOW}▶ Running full pipeline...${NC}"
+            echo -e "${YELLOW}> Running full pipeline...${NC}"
             echo ""
             run_full_pipeline "$story_key"
             exit_code=$?
@@ -437,7 +437,7 @@ main() {
     # Create completion checkpoint if successful
     if [[ $exit_code -eq 0 && "$mode" != "context" ]]; then
         if type create_story_checkpoint &>/dev/null; then
-            echo -e "${CYAN}💾 Creating completion checkpoint...${NC}"
+            echo -e "${CYAN} Creating completion checkpoint...${NC}"
             create_story_checkpoint "$story_key" "complete" 2>&1 | grep -v "Could not export"
             echo ""
         fi
@@ -445,15 +445,15 @@ main() {
 
     # Cleanup old checkpoints (keep last 10)
     if type cleanup_old_checkpoints &>/dev/null; then
-        cleanup_old_checkpoints 10 2>&1 | grep -E "^(🧹|✅|Deleted)"
+        cleanup_old_checkpoints 10 2>&1 | grep -E "^(||Deleted)"
         echo ""
     fi
 
     echo ""
     if [[ $exit_code -eq 0 ]]; then
-        echo -e "${GREEN}✅ Complete!${NC}"
+        echo -e "${GREEN} Complete!${NC}"
     else
-        echo -e "${RED}❌ Failed with exit code: $exit_code${NC}"
+        echo -e "${RED} Failed with exit code: $exit_code${NC}"
     fi
 
     echo ""

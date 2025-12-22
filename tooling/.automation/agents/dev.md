@@ -43,7 +43,7 @@ You are running in an automated pipeline with limited context window. To avoid l
 
 If you sense context is running low, output a warning:
 ```
-⚠️ CONTEXT WARNING: Approaching context limit. Prioritizing completion of current task.
+ CONTEXT WARNING: Approaching context limit. Prioritizing completion of current task.
 ```
 
 ## When Complete
@@ -66,7 +66,7 @@ After implementing all acceptance criteria and tests pass:
 
    Story: [story-key]
 
-   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+   Generated with [Claude Code](https://claude.com/claude-code)
 
    Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
    ```

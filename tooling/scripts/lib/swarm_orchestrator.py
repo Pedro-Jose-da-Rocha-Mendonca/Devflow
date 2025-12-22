@@ -11,7 +11,7 @@ Orchestrates multiple agents working together with:
 
 Features:
 - Swarm mode: Multiple agents debate until consensus
-- Iteration loops: DEV → REVIEWER → DEV cycles
+- Iteration loops: DEV -> REVIEWER -> DEV cycles
 - Parallel execution: Independent agents run simultaneously
 - Voting mechanisms for decisions
 - Automatic termination on convergence
@@ -171,9 +171,9 @@ class SwarmResult:
         ]
 
         if self.state == SwarmState.CONSENSUS:
-            lines.append("✅ **Consensus reached!**")
+            lines.append(" **Consensus reached!**")
         elif self.state == SwarmState.MAX_ITERATIONS:
-            lines.append("⚠️ **Max iterations reached without full consensus**")
+            lines.append(" **Max iterations reached without full consensus**")
 
         lines.append("")
         lines.append("### Final Output")
@@ -244,11 +244,11 @@ class SwarmOrchestrator:
         if self.config.verbose:
             timestamp = datetime.now().strftime("%H:%M:%S")
             emoji = {
-                "INFO": "ℹ️",
-                "SUCCESS": "✅",
-                "WARNING": "⚠️",
-                "ERROR": "❌",
-                "DEBUG": "🔍",
+                "INFO": "[INFO]",
+                "SUCCESS": "",
+                "WARNING": "",
+                "ERROR": "",
+                "DEBUG": "",
             }.get(level, "•")
             print(f"[{timestamp}] {emoji} {message}")
 
@@ -326,7 +326,7 @@ class SwarmOrchestrator:
         issues = []
         patterns = [
             r"(?:issue|problem|bug|error|fix needed|must fix|should fix):\s*(.+)",
-            r"❌\s*(.+)",
+            r"\s*(.+)",
             r"\[ISSUE\]\s*(.+)",
             r"- (?:Issue|Problem|Bug):\s*(.+)",
         ]
@@ -342,7 +342,7 @@ class SwarmOrchestrator:
         approvals = []
         patterns = [
             r"(?:lgtm|approved|looks good|well done|excellent)[\s:]*(.+)?",
-            r"✅\s*(.+)",
+            r"\s*(.+)",
             r"\[APPROVED\]\s*(.+)?",
         ]
 
@@ -358,7 +358,7 @@ class SwarmOrchestrator:
         suggestions = []
         patterns = [
             r"(?:suggest|consider|recommend|might want to|could):\s*(.+)",
-            r"💡\s*(.+)",
+            r"\s*(.+)",
             r"\[SUGGESTION\]\s*(.+)",
         ]
 
@@ -470,15 +470,15 @@ At the end, clearly indicate if you APPROVE or have ISSUES with the work.
             if r.issues_found:
                 feedback_lines.append("**Issues found:**")
                 for issue in r.issues_found:
-                    feedback_lines.append(f"- ❌ {issue}")
+                    feedback_lines.append(f"-  {issue}")
             if r.suggestions:
                 feedback_lines.append("**Suggestions:**")
                 for sug in r.suggestions:
-                    feedback_lines.append(f"- 💡 {sug}")
+                    feedback_lines.append(f"-  {sug}")
             if r.approvals:
                 feedback_lines.append("**Approvals:**")
                 for app in r.approvals:
-                    feedback_lines.append(f"- ✅ {app}")
+                    feedback_lines.append(f"-  {app}")
             feedback_lines.append("")
 
         prompt = f"""You are the {agent} agent. This is iteration {iteration + 1}.
@@ -573,7 +573,7 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
             previous_responses = iter_responses
 
             self._log(f"Issues remaining: {len(issues_to_fix)}")
-            self._log(f"Consensus: {'✅ Yes' if consensus else '❌ No'}")
+            self._log(f"Consensus: {' Yes' if consensus else ' No'}")
 
             if consensus:
                 self.state = SwarmState.CONSENSUS
@@ -630,7 +630,7 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
         task: str,
         max_iterations: Optional[int] = None,
     ) -> SwarmResult:
-        """Run a simple iteration loop between two agents (e.g., DEV → REVIEWER → DEV)."""
+        """Run a simple iteration loop between two agents (e.g., DEV -> REVIEWER -> DEV)."""
         return self.run_swarm(
             agents=[primary_agent, reviewer_agent], task=task, max_iterations=max_iterations
         )
@@ -647,7 +647,7 @@ def run_swarm(
 
 
 def run_dev_review_loop(story_key: str, task: str, max_iterations: int = 3) -> SwarmResult:
-    """Run a DEV → REVIEWER iteration loop."""
+    """Run a DEV -> REVIEWER iteration loop."""
     config = SwarmConfig(
         max_iterations=max_iterations, consensus_type=ConsensusType.REVIEWER_APPROVAL
     )
@@ -680,7 +680,7 @@ if __name__ == "__main__":
     )
     print(result.to_summary())
 
-    # Simple DEV → REVIEWER loop
+    # Simple DEV -> REVIEWER loop
     result = run_dev_review_loop(
         story_key="3-5",
         task="Implement login endpoint",

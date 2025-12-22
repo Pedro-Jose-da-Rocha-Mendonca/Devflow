@@ -84,7 +84,7 @@ def prompt_choice(prompt: str, options: list[str], default: int = 0) -> int:
     """Prompt user to choose from options."""
     print(f"{Colors.YELLOW}{prompt}{Colors.END}")
     for i, opt in enumerate(options):
-        marker = "→" if i == default else " "
+        marker = "->" if i == default else " "
         print(f"  {marker} [{i + 1}] {opt}")
 
     while True:
@@ -305,7 +305,7 @@ def save_override(agent_name: str, override: dict):
     content += write_yaml(override)
 
     override_path.write_text(content)
-    print(f"\n{Colors.GREEN}✅ Saved: {override_path}{Colors.END}")
+    print(f"\n{Colors.GREEN} Saved: {override_path}{Colors.END}")
 
 
 def main():
@@ -345,7 +345,7 @@ def main():
             for key, value in values.items():
                 content += f'  {key}: "{value}"\n'
         profile_path.write_text(content)
-        print(f"\n{Colors.GREEN}✅ User profile saved{Colors.END}")
+        print(f"\n{Colors.GREEN} User profile saved{Colors.END}")
 
     # Determine agents to personalize
     agents = get_available_agents()
@@ -375,7 +375,7 @@ def main():
         if override:
             save_override(agent, override)
 
-    print(f"\n{Colors.GREEN}{Colors.BOLD}✨ Personalization complete!{Colors.END}")
+    print(f"\n{Colors.GREEN}{Colors.BOLD} Personalization complete!{Colors.END}")
     print(f"\nYour overrides are in: {OVERRIDES_DIR}")
     print("They will be applied automatically when running agents.")
     print("\nTo modify later, edit the .override.yaml files directly.")

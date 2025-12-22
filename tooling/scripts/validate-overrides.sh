@@ -56,21 +56,21 @@ print_header() {
 }
 
 error() {
-    echo -e "${RED}  ✗ ERROR:${NC} $1"
+    echo -e "${RED}  [X] ERROR:${NC} $1"
     ((ERRORS++))
 }
 
 warning() {
-    echo -e "${YELLOW}  ⚠ WARNING:${NC} $1"
+    echo -e "${YELLOW}  WARNING:${NC} $1"
     ((WARNINGS++))
 }
 
 success() {
-    echo -e "${GREEN}  ✓${NC} $1"
+    echo -e "${GREEN}  [OK]${NC} $1"
 }
 
 info() {
-    [[ "$VERBOSE" == "true" ]] && echo -e "${BLUE}  ℹ${NC} $1"
+    [[ "$VERBOSE" == "true" ]] && echo -e "${BLUE}  [i]${NC} $1"
 }
 
 ################################################################################
@@ -418,13 +418,13 @@ main() {
     echo ""
     
     if [[ $ERRORS -gt 0 ]]; then
-        echo -e "${RED}❌ Validation failed with $ERRORS error(s)${NC}"
+        echo -e "${RED} Validation failed with $ERRORS error(s)${NC}"
         exit 1
     elif [[ $WARNINGS -gt 0 ]]; then
-        echo -e "${YELLOW}⚠️  Validation passed with $WARNINGS warning(s)${NC}"
+        echo -e "${YELLOW}  Validation passed with $WARNINGS warning(s)${NC}"
         exit 0
     else
-        echo -e "${GREEN}✅ All validations passed!${NC}"
+        echo -e "${GREEN} All validations passed!${NC}"
         exit 0
     fi
 }

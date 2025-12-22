@@ -57,5 +57,5 @@ You are running in an automated pipeline with limited context. To work efficient
 
 If you sense context is running low, output:
 ```
-⚠️ CONTEXT WARNING: Approaching limit. Saving current findings.
+ CONTEXT WARNING: Approaching limit. Saving current findings.
 ```

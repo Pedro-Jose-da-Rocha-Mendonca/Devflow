@@ -205,38 +205,38 @@ def main():
             if v is not None
         )
         if all_match:
-            print("✓ All versions are in sync")
+            print("[OK] All versions are in sync")
             sys.exit(0)
         else:
-            print("✗ Versions are out of sync")
+            print("[X] Versions are out of sync")
             sys.exit(1)
 
     # Update all files
     success = True
 
     if update_readme_version(readme_path, target_version):
-        print(f"✓ Updated README.md to version {target_version}")
+        print(f"[OK] Updated README.md to version {target_version}")
     else:
-        print("✗ Failed to update README.md")
+        print("[X] Failed to update README.md")
         success = False
 
     if update_pyproject_version(pyproject_path, target_version):
-        print(f"✓ Updated pyproject.toml to version {target_version}")
+        print(f"[OK] Updated pyproject.toml to version {target_version}")
     else:
-        print("✗ Failed to update pyproject.toml")
+        print("[X] Failed to update pyproject.toml")
         success = False
 
     if update_init_version(init_path, target_version):
-        print(f"✓ Updated __init__.py to version {target_version}")
+        print(f"[OK] Updated __init__.py to version {target_version}")
     else:
-        print("✗ Failed to update __init__.py")
+        print("[X] Failed to update __init__.py")
         success = False
 
     if success:
-        print("\n✓ All versions synced successfully!")
+        print("\n[OK] All versions synced successfully!")
         print("  Don't forget to commit the changes.")
     else:
-        print("\n⚠ Some updates failed. Check errors above.")
+        print("\nSome updates failed. Check errors above.")
         sys.exit(1)
 
 

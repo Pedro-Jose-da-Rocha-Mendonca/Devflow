@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing! This project aims to make AI-powered development workflows accessible to everyone.
 
-## 🎯 How to Contribute
+## How to Contribute
 
 ### Reporting Bugs
 
@@ -58,7 +58,7 @@ We welcome contributions in these areas:
 - Integration tests for shell scripts
 - End-to-end workflow tests
 
-## 🎨 Agent Persona Guidelines
+## Agent Persona Guidelines
 
 When adding/modifying agent personas:
 
@@ -89,7 +89,7 @@ When adding/modifying agent personas:
    local model="sonnet"  # or "opus" with justification
    ```
 
-## 🔄 Version Management
+## Version Management
 
 Version is managed from a single source of truth: `CHANGELOG.md`.
 
@@ -133,7 +133,7 @@ python tooling/scripts/update_version.py --version 1.8.0
 2. Commit with the pre-commit hook enabled, or run `update_version.py` manually
 3. All version references will be updated automatically
 
-## 🔒 Branch Protection
+## Branch Protection
 
 The `main` branch is protected with the following rules:
 
@@ -142,8 +142,33 @@ The `main` branch is protected with the following rules:
 - **Status checks** - Tests must pass before merging (when CI is configured)
 
 This ensures code quality and prevents accidental breaking changes.
-   
-## 📜 Code of Conduct
+
+## Style Guidelines
+
+### No Emojis Policy
+
+This project does NOT use emojis anywhere in the codebase. This applies to:
+
+- Source code (comments, strings, output messages)
+- Documentation (README, CONTRIBUTING, etc.)
+- Agent personas and templates
+- Commit messages and changelog entries
+- Test files and fixtures
+
+**Use text alternatives instead:**
+| Instead of | Use |
+|------------|-----|
+| ✅ | `[OK]`, `[PASS]` |
+| ❌ | `[ERROR]`, `[FAIL]` |
+| ⚠️ | `[WARNING]` |
+| ℹ️ | `[INFO]` |
+| 🔴 | `[CRITICAL]`, `[MUST FIX]` |
+| 🟡 | `[SHOULD FIX]` |
+| 💡 | `[SUGGESTION]`, `[TIP]` |
+
+This ensures consistent display across all terminals and environments.
+
+## Code of Conduct
 
 - Be respectful and inclusive
 - Focus on constructive feedback
@@ -152,4 +177,4 @@ This ensures code quality and prevents accidental breaking changes.
 
 ---
 
-**Thank you for contributing!** 🎉
+**Thank you for contributing!** 

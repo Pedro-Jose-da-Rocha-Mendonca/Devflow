@@ -128,7 +128,7 @@ Visualize possible causes:
 │   └── [Sub-cause A2]
 ├── [Possible Cause B]
 │   └── [Sub-cause B1]
-└── [Possible Cause C] ← [Most likely]
+└── [Possible Cause C] <- [Most likely]
 ```
 
 ### Root Cause Category

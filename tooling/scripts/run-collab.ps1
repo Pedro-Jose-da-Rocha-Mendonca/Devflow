@@ -242,10 +242,10 @@ $exitCode = $LASTEXITCODE
 if ($exitCode -eq 0) {
     Write-Host ""
     Write-ColorOutput "════════════════════════════════════════════════════════════" -Color Green
-    Write-ColorOutput "✅ Collaboration complete!" -Color Green
+    Write-ColorOutput " Collaboration complete!" -Color Green
 } else {
     Write-Host ""
-    Write-ColorOutput "❌ Failed with exit code: $exitCode" -Color Red
+    Write-ColorOutput " Failed with exit code: $exitCode" -Color Red
 }
 
 exit $exitCode

@@ -354,24 +354,24 @@ create_status_template() {
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Component 1 | ✅ Complete | Working as expected |
-| Component 2 | 🚧 In Progress | 75% complete |
-| Component 3 | ⚪ Not Started | Planned for next week |
+| Component 1 |  Complete | Working as expected |
+| Component 2 |  In Progress | 75% complete |
+| Component 3 |  Not Started | Planned for next week |
 
 ---
 
 ## What's Working
 
-✅ Feature 1 - Fully operational
-✅ Feature 2 - Deployed and tested
-✅ Feature 3 - In production
+ Feature 1 - Fully operational
+ Feature 2 - Deployed and tested
+ Feature 3 - In production
 
 ---
 
 ## What's Not Working
 
-❌ Issue 1 - Description
-⚠️  Issue 2 - Description
+ Issue 1 - Description
+  Issue 2 - Description
 
 ---
 
@@ -379,9 +379,9 @@ create_status_template() {
 
 | Metric | Value | Target | Status |
 |--------|-------|--------|--------|
-| Coverage | 85% | 80% | ✅ |
-| Performance | 200ms | <300ms | ✅ |
-| Bugs | 3 | <5 | ✅ |
+| Coverage | 85% | 80% |  |
+| Performance | 200ms | <300ms |  |
+| Bugs | 3 | <5 |  |
 
 ---
 
@@ -521,7 +521,7 @@ main() {
     # Write file
     echo "$template" > "$output_file"
 
-    echo -e "${GREEN}✅ Created: $output_file${NC}"
+    echo -e "${GREEN} Created: $output_file${NC}"
     echo ""
     echo -e "${BLUE}Next steps:${NC}"
     echo "  1. Edit the document: $output_file"

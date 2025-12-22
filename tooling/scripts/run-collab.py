@@ -218,7 +218,7 @@ def print_banner():
 
 def print_routing_decision(result: RoutingResult, router: AgentRouter):
     """Print the routing decision."""
-    print(f"\n{Colors.BOLD}🎯 Routing Decision{Colors.END}")
+    print(f"\n{Colors.BOLD}Routing Decision{Colors.END}")
     print(router.explain_routing(result))
 
 
@@ -240,13 +240,13 @@ def run_auto_mode(story_key: str, task: str, args: argparse.Namespace):
 
     # Decide execution mode based on routing
     if result.workflow == "swarm":
-        print(f"\n{Colors.YELLOW}→ Using swarm mode for multi-agent collaboration{Colors.END}")
+        print(f"\n{Colors.YELLOW}-> Using swarm mode for multi-agent collaboration{Colors.END}")
         return run_swarm_mode(story_key, task, result.agents, args)
     elif result.workflow == "pair":
-        print(f"\n{Colors.YELLOW}→ Using pair programming mode{Colors.END}")
+        print(f"\n{Colors.YELLOW}-> Using pair programming mode{Colors.END}")
         return run_pair_mode(story_key, task, args)
     else:
-        print(f"\n{Colors.YELLOW}→ Using sequential execution{Colors.END}")
+        print(f"\n{Colors.YELLOW}-> Using sequential execution{Colors.END}")
         return run_sequential_mode(story_key, task, result.agents, args)
 
 
@@ -299,7 +299,7 @@ def run_pair_mode(story_key: str, task: str, args: argparse.Namespace):
 
 def run_sequential_mode(story_key: str, task: str, agents: list[str], args: argparse.Namespace):
     """Run sequential agent execution with handoffs."""
-    print_section("Sequential Mode", f"Pipeline: {' → '.join(agents)}")
+    print_section("Sequential Mode", f"Pipeline: {' -> '.join(agents)}")
 
     get_shared_memory(story_key)
     get_knowledge_graph(story_key)
@@ -309,7 +309,7 @@ def run_sequential_mode(story_key: str, task: str, agents: list[str], args: argp
     previous_output = ""
 
     for i, agent in enumerate(agents):
-        print(f"\n{Colors.CYAN}▶ Running {agent}...{Colors.END}")
+        print(f"\n{Colors.CYAN}> Running {agent}...{Colors.END}")
 
         # Get context including handoffs
         context = handoff_gen.generate_context_for_agent(agent)
@@ -329,7 +329,7 @@ Complete your part of this task according to your role.
 """
 
         # Invoke agent (simplified - in real use would call Claude CLI)
-        print("  → Generating response...")
+        print("  -> Generating response...")
 
         # For demo, we'll note the handoff
         if i > 0:
@@ -340,7 +340,7 @@ Complete your part of this task according to your role.
                 story_key=story_key,
                 summary=f"Completed {prev_agent} phase, handing off to {agent}",
             )
-            print(f"  → Handoff from {prev_agent}: {handoff.id}")
+            print(f"  -> Handoff from {prev_agent}: {handoff.id}")
 
         # Record in shared memory
         share_learning(
@@ -351,7 +351,7 @@ Complete your part of this task according to your role.
             {"agent": agent, "status": "completed", "timestamp": datetime.now().isoformat()}
         )
 
-    print(f"\n{Colors.GREEN}✅ Sequential pipeline complete!{Colors.END}")
+    print(f"\n{Colors.GREEN} Sequential pipeline complete!{Colors.END}")
 
     # Save result
     save_result(story_key, "sequential", {"agents": agents, "results": results})
@@ -388,7 +388,7 @@ def save_result(story_key: str, mode: str, result: dict):
             ensure_ascii=False,
         )
 
-    print(f"\n{Colors.CYAN}📁 Result saved to: {filepath}{Colors.END}")
+    print(f"\n{Colors.CYAN} Result saved to: {filepath}{Colors.END}")
 
 
 def show_memory(story_key: str):
@@ -586,14 +586,14 @@ def main():
             run_auto_mode(story_key, task, args)
 
         print(f"\n{Colors.GREEN}{'═' * 60}{Colors.END}")
-        print(f"{Colors.GREEN}✅ Collaboration complete!{Colors.END}")
+        print(f"{Colors.GREEN} Collaboration complete!{Colors.END}")
         return 0
 
     except KeyboardInterrupt:
-        print(f"\n{Colors.YELLOW}⚠️ Interrupted by user{Colors.END}")
+        print(f"\n{Colors.YELLOW} Interrupted by user{Colors.END}")
         return 130
     except Exception as e:
-        print(f"\n{Colors.RED}❌ Error: {e}{Colors.END}")
+        print(f"\n{Colors.RED} Error: {e}{Colors.END}")
         if not args.quiet:
             import traceback
 

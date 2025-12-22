@@ -305,7 +305,7 @@ class NativeRunner:
                     print(f"Review phase failed: {output[:200]}")
                     return 1
 
-            print("\n✓ Story automation complete!")
+            print("\n[OK] Story automation complete!")
 
             # Show final costs
             if self.tracker:

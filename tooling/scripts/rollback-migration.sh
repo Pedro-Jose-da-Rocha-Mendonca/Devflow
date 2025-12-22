@@ -48,20 +48,20 @@ print_header() {
 }
 
 error() {
-    echo -e "${RED}✗ ERROR:${NC} $1"
+    echo -e "${RED}[X] ERROR:${NC} $1"
     exit 1
 }
 
 warning() {
-    echo -e "${YELLOW}⚠ WARNING:${NC} $1"
+    echo -e "${YELLOW}WARNING:${NC} $1"
 }
 
 success() {
-    echo -e "${GREEN}✓${NC} $1"
+    echo -e "${GREEN}[OK]${NC} $1"
 }
 
 info() {
-    echo -e "${BLUE}ℹ${NC} $1"
+    echo -e "${BLUE}[i]${NC} $1"
 }
 
 confirm() {

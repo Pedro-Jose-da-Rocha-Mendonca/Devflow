@@ -163,11 +163,11 @@ invoke_sm_story_context() {
     # Show persona switch
     print_persona_banner "SM (Scrum Master)" "Story Context Creation & Planning" "\033[1;33m" "$model"
 
-    echo "▶ Creating story context for: $story_key"
+    echo "> Creating story context for: $story_key"
 
     # Check if story file exists
     if [[ ! -f "$story_file" ]]; then
-        echo "❌ Story file not found: $story_file"
+        echo " Story file not found: $story_file"
         return 1
     fi
 
@@ -218,21 +218,21 @@ invoke_dev_story() {
     # Show persona switch
     print_persona_banner "DEV (Developer)" "Story Implementation & Coding" "\033[1;32m" "$model"
 
-    echo "▶ Implementing story: $story_key"
+    echo "> Implementing story: $story_key"
 
     # Check required files
     if [[ ! -f "$story_file" ]]; then
-        echo "❌ Story file not found: $story_file"
+        echo " Story file not found: $story_file"
         return 1
     fi
 
     if [[ ! -f "$context_file" ]]; then
-        echo "❌ Context file not found: $context_file"
+        echo " Context file not found: $context_file"
         return 1
     fi
 
     # Pre-flight context check
-    echo "📊 Checking context feasibility..."
+    echo " Checking context feasibility..."
     check_context_feasibility "$story_file" "$context_file"
     echo ""
 
@@ -310,10 +310,10 @@ invoke_sm_code_review() {
     # Show persona switch
     print_persona_banner "SM (Scrum Master)" "Code Review & Quality Assurance" "\033[1;35m" "$model"
 
-    echo "▶ Reviewing implementation: $story_key"
+    echo "> Reviewing implementation: $story_key"
 
     if [[ ! -f "$story_file" ]]; then
-        echo "❌ Story file not found: $story_file"
+        echo " Story file not found: $story_file"
         return 1
     fi
 
@@ -392,10 +392,10 @@ invoke_adversarial_review() {
     # Show persona switch
     print_persona_banner "REVIEWER (Adversarial)" "Critical Code Analysis" "\033[1;31m" "$model"
 
-    echo "▶ Running adversarial review: $story_key"
+    echo "> Running adversarial review: $story_key"
 
     if [[ ! -f "$story_file" ]]; then
-        echo "❌ Story file not found: $story_file"
+        echo " Story file not found: $story_file"
         return 1
     fi
 
@@ -451,7 +451,7 @@ invoke_sm_draft_story() {
     # Show persona switch
     print_persona_banner "SM (Scrum Master)" "Story Drafting & Specification" "\033[1;33m" "$model"
 
-    echo "▶ Drafting story: $story_key"
+    echo "> Drafting story: $story_key"
 
     # Extract epic number from story key (e.g., 3-5 -> 3)
     local epic_num=$(echo "$story_key" | cut -d'-' -f1)
@@ -502,7 +502,7 @@ invoke_ba_requirements() {
     # Show persona switch
     print_persona_banner "BA (Business Analyst)" "Requirements Analysis & User Stories" "\033[1;34m" "$model"
 
-    echo "▶ Analyzing requirements for: $feature_name"
+    echo "> Analyzing requirements for: $feature_name"
 
     mkdir -p "$PROJECT_ROOT/docs/requirements"
 
@@ -544,7 +544,7 @@ invoke_architect_design() {
     # Show persona switch
     print_persona_banner "ARCHITECT" "Technical Design & Architecture" "\033[1;36m" "$model"
 
-    echo "▶ Creating technical specification for: $feature_name"
+    echo "> Creating technical specification for: $feature_name"
 
     local prompt="Create a technical specification for: $feature_name
 
@@ -586,7 +586,7 @@ invoke_pm_epic() {
     # Show persona switch
     print_persona_banner "PM (Product Manager)" "Epic Planning & Prioritization" "\033[1;31m" "$model"
 
-    echo "▶ Planning epic: $epic_num"
+    echo "> Planning epic: $epic_num"
 
     local prompt="Plan and refine Epic $epic_num
 
@@ -627,7 +627,7 @@ invoke_writer_docs() {
     # Show persona switch
     print_persona_banner "WRITER (Technical Writer)" "Documentation & Content Creation" "\033[1;37m" "$model"
 
-    echo "▶ Creating documentation: $doc_type for $subject"
+    echo "> Creating documentation: $doc_type for $subject"
 
     local prompt="Create $doc_type documentation for: $subject
 
@@ -670,7 +670,7 @@ execute_workflow_background() {
 
     local log_file="$LOGS_DIR/${story_key}-${workflow_name}.log"
 
-    echo "▶ Starting background workflow: $workflow_name for $story_key"
+    echo "> Starting background workflow: $workflow_name for $story_key"
 
     # Execute in background
     (
@@ -719,16 +719,16 @@ update_story_status() {
     local new_status="$2"
     local sprint_status_file="$PROJECT_ROOT/docs/sprint-status.yaml"
 
-    echo "▶ Updating sprint status: $story_key → $new_status"
+    echo "> Updating sprint status: $story_key -> $new_status"
 
     if [[ ! -f "$sprint_status_file" ]]; then
-        echo "⚠️  Sprint status file not found: $sprint_status_file"
+        echo "  Sprint status file not found: $sprint_status_file"
         return 1
     fi
 
     # Check if story exists in file
     if ! grep -q "^  $story_key:" "$sprint_status_file"; then
-        echo "⚠️  Story $story_key not found in sprint-status.yaml"
+        echo "  Story $story_key not found in sprint-status.yaml"
         return 1
     fi
 
@@ -742,7 +742,7 @@ update_story_status() {
     fi
 
     if [[ $? -eq 0 ]]; then
-        echo "✅ Status updated: $story_key → $new_status"
+        echo " Status updated: $story_key -> $new_status"
 
         # Update the 'updated' timestamp
         local today=$(date +%Y-%m-%d)
@@ -756,7 +756,7 @@ update_story_status() {
 
         return 0
     else
-        echo "❌ Failed to update status"
+        echo " Failed to update status"
         return 1
     fi
 }
@@ -770,13 +770,13 @@ auto_commit_changes() {
     local story_key="$1"
     local story_file="$STORIES_DIR/${story_key}.md"
 
-    echo "▶ Auto-committing changes..."
+    echo "> Auto-committing changes..."
 
     # Check if there are changes to commit
     cd "$PROJECT_ROOT" || return 1
 
     if ! git diff --quiet || ! git diff --cached --quiet || [[ -n $(git ls-files --others --exclude-standard) ]]; then
-        echo "📝 Detected changes to commit"
+        echo " Detected changes to commit"
 
         # Extract story title from story file
         local story_title=""
@@ -796,7 +796,7 @@ Automated implementation via Claude Code CLI
 
 Story: $story_key
 
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+Generated with [Claude Code](https://claude.com/claude-code)
 
 Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 
@@ -804,15 +804,15 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
         git commit -m "$commit_msg"
 
         if [[ $? -eq 0 ]]; then
-            echo "✅ Changes committed successfully"
-            echo "📋 Commit: $(git rev-parse --short HEAD)"
+            echo " Changes committed successfully"
+            echo " Commit: $(git rev-parse --short HEAD)"
             return 0
         else
-            echo "⚠️  Commit failed or no changes to commit"
+            echo "  Commit failed or no changes to commit"
             return 1
         fi
     else
-        echo "ℹ️  No changes to commit"
+        echo "No changes to commit"
         return 0
     fi
 }
@@ -823,13 +823,13 @@ auto_create_pr() {
     local story_file="$STORIES_DIR/${story_key}.md"
     local branch_name="feature/$story_key"
 
-    echo "▶ Creating pull request..."
+    echo "> Creating pull request..."
 
     cd "$PROJECT_ROOT" || return 1
 
     # Check if gh CLI is available
     if ! command -v gh &> /dev/null; then
-        echo "⚠️  GitHub CLI (gh) not found. Skipping PR creation."
+        echo "  GitHub CLI (gh) not found. Skipping PR creation."
         echo "   Install with: brew install gh"
         return 1
     fi
@@ -851,12 +851,12 @@ $(cat "$story_file")
 
 ---
 
-🤖 Auto-generated via Claude Code CLI automation"
+Auto-generated via Claude Code CLI automation"
     else
         pr_title="$story_key implementation"
         pr_body="Story: $story_key
 
-🤖 Auto-generated via Claude Code CLI automation"
+Auto-generated via Claude Code CLI automation"
     fi
 
     # Create PR
@@ -867,10 +867,10 @@ $(cat "$story_file")
         --head "$current_branch" 2>&1
 
     if [[ $? -eq 0 ]]; then
-        echo "✅ Pull request created"
+        echo " Pull request created"
         return 0
     else
-        echo "⚠️  PR creation failed. You can create it manually with:"
+        echo "  PR creation failed. You can create it manually with:"
         echo "   gh pr create --title \"$pr_title\" --base main"
         return 1
     fi
@@ -890,27 +890,27 @@ run_full_pipeline() {
     # Phase 1: Create context if needed
     local context_file="$STORIES_DIR/${story_key}.context.xml"
     if [[ ! -f "$context_file" ]]; then
-        echo "▶ Phase 1: Creating story context..."
+        echo "> Phase 1: Creating story context..."
         invoke_sm_story_context "$story_key"
         if [[ $? -ne 0 ]]; then
-            echo "❌ Context creation failed"
+            echo " Context creation failed"
             return 1
         fi
-        echo "✅ Context created"
+        echo " Context created"
         echo ""
     else
-        echo "✓ Context already exists, skipping..."
+        echo "[OK] Context already exists, skipping..."
         echo ""
     fi
 
     # Phase 2: Development
-    echo "▶ Phase 2: Implementing story..."
+    echo "> Phase 2: Implementing story..."
     invoke_dev_story "$story_key"
     if [[ $? -ne 0 ]]; then
-        echo "❌ Development failed"
+        echo " Development failed"
         return 1
     fi
-    echo "✅ Development complete"
+    echo " Development complete"
     echo ""
 
     # Phase 2.5: Update status to 'review'
@@ -930,13 +930,13 @@ run_full_pipeline() {
     fi
 
     # Phase 3: Code review
-    echo "▶ Phase 3: Code review..."
+    echo "> Phase 3: Code review..."
     invoke_sm_code_review "$story_key"
     if [[ $? -ne 0 ]]; then
-        echo "❌ Code review failed"
+        echo " Code review failed"
         return 1
     fi
-    echo "✅ Code review complete"
+    echo " Code review complete"
     echo ""
 
     # Phase 4: Update status to 'done' (if review passed)
@@ -963,7 +963,7 @@ invoke_bugfix() {
     # Show persona switch
     print_persona_banner "MAINTAINER" "Bug Investigation & Fix" "\033[1;31m" "$model"
 
-    echo "▶ Investigating and fixing bug: $bug_id"
+    echo "> Investigating and fixing bug: $bug_id"
 
     # Build prompt based on whether bug file exists
     local prompt=""
@@ -1030,7 +1030,7 @@ invoke_refactor() {
     # Show persona switch
     print_persona_banner "MAINTAINER" "Code Refactoring & Improvement" "\033[1;35m" "$model"
 
-    echo "▶ Refactoring: $refactor_id"
+    echo "> Refactoring: $refactor_id"
 
     local prompt=""
     if [[ -f "$refactor_file" ]]; then
@@ -1095,7 +1095,7 @@ invoke_investigate() {
     # Show persona switch
     print_persona_banner "MAINTAINER" "Codebase Investigation & Analysis" "\033[1;36m" "$model"
 
-    echo "▶ Investigating: $topic"
+    echo "> Investigating: $topic"
 
     local prompt="INVESTIGATE AND DOCUMENT: $topic
 
@@ -1141,7 +1141,7 @@ invoke_quickfix() {
     # Show persona switch
     print_persona_banner "MAINTAINER" "Quick Fix" "\033[1;33m" "$model"
 
-    echo "▶ Quick fix: $description"
+    echo "> Quick fix: $description"
 
     local prompt="QUICK FIX: $description
 
@@ -1178,7 +1178,7 @@ invoke_migrate() {
     # Show persona switch
     print_persona_banner "MAINTAINER" "Migration & Upgrade" "\033[1;34m" "$model"
 
-    echo "▶ Running migration: $migration_id"
+    echo "> Running migration: $migration_id"
 
     local prompt=""
     if [[ -f "$migration_file" ]]; then
@@ -1238,7 +1238,7 @@ invoke_tech_debt() {
     # Show persona switch
     print_persona_banner "MAINTAINER" "Technical Debt Resolution" "\033[1;35m" "$model"
 
-    echo "▶ Resolving technical debt: $debt_id"
+    echo "> Resolving technical debt: $debt_id"
 
     local prompt=""
     if [[ -f "$debt_file" ]]; then

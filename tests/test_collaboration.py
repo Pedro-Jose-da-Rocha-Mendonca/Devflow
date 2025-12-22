@@ -196,7 +196,7 @@ class TestKnowledgeGraph:
         
         markdown = handoff.to_markdown()
         
-        assert "## Handoff: SM → DEV" in markdown
+        assert "## Handoff: SM -> DEV" in markdown
         assert "Story ready" in markdown
         assert "Implement feature" in markdown
 
@@ -396,7 +396,7 @@ class TestSwarmOrchestrator:
         content = """
         Here's my review:
         - Issue: Missing input validation
-        - ❌ No error handling for edge cases
+        -  No error handling for edge cases
         - Problem: Security vulnerability in auth
         """
         
@@ -411,7 +411,7 @@ class TestSwarmOrchestrator:
         orchestrator = SwarmOrchestrator("test-story")
         content = """
         LGTM! The implementation looks good.
-        ✅ Code quality is excellent
+         Code quality is excellent
         Approved for merge.
         """
         

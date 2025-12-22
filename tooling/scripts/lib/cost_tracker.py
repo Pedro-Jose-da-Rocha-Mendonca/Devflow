@@ -353,7 +353,7 @@ class CostTracker:
                 False,
                 "stop",
                 (
-                    f"🛑 BUDGET EXCEEDED - ${total_cost:.2f} spent of ${self.budget_limit_usd:.2f} limit. "
+                    f" BUDGET EXCEEDED - ${total_cost:.2f} spent of ${self.budget_limit_usd:.2f} limit. "
                     f"Action required: Increase budget or stop operations. "
                     f"Story: {self.story_key}"
                 ),
@@ -363,7 +363,7 @@ class CostTracker:
                 True,
                 "critical",
                 (
-                    f"🔴 CRITICAL: {usage_pct * 100:.0f}% of budget used (${total_cost:.2f}). "
+                    f"CRITICAL: {usage_pct * 100:.0f}% of budget used (${total_cost:.2f}). "
                     f"Only ${remaining:.2f} remaining. Consider wrapping up soon."
                 ),
             )
@@ -372,7 +372,7 @@ class CostTracker:
                 True,
                 "warning",
                 (
-                    f"🟡 WARNING: {usage_pct * 100:.0f}% of budget used (${total_cost:.2f}). "
+                    f"WARNING: {usage_pct * 100:.0f}% of budget used (${total_cost:.2f}). "
                     f"${remaining:.2f} remaining of ${self.budget_limit_usd:.2f} budget."
                 ),
             )
@@ -380,7 +380,7 @@ class CostTracker:
         return (
             True,
             "ok",
-            f"🟢 Budget OK: {usage_pct * 100:.0f}% used (${total_cost:.2f}/${self.budget_limit_usd:.2f})",
+            f"Budget OK: {usage_pct * 100:.0f}% used (${total_cost:.2f}/${self.budget_limit_usd:.2f})",
         )
 
     def get_session_summary(self) -> dict:

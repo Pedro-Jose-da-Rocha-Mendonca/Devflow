@@ -39,7 +39,7 @@ This document defines the standard format, structure, and conventions for all do
 
 ### Examples
 ```
-✅ Good:
+ Good:
 - GUIDE-context-checkpoint.md
 - SPEC-epic-3-goals.md
 - STATUS-checkpoint-integration.md
@@ -47,7 +47,7 @@ This document defines the standard format, structure, and conventions for all do
 - STANDARD-documentation.md
 - EXAMPLE-checkpoint-integration.md
 
-❌ Bad:
+ Bad:
 - context-checkpoint-guide.md
 - epic3spec.md
 - checkpoint_status.md
@@ -215,23 +215,23 @@ Always include header separator:
 Use these emoji conventions:
 
 ```markdown
-⚠️  **WARNING**: Important warning
+  **WARNING**: Important warning
 
-💡 **TIP**: Helpful tip
+ **TIP**: Helpful tip
 
-📝 **NOTE**: Additional information
+ **NOTE**: Additional information
 
-🚨 **CRITICAL**: Critical information
+ **CRITICAL**: Critical information
 
-✅ **SUCCESS**: Successful outcome
+ **SUCCESS**: Successful outcome
 
-❌ **ERROR**: Error or failure
+ **ERROR**: Error or failure
 
-🎯 **GOAL**: Objective or target
+**GOAL**: Objective or target
 
-📊 **DATA**: Data or statistics
+ **DATA**: Data or statistics
 
-🔧 **TECHNICAL**: Technical details
+ **TECHNICAL**: Technical details
 ```
 
 ---
@@ -265,8 +265,8 @@ Always include:
 
 **Expected Output**:
 ```
-[09:04:45] 💾 Creating checkpoint: checkpoint_20251220_090445_1
-[09:04:45] ✅ Checkpoint saved: checkpoint_20251220_090445_1.json
+[09:04:45]  Creating checkpoint: checkpoint_20251220_090445_1
+[09:04:45]  Checkpoint saved: checkpoint_20251220_090445_1.json
 ```
 ````
 
@@ -372,7 +372,7 @@ Format: `MAJOR.MINOR`
 - **MAJOR**: Significant restructuring or breaking changes
 - **MINOR**: Content updates, additions, clarifications
 
-Example: `1.0` → `1.1` → `2.0`
+Example: `1.0` -> `1.1` -> `2.0`
 
 ### Changelog
 
@@ -530,7 +530,7 @@ Check document compliance:
 
 ### Good Documentation
 
-✅ Clear title and metadata:
+ Clear title and metadata:
 ```markdown
 # Context Checkpoint User Guide
 
@@ -541,7 +541,7 @@ Check document compliance:
 **Status**: Active
 ```
 
-✅ Scannable sections:
+ Scannable sections:
 ```markdown
 ## Quick Start
 
@@ -556,7 +556,7 @@ python3 tooling/scripts/context_checkpoint.py --watch-log <file>
 ```
 ```
 
-✅ Complete examples:
+ Complete examples:
 ```markdown
 ### Example: Resume from Checkpoint
 
@@ -576,21 +576,21 @@ python3 tooling/scripts/context_checkpoint.py --watch-log <file>
 
 ### Bad Documentation
 
-❌ Unclear title:
+ Unclear title:
 ```markdown
 # Checkpoint Stuff
 
 Some information about checkpoints...
 ```
 
-❌ Missing metadata:
+ Missing metadata:
 ```markdown
 # My Guide
 
 Here's how to do stuff...
 ```
 
-❌ Incomplete examples:
+ Incomplete examples:
 ```markdown
 Just run this:
 ```bash
@@ -598,7 +598,7 @@ Just run this:
 ```
 ```
 
-❌ Poor formatting:
+ Poor formatting:
 ```markdown
 You can run script.sh or use the checkpoint command to create a checkpoint or list them using --list flag...
 ```

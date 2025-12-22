@@ -181,7 +181,7 @@ You are running in an automated pipeline with limited context window. To avoid l
 
 If you sense context is running low, output a warning:
 ```
-⚠️ CONTEXT WARNING: Approaching context limit. Prioritizing completion of current task.
+ CONTEXT WARNING: Approaching context limit. Prioritizing completion of current task.
 ```
 
 EOF
@@ -255,7 +255,7 @@ list_personas() {
             
             local has_override=" "
             if [[ -f "$OVERRIDES_DIR/${name}.override.yaml" ]]; then
-                has_override="✓"
+                has_override="[OK]"
             fi
             
             printf "  ${GREEN}%-15s${NC} │ %-25s │ %s\n" "$name" "$role" "$has_override"
@@ -296,7 +296,7 @@ create_from_template() {
     local agent_file=$(generate_agent_file "$name" "$role" "$focus" "$model" "${responsibilities[@]}")
     local override_file=$(generate_override_file "$name")
     
-    echo -e "${GREEN}✓ Persona created from template!${NC}"
+    echo -e "${GREEN}[OK] Persona created from template!${NC}"
     echo ""
     echo "  Agent file:    $agent_file"
     [[ -n "$override_file" ]] && echo "  Override file: $override_file"
@@ -369,7 +369,7 @@ interactive_create() {
     local override_file=$(generate_override_file "$name")
     
     echo ""
-    echo -e "${GREEN}✓ Persona created successfully!${NC}"
+    echo -e "${GREEN}[OK] Persona created successfully!${NC}"
     echo ""
     echo "  Agent file:    $agent_file"
     [[ -n "$override_file" ]] && echo "  Override file: $override_file"

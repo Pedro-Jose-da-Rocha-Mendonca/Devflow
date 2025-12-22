@@ -441,7 +441,7 @@ def generate_persona_markdown(config: PersonaConfig) -> str:
             "",
             "If you sense context is running low, output a warning:",
             "```",
-            "⚠️ CONTEXT WARNING: Approaching context limit. Prioritizing completion of current task.",
+            " CONTEXT WARNING: Approaching context limit. Prioritizing completion of current task.",
             "```",
             "",
         ]
@@ -549,7 +549,7 @@ def list_personas(project_root: Path):
         override_file = (
             project_root / "tooling" / ".automation" / "overrides" / f"{name}.override.yaml"
         )
-        has_override = "✓" if override_file.exists() else " "
+        has_override = "[OK]" if override_file.exists() else " "
 
         print(f"  {Colors.GREEN}{name:15}{Colors.NC} │ {role:25} │ Override: {has_override}")
 
@@ -561,7 +561,7 @@ def validate_persona(name: str, project_root: Path) -> bool:
     agent_file = project_root / "tooling" / ".automation" / "agents" / f"{name}.md"
 
     if not agent_file.exists():
-        print(f"{Colors.RED}✗ Agent file not found: {agent_file}{Colors.NC}")
+        print(f"{Colors.RED}[X] Agent file not found: {agent_file}{Colors.NC}")
         return False
 
     print(f"{Colors.BOLD}Validating persona: {name}{Colors.NC}")
@@ -587,13 +587,13 @@ def validate_persona(name: str, project_root: Path) -> bool:
 
     # Print results
     for error in errors:
-        print(f"  {Colors.RED}✗ ERROR:{Colors.NC} {error}")
+        print(f"  {Colors.RED}[ERROR]{Colors.NC} {error}")
 
     for warning in warnings:
-        print(f"  {Colors.YELLOW}⚠ WARNING:{Colors.NC} {warning}")
+        print(f"  {Colors.YELLOW}[WARNING]{Colors.NC} {warning}")
 
     if not errors and not warnings:
-        print(f"  {Colors.GREEN}✓ Persona is valid!{Colors.NC}")
+        print(f"  {Colors.GREEN}[OK] Persona is valid!{Colors.NC}")
 
     print()
     return len(errors) == 0
@@ -674,7 +674,7 @@ def main():
     print()
     agent_file, override_file = save_persona(config, project_root)
 
-    print(f"{Colors.GREEN}✓ Persona created successfully!{Colors.NC}")
+    print(f"{Colors.GREEN}[OK] Persona created successfully!{Colors.NC}")
     print()
     print(f"  Agent file:    {agent_file}")
     print(f"  Override file: {override_file}")

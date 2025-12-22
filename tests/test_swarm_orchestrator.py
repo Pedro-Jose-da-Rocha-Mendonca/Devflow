@@ -350,7 +350,7 @@ class TestSwarmOrchestrator:
         content = """
         Here are some issues:
         Issue: Missing error handling
-        ❌ No input validation
+         No input validation
         [ISSUE] Memory leak detected
         - Problem: Race condition
         """
@@ -364,7 +364,7 @@ class TestSwarmOrchestrator:
         
         content = """
         LGTM! This looks good.
-        ✅ Well implemented
+         Well implemented
         [APPROVED] Ready to merge
         """
         approvals = orchestrator._extract_approvals(content)
@@ -376,7 +376,7 @@ class TestSwarmOrchestrator:
         
         content = """
         Suggest: Use async/await
-        💡 Consider caching
+         Consider caching
         [SUGGESTION] Add more tests
         """
         suggestions = orchestrator._extract_suggestions(content)

@@ -370,7 +370,7 @@ def print_dashboard(report: DebtReport, history: list[dict[str, Any]]):
     print()
 
     # Summary box
-    print(f"{Colors.BOLD}📊 SUMMARY{Colors.NC}")
+    print(f"{Colors.BOLD} SUMMARY{Colors.NC}")
     print(f"  ┌{'─' * 40}┐")
     print(f"  │ {'Total Items:':<20} {report.total_count:>17} │")
     print(f"  │ {'Debt Score:':<20} {report.debt_score:>17} │")
@@ -379,7 +379,7 @@ def print_dashboard(report: DebtReport, history: list[dict[str, Any]]):
     print()
 
     # Severity breakdown
-    print(f"{Colors.BOLD}🎯 BY SEVERITY{Colors.NC}")
+    print(f"{Colors.BOLD}BY SEVERITY{Colors.NC}")
     severity_colors = {
         "critical": Colors.RED,
         "high": Colors.YELLOW,
@@ -395,7 +395,7 @@ def print_dashboard(report: DebtReport, history: list[dict[str, Any]]):
     print()
 
     # Category breakdown
-    print(f"{Colors.BOLD}📁 BY CATEGORY{Colors.NC}")
+    print(f"{Colors.BOLD} BY CATEGORY{Colors.NC}")
     for category, count in sorted(report.by_category.items(), key=lambda x: -x[1]):
         bar_length = (
             int((count / max(report.by_category.values())) * 30) if report.by_category else 0
@@ -405,14 +405,14 @@ def print_dashboard(report: DebtReport, history: list[dict[str, Any]]):
     print()
 
     # Type breakdown
-    print(f"{Colors.BOLD}🏷️  BY TYPE{Colors.NC}")
+    print(f"{Colors.BOLD}BY TYPE{Colors.NC}")
     for debt_type, count in sorted(report.by_type.items(), key=lambda x: -x[1]):
         print(f"  {debt_type:>12}: {count}")
     print()
 
     # Trend (if history available)
     if len(history) > 1:
-        print(f"{Colors.BOLD}📈 TREND (last 10 scans){Colors.NC}")
+        print(f"{Colors.BOLD}TREND (last 10 scans){Colors.NC}")
         recent = history[-10:]
         scores = [h.get("score", 0) for h in recent]
         max_score = max(scores) if scores else 1
@@ -428,17 +428,17 @@ def print_dashboard(report: DebtReport, history: list[dict[str, Any]]):
         if len(scores) >= 2:
             change = scores[-1] - scores[-2]
             if change > 0:
-                print(f"\n  {Colors.RED}↑ Score increased by {change} (more debt){Colors.NC}")
+                print(f"\n  {Colors.RED}[UP] Score increased by {change} (more debt){Colors.NC}")
             elif change < 0:
                 print(
-                    f"\n  {Colors.GREEN}↓ Score decreased by {abs(change)} (less debt){Colors.NC}"
+                    f"\n  {Colors.GREEN}[DOWN] Score decreased by {abs(change)} (less debt){Colors.NC}"
                 )
             else:
-                print(f"\n  {Colors.YELLOW}→ Score unchanged{Colors.NC}")
+                print(f"\n  {Colors.YELLOW}-> Score unchanged{Colors.NC}")
         print()
 
     # Top offenders
-    print(f"{Colors.BOLD}🔥 TOP 5 FILES WITH MOST DEBT{Colors.NC}")
+    print(f"{Colors.BOLD}TOP 5 FILES WITH MOST DEBT{Colors.NC}")
     file_counts: dict[str, int] = {}
     for item in report.items:
         file_counts[item.file_path] = file_counts.get(item.file_path, 0) + 1
@@ -469,7 +469,7 @@ def print_report(report: DebtReport):
         by_file[item.file_path].append(item)
 
     for file_path, items in sorted(by_file.items()):
-        print(f"{Colors.BLUE}📄 {file_path}{Colors.NC}")
+        print(f"{Colors.BLUE}{file_path}{Colors.NC}")
         for item in items:
             severity_color = {
                 "critical": Colors.RED,
@@ -485,9 +485,9 @@ def print_report(report: DebtReport):
 
     # Documented debt
     if report.documented_debt:
-        print(f"{Colors.BOLD}📋 DOCUMENTED DEBT{Colors.NC}")
+        print(f"{Colors.BOLD} DOCUMENTED DEBT{Colors.NC}")
         for doc in report.documented_debt:
-            print(f"   📄 {doc['file']}")
+            print(f"   {doc['file']}")
         print()
 
 

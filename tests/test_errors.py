@@ -306,7 +306,7 @@ class TestFormatErrorForUser:
         """Test formatting with verbose mode."""
         error = ValueError("Test error")
         formatted = format_error_for_user(error, verbose=True)
-        assert "Stack Trace" in formatted
+        assert "[STACK TRACE]" in formatted
 
 
 class TestHandleError:
@@ -444,28 +444,28 @@ class TestLoggingHelpers:
         log_info("Test info message")
         captured = capsys.readouterr()
         assert "Test info message" in captured.out
-        assert "ℹ️" in captured.out
+        assert "[INFO]" in captured.out
 
     def test_log_warning(self, capsys):
         """Test log_warning output."""
         log_warning("Test warning message")
         captured = capsys.readouterr()
         assert "Test warning message" in captured.err
-        assert "⚠️" in captured.err
+        assert "[WARNING]" in captured.err
 
     def test_log_error(self, capsys):
         """Test log_error output."""
         log_error("Test error message")
         captured = capsys.readouterr()
         assert "Test error message" in captured.err
-        assert "❌" in captured.err
+        assert "[ERROR]" in captured.err
 
     def test_log_success(self, capsys):
         """Test log_success output."""
         log_success("Test success message")
         captured = capsys.readouterr()
         assert "Test success message" in captured.out
-        assert "✅" in captured.out
+        assert "[OK]" in captured.out
 
     def test_log_debug_verbose_off(self, capsys):
         """Test log_debug with verbose mode off."""

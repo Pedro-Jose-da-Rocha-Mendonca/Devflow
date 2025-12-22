@@ -100,7 +100,7 @@ class CostTrackingError(Exception):
                 parts.append(f"  Agent: {self.context.agent}")
 
         if self.suggestion:
-            parts.append(f"\n  💡 Suggestion: {self.suggestion}")
+            parts.append(f"\n  [TIP] Suggestion: {self.suggestion}")
 
         if self.cause:
             parts.append(f"\n  Caused by: {type(self.cause).__name__}: {self.cause}")
@@ -235,7 +235,7 @@ def format_error_for_user(error: Exception, verbose: bool = False) -> str:
 
     # Header
     lines.append("━" * 60)
-    lines.append("❌ Error Occurred")
+    lines.append("[ERROR] Error Occurred")
     lines.append("━" * 60)
 
     if isinstance(error, CostTrackingError):
@@ -244,7 +244,7 @@ def format_error_for_user(error: Exception, verbose: bool = False) -> str:
         lines.append(f"\n{type(error).__name__}: {error}")
 
     if verbose:
-        lines.append("\n📋 Stack Trace:")
+        lines.append("\n[STACK TRACE]:")
         lines.append(traceback.format_exc())
 
     lines.append("\n" + "━" * 60)
@@ -341,12 +341,12 @@ class ErrorReporter:
         lines = []
 
         if self.errors:
-            lines.append(f"\n❌ {len(self.errors)} Error(s):")
+            lines.append(f"\n[ERROR] {len(self.errors)} Error(s):")
             for i, (error, context) in enumerate(self.errors, 1):
                 lines.append(f"  {i}. [{context}] {error}")
 
         if self.warnings:
-            lines.append(f"\n⚠️  {len(self.warnings)} Warning(s):")
+            lines.append(f"\n[WARNING] {len(self.warnings)} Warning(s):")
             for i, (message, context) in enumerate(self.warnings, 1):
                 lines.append(f"  {i}. [{context}] {message}")
 
@@ -373,22 +373,22 @@ def log_debug(message: str, **kwargs):
 
 def log_info(message: str):
     """Log an info message."""
-    print(f"ℹ️  {message}")
+    print(f"[INFO] {message}")
 
 
 def log_warning(message: str):
     """Log a warning message."""
-    print(f"⚠️  {message}", file=sys.stderr)
+    print(f"[WARNING] {message}", file=sys.stderr)
 
 
 def log_error(message: str):
     """Log an error message."""
-    print(f"❌ {message}", file=sys.stderr)
+    print(f"[ERROR] {message}", file=sys.stderr)
 
 
 def log_success(message: str):
     """Log a success message."""
-    print(f"✅ {message}")
+    print(f"[OK] {message}")
 
 
 # Verbose mode flag

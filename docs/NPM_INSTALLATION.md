@@ -77,8 +77,8 @@ devflow-validate
 
 You should see:
 ```
-✓ Python 3.x.x found (python3)
-✓ Devflow is ready to use!
+[OK] Python 3.x.x found (python3)
+[OK] Devflow is ready to use!
 
 Try: devflow-validate
 ```
@@ -233,7 +233,7 @@ devflow-version --version 1.9.0 # Set specific version
 
 **Error:**
 ```
-✗ Python not found
+[X] Python not found
 ```
 
 **Solution:**
@@ -258,7 +258,7 @@ sudo apt install python3   # Ubuntu/Debian
 
 **Error:**
 ```
-✗ Python 3.8.x found, but 3.9.0+ required
+[X] Python 3.8.x found, but 3.9.0+ required
 ```
 
 **Solution:**

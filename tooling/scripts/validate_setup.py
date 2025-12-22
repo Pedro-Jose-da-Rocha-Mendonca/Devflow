@@ -28,11 +28,11 @@ from typing import Optional
 class CheckStatus(Enum):
     """Status of a validation check."""
 
-    PASS = "✅"
-    FAIL = "❌"
-    WARN = "⚠️"
-    SKIP = "⏭️"
-    INFO = "ℹ️"
+    PASS = "[PASS]"
+    FAIL = "[FAIL]"
+    WARN = "[WARNING]"
+    SKIP = "[SKIP]"
+    INFO = "[INFO]"
 
 
 @dataclass
@@ -443,7 +443,7 @@ class SetupValidator:
 
     def run_all_checks(self) -> bool:
         """Run all validation checks."""
-        print(f"\n{Colors.BOLD}🔍 Devflow Setup Validation{Colors.RESET}\n")
+        print(f"\n{Colors.BOLD}Devflow Setup Validation{Colors.RESET}\n")
         print(f"  Project: {PROJECT_ROOT}")
         print(f"  Python:  {sys.executable}")
         print()
@@ -475,12 +475,12 @@ class SetupValidator:
 
         if failed == 0:
             print(
-                f"\n{Colors.GREEN}{Colors.BOLD}✅ All checks passed! Devflow is ready to use.{Colors.RESET}\n"
+                f"\n{Colors.GREEN}{Colors.BOLD}[OK] All checks passed! Devflow is ready to use.{Colors.RESET}\n"
             )
             return True
         else:
             print(
-                f"\n{Colors.RED}{Colors.BOLD}❌ {failed} check(s) failed. Please fix the issues above.{Colors.RESET}"
+                f"\n{Colors.RED}{Colors.BOLD}[FAIL] {failed} check(s) failed. Please fix the issues above.{Colors.RESET}"
             )
             if not self.fix:
                 print(f"  {Colors.DIM}Run with --fix to auto-fix some issues.{Colors.RESET}\n")

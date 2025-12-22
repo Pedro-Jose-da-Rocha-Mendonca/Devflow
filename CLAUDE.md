@@ -74,3 +74,22 @@ Use conventional commits:
 - `docs:` - Documentation
 - `refactor:` - Code refactoring
 - `chore:` - Maintenance tasks
+
+### No Emojis Policy
+
+**CRITICAL**: This project does NOT use emojis in any code, documentation, or output messages.
+
+- **Do NOT use emojis** in code comments, docstrings, or string literals
+- **Do NOT use emojis** in documentation (README, CONTRIBUTING, etc.)
+- **Do NOT use emojis** in commit messages or changelog entries
+- **Do NOT use emojis** in agent personas or output templates
+- Use text alternatives instead: `[OK]`, `[WARNING]`, `[ERROR]`, `[INFO]`, etc.
+
+Examples of text alternatives:
+- Instead of ✅ use `[OK]` or `[PASS]`
+- Instead of ❌ use `[ERROR]` or `[FAIL]`
+- Instead of ⚠️ use `[WARNING]`
+- Instead of ℹ️ use `[INFO]`
+- Instead of 🔴 use `[CRITICAL]` or `[MUST FIX]`
+- Instead of 🟡 use `[SHOULD FIX]`
+- Instead of 💡 use `[SUGGESTION]` or `[TIP]`

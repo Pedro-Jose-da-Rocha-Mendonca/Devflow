@@ -78,7 +78,7 @@ prompt_yes_no() {
 ################################################################################
 
 detect_project_type() {
-    echo -e "${BLUE}▶ Detecting project type...${NC}"
+    echo -e "${BLUE}> Detecting project type...${NC}"
 
     local project_type="generic"
 
@@ -115,7 +115,7 @@ setup_directory_structure() {
     local project_root="$1"
     local workflow_mode="${2:-both}"  # greenfield, brownfield, or both
 
-    echo -e "${BLUE}▶ Creating directory structure...${NC}"
+    echo -e "${BLUE}> Creating directory structure...${NC}"
 
     # Core directories (always created)
     mkdir -p "$project_root/tooling/.automation/agents"
@@ -141,14 +141,14 @@ setup_directory_structure() {
         echo -e "${BLUE}  Creating brownfield structure...${NC}"
     fi
 
-    echo -e "${GREEN}  ✅ Directories created${NC}"
+    echo -e "${GREEN}   Directories created${NC}"
 }
 
 copy_core_scripts() {
     local project_root="$1"
     local source_dir="$2"
 
-    echo -e "${BLUE}▶ Copying core automation scripts...${NC}"
+    echo -e "${BLUE}> Copying core automation scripts...${NC}"
 
     # Core library scripts
     cp "$source_dir/lib/claude-cli.sh" "$project_root/tooling/scripts/lib/"
@@ -165,7 +165,7 @@ copy_core_scripts() {
     chmod +x "$project_root/tooling/scripts/"*.py
     chmod +x "$project_root/tooling/scripts/lib/"*.sh
 
-    echo -e "${GREEN}  ✅ Scripts copied${NC}"
+    echo -e "${GREEN}   Scripts copied${NC}"
 }
 
 create_config_file() {
@@ -176,7 +176,7 @@ create_config_file() {
     local model_planning="$5"
     local display_currency="${6:-USD}"
 
-    echo -e "${BLUE}▶ Creating configuration file...${NC}"
+    echo -e "${BLUE}> Creating configuration file...${NC}"
 
     cat > "$project_root/tooling/.automation/config.sh" << EOF
 #!/bin/zsh
@@ -227,13 +227,13 @@ EOF
 
     chmod +x "$project_root/tooling/.automation/config.sh"
 
-    echo -e "${GREEN}  ✅ Configuration created${NC}"
+    echo -e "${GREEN}   Configuration created${NC}"
 }
 
 create_agent_personas() {
     local project_root="$1"
 
-    echo -e "${BLUE}▶ Creating agent persona definitions...${NC}"
+    echo -e "${BLUE}> Creating agent persona definitions...${NC}"
 
     # SM (Scrum Master) Agent
     cat > "$project_root/tooling/.automation/agents/sm.md" << 'EOF'
@@ -371,14 +371,14 @@ Brownfield development - working with existing, production code.
 - Clear about risks and tradeoffs
 EOF
 
-    echo -e "${GREEN}  ✅ Agent personas created${NC}"
+    echo -e "${GREEN}   Agent personas created${NC}"
 }
 
 create_sprint_status() {
     local project_root="$1"
     local project_name="$2"
 
-    echo -e "${BLUE}▶ Creating sprint status tracker...${NC}"
+    echo -e "${BLUE}> Creating sprint status tracker...${NC}"
 
     cat > "$project_root/tooling/docs/sprint-status.yaml" << EOF
 # Sprint Status - $project_name
@@ -405,14 +405,14 @@ stories:
   # 1-2-implement-auth: in-progress
 EOF
 
-    echo -e "${GREEN}  ✅ Sprint status created${NC}"
+    echo -e "${GREEN}   Sprint status created${NC}"
 }
 
 create_documentation_standard() {
     local project_root="$1"
     local source_dir="$2"
 
-    echo -e "${BLUE}▶ Creating documentation standard...${NC}"
+    echo -e "${BLUE}> Creating documentation standard...${NC}"
 
     # Copy DOC-STANDARD if it exists, otherwise create basic one
     if [[ -f "$source_dir/../docs/DOC-STANDARD.md" ]]; then
@@ -463,18 +463,18 @@ Brief description of what this document covers.
 EOF
     fi
 
-    echo -e "${GREEN}  ✅ Documentation standard created${NC}"
+    echo -e "${GREEN}   Documentation standard created${NC}"
 }
 
 setup_checkpoint_service() {
     local project_root="$1"
 
-    echo -e "${BLUE}▶ Setting up checkpoint service...${NC}"
+    echo -e "${BLUE}> Setting up checkpoint service...${NC}"
 
     if prompt_yes_no "Install checkpoint service as macOS LaunchAgent?"; then
         cd "$project_root/tooling/scripts"
         ./setup-checkpoint-service.sh
-        echo -e "${GREEN}  ✅ Checkpoint service installed${NC}"
+        echo -e "${GREEN}   Checkpoint service installed${NC}"
     else
         echo -e "${YELLOW}  ⊘ Skipped checkpoint service installation${NC}"
         echo -e "${BLUE}    You can install it later with: ./tooling/scripts/setup-checkpoint-service.sh${NC}"
@@ -485,7 +485,7 @@ create_readme() {
     local project_root="$1"
     local project_name="$2"
 
-    echo -e "${BLUE}▶ Creating workflow README...${NC}"
+    echo -e "${BLUE}> Creating workflow README...${NC}"
 
     cat > "$project_root/tooling/README.md" << EOF
 # $project_name - Development Workflow
@@ -586,7 +586,7 @@ Each persona uses the appropriate Claude model for optimal cost/quality.
 - Checkpoints: \`tooling/.automation/checkpoints/\`
 EOF
 
-    echo -e "${GREEN}  ✅ README created${NC}"
+    echo -e "${GREEN}   README created${NC}"
 }
 
 ################################################################################
@@ -719,7 +719,7 @@ main() {
     # STEP 8: Finalize
     print_step "8" "Setup Complete!"
 
-    echo -e "${GREEN}✅ Workflow initialization complete!${NC}"
+    echo -e "${GREEN} Workflow initialization complete!${NC}"
     echo ""
     echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
     echo -e "${CYAN}  NEXT STEPS${NC}"
@@ -739,7 +739,7 @@ main() {
     echo -e "${YELLOW}4. Read the workflow guide:${NC}"
     echo -e "   ${BLUE}$project_root/tooling/README.md${NC}"
     echo ""
-    echo -e "${GREEN}Happy coding! 🚀${NC}"
+    echo -e "${GREEN}Happy coding! ${NC}"
     echo ""
 }
 

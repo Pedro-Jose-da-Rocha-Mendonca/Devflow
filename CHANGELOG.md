@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Zero npm runtime dependencies - lightweight package (~600KB)
   - Complements existing pip package (both methods work identically)
   - Comprehensive npm installation documentation
-  - Version synchronization script for CHANGELOG → package.json
+  - Version synchronization script for CHANGELOG -> package.json
 
 ## [1.8.0] - 2025-12-22
 

@@ -117,7 +117,7 @@ class HandoffSummary:
     def to_markdown(self) -> str:
         """Convert handoff to markdown format."""
         lines = [
-            f"## Handoff: {self.from_agent} → {self.to_agent}",
+            f"## Handoff: {self.from_agent} -> {self.to_agent}",
             "",
             f"**Story**: {self.story_key}",
             f"**Time**: {self.timestamp}",
@@ -136,11 +136,11 @@ class HandoffSummary:
         if self.blockers_resolved:
             lines.append("### Blockers Resolved")
             for blocker in self.blockers_resolved:
-                lines.append(f"- ✅ {blocker}")
+                lines.append(f"-  {blocker}")
             lines.append("")
 
         if self.watch_out_for:
-            lines.append("### ⚠️ Watch Out For")
+            lines.append("###  Watch Out For")
             for warning in self.watch_out_for:
                 lines.append(f"- {warning}")
             lines.append("")
@@ -516,7 +516,7 @@ class KnowledgeGraph:
             lines.append("### Recent Handoffs")
             for handoff in self.handoffs[-5:]:
                 lines.append(
-                    f"- {handoff.from_agent} → {handoff.to_agent}: {handoff.summary[:100]}..."
+                    f"- {handoff.from_agent} -> {handoff.to_agent}: {handoff.summary[:100]}..."
                 )
             lines.append("")
 

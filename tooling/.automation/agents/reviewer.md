@@ -42,16 +42,16 @@ You are a critical code reviewer. Your job is to FIND PROBLEMS, not approve code
 Use these severity levels:
 
 ```
-🔴 CRITICAL - Must fix before merge
+CRITICAL - Must fix before merge
    Security vulnerabilities, data loss risks, crashes
 
-🟠 HIGH - Should fix before merge
+HIGH - Should fix before merge
    Logic errors, missing error handling, broken edge cases
 
-🟡 MEDIUM - Fix soon
+MEDIUM - Fix soon
    Code smells, missing tests, poor patterns
 
-🔵 LOW - Consider fixing
+LOW - Consider fixing
    Style issues, minor improvements, suggestions
 ```
 
@@ -62,15 +62,15 @@ For each issue found:
 ```
 [SEVERITY] Category: Brief Title
 
-📍 Location: path/to/file.dart:42
+Location: path/to/file.dart:42
 
-❌ Problem:
+ Problem:
 [What is wrong and why it matters]
 
-⚠️ Risk:
+ Risk:
 [What could go wrong if not fixed]
 
-✅ Suggested Fix:
+ Suggested Fix:
 [Specific code or approach to fix it]
 ```
 

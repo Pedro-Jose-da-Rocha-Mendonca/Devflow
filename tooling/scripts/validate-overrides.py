@@ -369,19 +369,19 @@ def print_result(result: ValidationResult, verbose: bool = False):
     print(f"{Colors.BLUE}Validating:{Colors.NC} {os.path.basename(result.file_path)}")
 
     for error in result.errors:
-        print(f"{Colors.RED}  ✗ ERROR:{Colors.NC} {error}")
+        print(f"{Colors.RED}  [X] ERROR:{Colors.NC} {error}")
 
     for warning in result.warnings:
-        print(f"{Colors.YELLOW}  ⚠ WARNING:{Colors.NC} {warning}")
+        print(f"{Colors.YELLOW}  WARNING:{Colors.NC} {warning}")
 
     if verbose:
         for info in result.info:
-            print(f"{Colors.GREEN}  ✓{Colors.NC} {info}")
+            print(f"{Colors.GREEN}  [OK]{Colors.NC} {info}")
     else:
         # Show success messages only for key validations
         for info in result.info:
             if any(key in info for key in ["syntax is valid", "override is valid", "defined:"]):
-                print(f"{Colors.GREEN}  ✓{Colors.NC} {info}")
+                print(f"{Colors.GREEN}  [OK]{Colors.NC} {info}")
 
 
 def main():
@@ -429,7 +429,7 @@ def main():
             if not args.json:
                 print(f"\n{Colors.YELLOW}Auto-fixing:{Colors.NC} {file_path.name}")
                 for fix in fixes:
-                    print(f"{Colors.GREEN}  ✓{Colors.NC} {fix}")
+                    print(f"{Colors.GREEN}  [OK]{Colors.NC} {fix}")
 
         result = validate_override_file(file_path, agents_dir, args.verbose)
         results.append(result)
@@ -444,7 +444,7 @@ def main():
                 if not args.json:
                     print(f"\n{Colors.YELLOW}Auto-fixing:{Colors.NC} {profile_path.name}")
                     for fix in fixes:
-                        print(f"{Colors.GREEN}  ✓{Colors.NC} {fix}")
+                        print(f"{Colors.GREEN}  [OK]{Colors.NC} {fix}")
 
             result = validate_user_profile(profile_path, args.verbose)
             results.append(result)
@@ -456,7 +456,7 @@ def main():
                 if not args.json:
                     print(f"\n{Colors.YELLOW}Auto-fixing:{Colors.NC} {file_path.name}")
                     for fix in fixes:
-                        print(f"{Colors.GREEN}  ✓{Colors.NC} {fix}")
+                        print(f"{Colors.GREEN}  [OK]{Colors.NC} {fix}")
 
             result = validate_override_file(file_path, agents_dir, args.verbose)
             results.append(result)
@@ -497,14 +497,14 @@ def main():
         print()
 
         if total_errors > 0:
-            print(f"{Colors.RED}❌ Validation failed with {total_errors} error(s){Colors.NC}")
+            print(f"{Colors.RED} Validation failed with {total_errors} error(s){Colors.NC}")
             sys.exit(1)
         elif total_warnings > 0:
             print(
-                f"{Colors.YELLOW}⚠️  Validation passed with {total_warnings} warning(s){Colors.NC}"
+                f"{Colors.YELLOW}  Validation passed with {total_warnings} warning(s){Colors.NC}"
             )
         else:
-            print(f"{Colors.GREEN}✅ All validations passed!{Colors.NC}")
+            print(f"{Colors.GREEN} All validations passed!{Colors.NC}")
 
 
 if __name__ == "__main__":
