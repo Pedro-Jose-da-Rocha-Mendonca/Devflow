@@ -500,9 +500,7 @@ def main():
             print(f"{Colors.RED} Validation failed with {total_errors} error(s){Colors.NC}")
             sys.exit(1)
         elif total_warnings > 0:
-            print(
-                f"{Colors.YELLOW}  Validation passed with {total_warnings} warning(s){Colors.NC}"
-            )
+            print(f"{Colors.YELLOW}  Validation passed with {total_warnings} warning(s){Colors.NC}")
         else:
             print(f"{Colors.GREEN} All validations passed!{Colors.NC}")
 

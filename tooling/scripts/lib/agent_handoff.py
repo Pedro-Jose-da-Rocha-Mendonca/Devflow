@@ -452,9 +452,7 @@ class WorkTracker:
 
         # Separate resolved and unresolved blockers
         resolved = [
-            b.replace(" ", "").replace(" (resolved)", "")
-            for b in self.blockers
-            if b.startswith("")
+            b.replace(" ", "").replace(" (resolved)", "") for b in self.blockers if b.startswith("")
         ]
 
         return generator.generate(
