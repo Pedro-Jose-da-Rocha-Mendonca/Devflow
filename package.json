@@ -1,0 +1,64 @@
+{
+  "name": "devflow",
+  "version": "1.9.0",
+  "description": "Development workflow automation with Claude Code - agent-based development system with cost tracking",
+  "keywords": [
+    "devflow",
+    "claude",
+    "ai",
+    "automation",
+    "workflow",
+    "cost-tracking",
+    "cli"
+  ],
+  "homepage": "https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow#readme",
+  "bugs": {
+    "url": "https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Pedro Jose da Rocha Mendonca"
+  },
+  "bin": {
+    "devflow-cost": "./bin/devflow-cost.js",
+    "devflow-validate": "./bin/devflow-validate.js",
+    "devflow-story": "./bin/devflow-story.js",
+    "devflow-checkpoint": "./bin/devflow-checkpoint.js",
+    "devflow-memory": "./bin/devflow-memory.js",
+    "devflow-collab": "./bin/devflow-collab.js",
+    "devflow-create-persona": "./bin/devflow-create-persona.js",
+    "devflow-personalize": "./bin/devflow-personalize.js",
+    "devflow-validate-overrides": "./bin/devflow-validate-overrides.js",
+    "devflow-new-doc": "./bin/devflow-new-doc.js",
+    "devflow-tech-debt": "./bin/devflow-tech-debt.js",
+    "devflow-setup-checkpoint": "./bin/devflow-setup-checkpoint.js",
+    "devflow-init": "./bin/devflow-init.js",
+    "devflow-version": "./bin/devflow-version.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "tooling/",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "postinstall": "node lib/python-check.js",
+    "test": "node lib/python-check.js --silent && bash test/integration.sh",
+    "prepublishOnly": "node scripts/sync-version.js"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ]
+}

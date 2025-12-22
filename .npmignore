@@ -1,0 +1,69 @@
+# Git and GitHub
+.git/
+.github/
+.githooks/
+.gitignore
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Tests
+tests/
+test/
+pytest.ini
+.coverage
+htmlcov/
+.tox/
+
+# Development files
+pyproject.toml
+requirements*.txt
+setup.py
+setup.cfg
+
+# User data and runtime artifacts
+tooling/.automation/costs/
+tooling/.automation/memory/*.memory.md
+tooling/.automation/config.sh
+tooling/.automation/config.ps1
+*.log
+*.pid
+
+# Documentation build
+site/
+docs/_build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude plans
+.claude/plans/
+
+# Misc
+*.bak
+*.tmp
+*.temp

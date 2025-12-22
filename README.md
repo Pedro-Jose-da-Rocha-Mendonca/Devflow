@@ -42,9 +42,42 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 - Git for Windows
 - PowerShell 5.1+ (included with Windows 10/11)
 
-### Installation (macOS/Linux)
+### Installation
 
-**Option 1: Clone and Setup (Recommended)**
+**Option 1: npm (Easiest - All Platforms)**
+
+```bash
+# Install globally via npm
+npm install -g devflow
+
+# Verify installation
+devflow-validate
+
+# Start using
+devflow-init
+```
+
+**Requirements:** Python 3.9+ and Node.js 14+
+
+See [NPM Installation Guide](docs/NPM_INSTALLATION.md) for detailed instructions and troubleshooting.
+
+**Option 2: pip (Python Ecosystem)**
+
+```bash
+# Clone the repository
+git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow.git
+cd Devflow
+
+# Install via pip
+pip install .
+
+# Verify installation
+devflow-validate
+```
+
+**Option 3: Manual Installation (macOS/Linux)**
+
+Clone and Setup (Recommended):
 
 ```bash
 # Clone this repository
@@ -59,7 +92,7 @@ cd /path/to/your/project/tooling/scripts
 ./init-project-workflow.sh
 ```
 
-**Option 2: Direct Copy**
+Direct Copy:
 
 ```bash
 # Download latest release
@@ -74,9 +107,9 @@ cp config.sh.template config.sh
 vim config.sh
 ```
 
-### Installation (Windows)
+**Option 4: Manual Installation (Windows)**
 
-**Option 1: Clone and Setup (Recommended)**
+Clone and Setup (Recommended):
 
 ```powershell
 # Clone this repository
@@ -94,7 +127,7 @@ cd C:\path\to\your\project\tooling\scripts
 .\init-project-workflow.ps1
 ```
 
-**Option 2: Direct Copy**
+Direct Copy:
 
 ```powershell
 # Download latest release
@@ -581,7 +614,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.8.0
+**Version**: 1.9.0
 **Status**: Production Ready
 **Last Updated**: 2025-12-22
 <!-- VERSION_END -->

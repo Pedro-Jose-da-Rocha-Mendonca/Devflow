@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2025-12-22
+
+### Added
+- **npm Package Distribution** - Complete npm package for all CLI commands
+  - Cross-platform Node.js wrapper for Python scripts (Windows/macOS/Linux)
+  - Automatic Python 3.9+ detection and validation during installation
+  - All 14 CLI commands exposed via npm: `devflow-cost`, `devflow-validate`, `devflow-story`, `devflow-checkpoint`, `devflow-memory`, `devflow-collab`, `devflow-create-persona`, `devflow-personalize`, `devflow-validate-overrides`, `devflow-new-doc`, `devflow-tech-debt`, `devflow-setup-checkpoint`, `devflow-init`, `devflow-version`
+  - Zero npm runtime dependencies - lightweight package (~600KB)
+  - Complements existing pip package (both methods work identically)
+  - Comprehensive npm installation documentation
+  - Version synchronization script for CHANGELOG → package.json
+
 ## [1.8.0] - 2025-12-22
 
 ### Added
