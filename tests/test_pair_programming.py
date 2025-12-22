@@ -389,13 +389,11 @@ class TestPairSession:
     def mock_dependencies(self):
         """Mock external dependencies."""
         with patch('lib.pair_programming.get_shared_memory') as mock_sm, \
-             patch('lib.pair_programming.get_knowledge_graph') as mock_kg, \
-             patch('lib.pair_programming.HandoffGenerator') as mock_hg:
-            
+             patch('lib.pair_programming.get_knowledge_graph') as mock_kg:
+
             mock_sm.return_value = MagicMock()
             mock_kg.return_value = MagicMock()
-            mock_hg.return_value = MagicMock()
-            
+
             yield {
                 'shared_memory': mock_sm,
                 'knowledge_graph': mock_kg,

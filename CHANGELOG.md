@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fixed `raise ... from err` patterns (B904) for proper exception chaining
   - Moved module-level imports to top of files (E402)
   - Renamed unused loop variables to underscore prefix (B007)
+- **Test Fixes** - Updated `test_pair_programming.py` mock fixture to match refactored imports
 
 ### Changed
 - Lowered test coverage threshold from 80% to 75% to account for new modules
