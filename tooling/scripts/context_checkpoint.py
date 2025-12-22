@@ -23,7 +23,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Dict
 
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -153,7 +153,7 @@ class ContextCheckpointManager:
 
         latest_log = log_files[0]
         try:
-            with open(latest_log, 'r') as f:
+            with open(latest_log) as f:
                 content = f.read()
                 return {
                     "messages": [{"role": "system", "content": content}],
@@ -301,7 +301,7 @@ After checkpoint, the session should be cleared and restarted with:
         self._log(f"📂 Loading checkpoint: {checkpoint_id}", "INFO")
 
         try:
-            with open(checkpoint_file, 'r') as f:
+            with open(checkpoint_file) as f:
                 checkpoint_data = json.load(f)
 
             # Create resume prompt
@@ -385,7 +385,7 @@ Ready to continue!
         self._log(f"👀 Watching log file: {log_file}", "INFO")
 
         try:
-            with open(log_file, 'r') as f:
+            with open(log_file) as f:
                 # Seek to end of file
                 f.seek(0, 2)
 
@@ -482,7 +482,7 @@ Ready to continue!
 
         print(f"\n{Colors.BOLD}Available Checkpoints:{Colors.END}")
         for cp_file in checkpoints:
-            with open(cp_file, 'r') as f:
+            with open(cp_file) as f:
                 data = json.load(f)
                 timestamp = data['timestamp']
                 context = data['context_level'] * 100

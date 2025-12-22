@@ -14,12 +14,12 @@ Usage:
 """
 
 import argparse
-import sys
-import json
 import csv
-from datetime import datetime, timedelta
+import json
+import sys
+from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Dict
+from typing import Optional
 
 # Add lib directory for imports
 sys.path.insert(0, str(Path(__file__).parent / "lib"))
