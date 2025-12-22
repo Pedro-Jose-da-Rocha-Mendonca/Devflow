@@ -19,6 +19,10 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 - **Agent Personalization** - Agent overrides and persistent agent memory
 - **Claude Code Integration** - Native slash commands (`/story`, `/swarm`, `/pair`, `/route`, etc.)
 - **Multi-Agent Collaboration** - Swarm mode, pair programming, and auto-routing
+- **Knowledge Graph** - Queryable database of all architectural decisions and design choices
+- **Shared Memory** - Cross-agent memory pool for context sharing and learnings
+- **Agent Handoff System** - Structured context preservation between agent transitions
+- **Multi-Currency Cost Tracking** - Customizable currency display with budget controls and alerts
 - **Project Agnostic** - Works with Flutter, Node.js, Python, Rust, Go, Ruby, etc.
 - **Guided Setup** - Interactive wizard guides you through installation
 
@@ -178,9 +182,123 @@ Devflow provides native slash commands for Claude Code:
 /memory 3-5 --query "auth decisions" # Query knowledge graph
 ```
 
-## 🤖 Multi-Agent Collaboration
+## 🧠 Knowledge Graph & Shared Memory
 
-Devflow supports advanced multi-agent collaboration modes:
+Devflow features a sophisticated memory system that enables agents to share context, track decisions, and maintain institutional knowledge across the entire development workflow.
+
+### Knowledge Graph
+
+The Knowledge Graph is a queryable database of all architectural decisions, design choices, and key learnings made during development.
+
+**Features:**
+- **Decision Tracking** - All major decisions are recorded with context, rationale, and timestamps
+- **Semantic Queries** - Ask natural language questions about past decisions
+- **Decision Supersession** - Track when decisions are updated or replaced
+- **Agent Attribution** - Know which agent made each decision
+
+```bash
+# Query the knowledge graph
+python tooling/scripts/run-collab.py 3-5 --query "What authentication approach was decided?"
+
+# View all decisions for a story
+python tooling/scripts/run-collab.py 3-5 --decisions
+
+# Add a decision programmatically
+python -c "
+from tooling.scripts.lib.shared_memory import get_knowledge_graph
+kg = get_knowledge_graph('3-5')
+kg.add_decision('ARCHITECT', 'auth-approach', 'Use JWT with refresh tokens',
+                context={'reason': 'Stateless, scalable'})
+"
+```
+
+**Decision Structure:**
+- `id` - Unique identifier
+- `topic` - Decision category (e.g., "auth-approach", "database-choice")
+- `decision` - The actual decision text
+- `context` - Supporting rationale and metadata
+- `status` - active, superseded, or revoked
+
+### Shared Memory Pool
+
+The Shared Memory system allows all agents to contribute and access shared context, learnings, and notes throughout the workflow.
+
+**Features:**
+- **Cross-Agent Sharing** - Any agent can add entries, all agents can read
+- **Tagging System** - Organize entries with searchable tags
+- **References** - Link related memory entries together
+- **Persistent Storage** - Memory persists across sessions
+
+```bash
+# View shared memory for a story
+python tooling/scripts/run-collab.py 3-5 --memory
+
+# Search memory entries
+python tooling/scripts/run-collab.py 3-5 --memory --search "database"
+
+# Add to shared memory programmatically
+python -c "
+from tooling.scripts.lib.shared_memory import get_shared_memory
+memory = get_shared_memory('3-5')
+memory.add('DEV', 'Decided to use PostgreSQL for user data', tags=['database', 'decision'])
+"
+```
+
+**Memory Entry Structure:**
+- `agent` - Which agent contributed the entry
+- `content` - The actual memory content
+- `tags` - Searchable categorization tags
+- `references` - Links to related entries
+
+## 🤝 Agent Handoff System
+
+The Agent Handoff System ensures seamless transitions between agents with structured context preservation. When one agent finishes their work, a comprehensive handoff summary is automatically generated for the next agent.
+
+**Features:**
+- **Automatic Context Extraction** - Key decisions, files changed, and blockers are auto-detected
+- **Git Diff Analysis** - Changed files are analyzed and summarized
+- **Warning/Blocker Identification** - Critical issues are highlighted for the next agent
+- **Structured Templates** - Each agent transition has specific focus areas
+
+```bash
+# View handoff summaries between agents
+python tooling/scripts/run-collab.py 3-5 --handoffs
+
+# Generate a manual handoff
+python -c "
+from tooling.scripts.lib.agent_handoff import create_handoff
+handoff = create_handoff(
+    story_key='3-5',
+    from_agent='SM',
+    to_agent='DEV',
+    work_summary='Created story context with all acceptance criteria'
+)
+print(handoff)
+"
+```
+
+**Handoff Contents:**
+- **Summary** - What was accomplished
+- **Key Decisions** - Important choices made
+- **Blockers Resolved** - Issues that were addressed
+- **Watch Out For** - Warnings and concerns
+- **Files Modified** - List of changed files
+- **Next Steps** - Recommended actions for the next agent
+
+**Standard Handoff Transitions:**
+
+| From | To | Focus Areas |
+|------|-----|-------------|
+| SM → DEV | Acceptance criteria, technical context, patterns to follow |
+| SM → ARCHITECT | High-level requirements, system constraints, scale requirements |
+| ARCHITECT → DEV | Architecture decisions, design patterns, interface definitions |
+| DEV → REVIEWER | Implementation approach, key decisions, test coverage |
+| REVIEWER → DEV | Issues found, required changes, approval status |
+| BA → DEV | Refined requirements, acceptance criteria, edge cases |
+
+## 🐝 Multi-Agent Collaboration
+
+Devflow supports advanced multi-agent collaboration modes for complex development tasks.
 
 ### Swarm Mode (Multi-Agent Debate)
 
@@ -195,7 +313,25 @@ Multiple agents work together, debating and iterating until consensus:
 
 # Control iterations
 ./run-story.sh 3-5 --swarm --max-iter 5
+
+# Set budget limits
+./run-story.sh 3-5 --swarm --budget 20.00
 ```
+
+**Swarm Configuration Options:**
+- `max_iterations` - Maximum debate rounds (default: 3)
+- `consensus_type` - unanimous, majority, quorum, or reviewer_approval
+- `parallel_execution` - Run independent agents simultaneously
+- `auto_fix_enabled` - DEV automatically addresses REVIEWER issues
+- `budget_limit_usd` - Maximum cost for the swarm session
+
+**Consensus Types:**
+| Type | Description |
+|------|-------------|
+| `unanimous` | All agents must agree |
+| `majority` | >50% of agents agree |
+| `quorum` | N of M agents agree |
+| `reviewer_approval` | REVIEWER must approve (default) |
 
 **How it works:**
 1. All agents analyze the task
@@ -234,27 +370,48 @@ Let Devflow automatically select the best agents:
 - Considers file types and complexity
 - Routes to appropriate specialists (e.g., security → SECURITY agent)
 
-### Shared Memory & Knowledge Graph
+## 💰 Cost Tracking & Currency Configuration
 
-Agents now share context and learnings:
+Devflow includes a comprehensive cost tracking system with multi-currency support and budget controls.
 
+### Currency Selection
+
+During setup, the initialization wizard prompts you to select your preferred currency for cost display. Supported currencies include:
+
+| Currency | Symbol | Name |
+|----------|--------|------|
+| USD | $ | US Dollar |
+| EUR | € | Euro |
+| GBP | £ | British Pound |
+| BRL | R$ | Brazilian Real |
+| CAD | C$ | Canadian Dollar |
+| AUD | A$ | Australian Dollar |
+| JPY | ¥ | Japanese Yen |
+| CNY | ¥ | Chinese Yuan |
+| INR | ₹ | Indian Rupee |
+| MXN | $ | Mexican Peso |
+
+**Setting currency in setup wizard:**
 ```bash
-# View shared memory for a story
-python tooling/scripts/run-collab.py 3-5 --memory
-
-# Query the knowledge graph
-python tooling/scripts/run-collab.py 3-5 --query "What did ARCHITECT decide about auth?"
+./init-project-workflow.sh
+# or
+.\init-project-workflow.ps1
 ```
 
-**Features:**
-- Cross-agent shared memory pool
-- Decision tracking with knowledge graph
-- Automatic handoff summaries between agents
-- Queryable project knowledge base
+**Setting currency manually:**
+```bash
+# In your config file or environment
+export COST_DISPLAY_CURRENCY="EUR"
+
+# Set custom exchange rates (optional)
+export CURRENCY_RATE_EUR=0.92
+export CURRENCY_RATE_GBP=0.79
+export CURRENCY_RATE_BRL=6.10
+```
 
 ### Budget Controls
 
-Claude Code CLI provides built-in cost tracking. The workflow scripts add budget controls:
+Set spending limits for different phases of the workflow:
 
 ```bash
 export MAX_BUDGET_CONTEXT=3.00   # Context creation: $3 max
@@ -262,9 +419,51 @@ export MAX_BUDGET_DEV=15.00      # Development: $15 max
 export MAX_BUDGET_REVIEW=5.00    # Code review: $5 max
 ```
 
-**Cost Optimization:**
-- Opus for development and critical reviews (higher quality)
-- Sonnet for planning, context, documentation (cost-effective)
+### Budget Alerts
+
+The system provides automatic alerts at configurable thresholds:
+
+```bash
+export COST_WARNING_PERCENT=75   # Yellow warning at 75%
+export COST_CRITICAL_PERCENT=90  # Red warning at 90%
+export COST_AUTO_STOP="true"     # Auto-stop at 100%
+```
+
+### Cost Dashboard
+
+View detailed cost information with the cost dashboard:
+
+```bash
+# Show current/latest session
+python tooling/scripts/cost_dashboard.py
+
+# Show last 10 sessions
+python tooling/scripts/cost_dashboard.py --history 10
+
+# Show costs for a specific story
+python tooling/scripts/cost_dashboard.py --story 3-5
+
+# Export to CSV
+python tooling/scripts/cost_dashboard.py --export costs.csv
+
+# Show aggregate summary
+python tooling/scripts/cost_dashboard.py --summary
+```
+
+**Dashboard Features:**
+- Real-time cost display during runs
+- Multi-currency display (shows all selected currencies)
+- Token usage breakdown (input/output)
+- Cost by agent breakdown
+- Budget utilization tracking
+- Session history and analytics
+
+### Cost Optimization Tips
+
+- **Use Opus sparingly** - Reserve for development and critical reviews
+- **Use Sonnet for planning** - Context creation, documentation, and summaries
+- **Set budget limits** - Prevent runaway costs with phase-specific limits
+- **Monitor the dashboard** - Track spending patterns across stories
 
 ## ⌨️ Shell Completion
 
