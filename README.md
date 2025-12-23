@@ -44,7 +44,7 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ### Installation
 
-**Option 1: npm (Easiest - All Platforms)**
+**Option 1: npm**
 
 ```bash
 # Local installation
@@ -75,7 +75,7 @@ devflow-validate
 
 **Option 3: Manual Installation (macOS/Linux)**
 
-Clone and Setup (Recommended):
+Clone and Setup:
 
 ```bash
 # Clone this repository
