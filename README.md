@@ -63,7 +63,7 @@ Or install locally in your project:
 # Local installation
 npm install @pjmendonca/devflow
 
-# Run commands with npx
+# IMPORTANT: Local installs require npx to run commands
 npx devflow-validate
 npx devflow-init
 ```
