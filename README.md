@@ -47,19 +47,6 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 **Option 1: npm (Easiest - All Platforms)**
 
 ```bash
-# Global installation (recommended)
-npm install -g @pjmendonca/devflow
-
-# Verify installation
-devflow-validate
-
-# Start using
-devflow-init
-```
-
-Or install locally in your project:
-
-```bash
 # Local installation
 npm install @pjmendonca/devflow
 
