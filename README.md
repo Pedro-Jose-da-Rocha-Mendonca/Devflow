@@ -44,7 +44,29 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ### Installation
 
-**Option 1: npm**
+**Option 1: Quick Start (Recommended - Creates Devflow folder)**
+
+This creates a new "Devflow" directory with all necessary files:
+
+```bash
+# Create a new Devflow project directory
+npx @pjmendonca/devflow@latest
+
+# This will:
+# 1. Create a "Devflow" folder in your current directory
+# 2. Copy all essential files into it
+# 3. Run the interactive setup wizard
+
+# Then use it:
+cd Devflow
+/story <key>
+```
+
+**Requirements:** Python 3.9+ and Node.js 14+
+
+**Option 2: Add to Existing Project**
+
+Install Devflow into your current project:
 
 ```bash
 # Local installation
@@ -55,11 +77,9 @@ npx devflow-validate
 npx devflow-init
 ```
 
-**Requirements:** Python 3.9+ and Node.js 14+
-
 See [NPM Installation Guide](docs/NPM_INSTALLATION.md) for detailed instructions and troubleshooting.
 
-**Option 2: pip (Python Ecosystem)**
+**Option 3: pip (Python Ecosystem)**
 
 ```bash
 # Clone the repository
@@ -73,7 +93,7 @@ pip install .
 devflow-validate
 ```
 
-**Option 3: Manual Installation (macOS/Linux)**
+**Option 4: Manual Installation (macOS/Linux)**
 
 Clone and Setup:
 
@@ -105,7 +125,7 @@ cp config.sh.template config.sh
 vim config.sh
 ```
 
-**Option 4: Manual Installation (Windows)**
+**Option 5: Manual Installation (Windows)**
 
 Clone and Setup (Recommended):
 
@@ -596,7 +616,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.9.0
+**Version**: 1.10.0
 **Status**: Production Ready
-**Last Updated**: 2025-12-22
+**Last Updated**: 2025-12-23
 <!-- VERSION_END -->

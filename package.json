@@ -1,6 +1,6 @@
 {
   "name": "@pjmendonca/devflow",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "description": "Development workflow automation with Claude Code - agent-based development system with cost tracking",
   "keywords": [
     "devflow",
@@ -24,6 +24,7 @@
     "name": "Pedro Jose da Rocha Mendonca"
   },
   "bin": {
+    "create-devflow": "bin/create-devflow.js",
     "devflow-cost": "bin/devflow-cost.js",
     "devflow-validate": "bin/devflow-validate.js",
     "devflow-story": "bin/devflow-story.js",
