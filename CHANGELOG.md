@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.2] - 2025-12-24
+
+### Fixed
+- **npx Command** - Fixed "could not determine executable to run" error when running `npx @pjmendonca/devflow`
+  - Added main `devflow` bin entry to package.json
+  - Created bin/devflow.js as smart entry point with context detection
+  - Outside Devflow project: automatically scaffolds new project
+  - Inside Devflow project: shows help and dispatches to commands
+  - Simplified workflow: single command for both setup and usage
+
 ## [1.10.1] - 2025-12-24
 
 ### Fixed
