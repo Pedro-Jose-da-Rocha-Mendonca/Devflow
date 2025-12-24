@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.1] - 2025-12-24
+
+### Fixed
+- **Claude Code Skills Distribution** - Include .claude directory in npm package and installation
+  - Added .claude/ to package.json files array for npm distribution
+  - Added .claude/ to create-devflow.js itemsToCopy for project initialization
+  - Ensures 16 custom commands and 1 skill are immediately available after installation
+  - Commands include: story, devflow, adversarial, agent, bugfix, checkpoint, collab, costs, develop, handoff, memory, pair, personalize, review, route, swarm
+  - Skills include: github-cli for GitHub operations
+
 ## [1.10.0] - 2025-12-23
 
 ### Added

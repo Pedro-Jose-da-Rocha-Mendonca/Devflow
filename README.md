@@ -44,7 +44,7 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ### Installation
 
-**Option 1: Quick Start (Recommended - Creates Devflow folder)**
+**Option 1: Quick Start**
 
 This creates a new "Devflow" directory with all necessary files:
 
@@ -75,90 +75,6 @@ npm install @pjmendonca/devflow
 # IMPORTANT: Local installs require npx to run commands
 npx devflow-validate
 npx devflow-init
-```
-
-See [NPM Installation Guide](docs/NPM_INSTALLATION.md) for detailed instructions and troubleshooting.
-
-**Option 3: pip (Python Ecosystem)**
-
-```bash
-# Clone the repository
-git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow.git
-cd Devflow
-
-# Install via pip
-pip install .
-
-# Verify installation
-devflow-validate
-```
-
-**Option 4: Manual Installation (macOS/Linux)**
-
-Clone and Setup:
-
-```bash
-# Clone this repository
-git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow.git
-cd Devflow
-
-# Copy to your project
-cp -r tooling /path/to/your/project/
-
-# Run setup wizard
-cd /path/to/your/project/tooling/scripts
-./init-project-workflow.sh
-```
-
-Direct Copy:
-
-```bash
-# Download latest release
-curl -L https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/archive/main.tar.gz | tar xz
-
-# Move to your project
-mv Devflow-main/tooling /path/to/your/project/
-
-# Manual config
-cd /path/to/your/project/tooling/.automation
-cp config.sh.template config.sh
-vim config.sh
-```
-
-**Option 5: Manual Installation (Windows)**
-
-Clone and Setup (Recommended):
-
-```powershell
-# Clone this repository
-git clone https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow.git
-cd Devflow
-
-# Copy to your project
-Copy-Item -Recurse tooling C:\path\to\your\project\
-
-# Set execution policy (first time only, run as Admin)
-Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-
-# Run setup wizard
-cd C:\path\to\your\project\tooling\scripts
-.\init-project-workflow.ps1
-```
-
-Direct Copy:
-
-```powershell
-# Download latest release
-Invoke-WebRequest -Uri "https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow/archive/main.zip" -OutFile main.zip
-Expand-Archive main.zip -DestinationPath .
-
-# Move to your project
-Move-Item Devflow-main\tooling C:\path\to\your\project\
-
-# Manual config
-cd C:\path\to\your\project\tooling\.automation
-Copy-Item config.ps1.template config.ps1
-notepad config.ps1
 ```
 
 ### Agent Personas
@@ -616,7 +532,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.10.0
+**Version**: 1.10.1
 **Status**: Production Ready
-**Last Updated**: 2025-12-23
+**Last Updated**: 2025-12-24
 <!-- VERSION_END -->

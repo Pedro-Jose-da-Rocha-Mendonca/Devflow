@@ -67,6 +67,7 @@ const itemsToCopy = [
   { type: 'dir', name: 'tooling' },
   { type: 'dir', name: 'bin' },
   { type: 'dir', name: 'lib' },
+  { type: 'dir', name: '.claude' },
   { type: 'file', name: 'LICENSE' },
   { type: 'file', name: 'README.md' },
   { type: 'file', name: 'CHANGELOG.md' },
