@@ -44,10 +44,6 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ### Installation
 
-**Option 1: Quick Start**
-
-This creates a new "Devflow" directory with all necessary files:
-
 ```bash
 # Create a new Devflow project directory
 npx @pjmendonca/devflow@latest
