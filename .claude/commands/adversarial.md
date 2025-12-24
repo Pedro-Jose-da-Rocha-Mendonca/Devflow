@@ -5,6 +5,6 @@ allowed-tools: Bash, Read, Glob, Grep
 
 Run the Devflow adversarial review for story: $ARGUMENTS
 
-Execute: `devflow adversarial $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow adversarial $ARGUMENTS`
 
 This performs a critical, thorough review using the Opus model.

@@ -5,7 +5,7 @@ argument-hint: [save|restore|list] [checkpoint-name]
 
 Manage Devflow context checkpoints: $ARGUMENTS
 
-Execute: `devflow checkpoint $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow checkpoint $ARGUMENTS`
 
 This manages context preservation checkpoints:
 - Save current context state before risky operations

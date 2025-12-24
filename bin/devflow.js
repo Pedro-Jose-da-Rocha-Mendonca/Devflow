@@ -5,7 +5,8 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 const commands = {
-  'init': 'Initialize Devflow in your project',
+  'install': 'Install Devflow into your project',
+  'init': 'Initialize Devflow configuration',
   'story': 'Run full story pipeline (context + dev + review)',
   'collab': 'Run collaborative story with mode selection',
   'checkpoint': 'Create or restore context checkpoints',
@@ -55,11 +56,13 @@ const args = process.argv.slice(2);
 // If no arguments or --help, check if we're in a project
 if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
   if (!isInDevflowProject()) {
-    // Not in a project - run scaffolder
-    console.log('No Devflow project detected. Running project scaffolder...\n');
-    const createScript = require.resolve('./create-devflow.js');
-    const child = spawn('node', [createScript], { stdio: 'inherit' });
-    child.on('exit', (code) => process.exit(code || 0));
+    // Not in a project - suggest install
+    console.log('No Devflow project detected.\n');
+    console.log('To install Devflow in this directory, run:');
+    console.log('  npx @pjmendonca/devflow install\n');
+    console.log('Or to create a new standalone Devflow project:');
+    console.log('  npm create @pjmendonca/devflow\n');
+    process.exit(1);
   } else {
     // In a project - show help
     showHelp();

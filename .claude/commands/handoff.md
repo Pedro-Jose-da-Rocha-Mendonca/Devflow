@@ -5,7 +5,7 @@ argument-hint: <story-key> [--from AGENT] [--to AGENT]
 
 View agent handoff summaries: $ARGUMENTS
 
-Execute: `devflow handoff $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow handoff $ARGUMENTS`
 
 This shows structured handoff information between agents:
 - What was completed in the previous phase

@@ -5,7 +5,7 @@ argument-hint: <story-key>
 
 Run Devflow pair programming for: $ARGUMENTS
 
-Execute: `devflow pair $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow pair $ARGUMENTS`
 
 This runs DEV and REVIEWER in an interleaved pair programming mode:
 - DEV implements code in small, reviewable chunks

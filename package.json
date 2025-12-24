@@ -26,6 +26,7 @@
   "bin": {
     "devflow": "bin/devflow.js",
     "create-devflow": "bin/create-devflow.js",
+    "devflow-install": "bin/devflow-install.js",
     "devflow-cost": "bin/devflow-cost.js",
     "devflow-validate": "bin/devflow-validate.js",
     "devflow-story": "bin/devflow-story.js",

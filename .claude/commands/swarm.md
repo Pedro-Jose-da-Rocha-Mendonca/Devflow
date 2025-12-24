@@ -5,7 +5,7 @@ argument-hint: <story-key> [--agents AGENT1,AGENT2,...]
 
 Run Devflow swarm mode for: $ARGUMENTS
 
-Execute: `devflow swarm $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow swarm $ARGUMENTS`
 
 This runs multi-agent collaboration where agents debate and iterate until consensus:
 - Multiple agents analyze the task simultaneously

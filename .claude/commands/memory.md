@@ -5,7 +5,7 @@ argument-hint: <story-key> [--query "question"]
 
 View shared memory for: $ARGUMENTS
 
-Execute: `devflow memory $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow memory $ARGUMENTS`
 
 This displays the shared memory and knowledge graph for a story:
 - Cross-agent shared memory pool

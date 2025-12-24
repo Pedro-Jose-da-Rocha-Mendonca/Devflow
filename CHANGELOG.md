@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.11.0] - 2025-12-24
+
+### Added
+- **BMAD-Style Installation** - Seamless Claude Code ecosystem integration like BMAD-METHOD
+  - New `devflow install` command copies .claude/ and tooling/ into any project
+  - Claude Code automatically detects slash commands in .claude/commands/ directory
+  - Usage: `npx @pjmendonca/devflow install` integrates into existing projects
+  - Commands execute via npx - no global installation required
+  - Updated all .claude/commands/*.md files to use `npx @pjmendonca/devflow`
+  - Added devflow-install.js for installation logic
+  - Updated README with BMAD-style installation as recommended option
+  - Supports skipping setup wizard with --skip-setup flag
+
+### Changed
+- **Installation Flow** - Updated recommended installation method to BMAD-style
+  - Option 1 (Recommended): `npx @pjmendonca/devflow install` for existing projects
+  - Option 2: `npm create @pjmendonca/devflow` for standalone Devflow directory
+  - Option 3: `npm install -g @pjmendonca/devflow` for global installation
+- **Command Execution** - All Claude Code slash commands now use npx for better portability
+
 ## [1.10.2] - 2025-12-24
 
 ### Fixed

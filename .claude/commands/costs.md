@@ -5,7 +5,7 @@ argument-hint: [--period day|week|month]
 
 View Devflow cost dashboard: $ARGUMENTS
 
-Execute: `devflow costs $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow costs $ARGUMENTS`
 
 This displays cost tracking and analytics:
 - Total spend by model (Opus, Sonnet, Haiku)

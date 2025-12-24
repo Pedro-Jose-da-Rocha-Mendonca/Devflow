@@ -5,4 +5,4 @@ argument-hint: <story-key>
 
 Run the Devflow development phase for story: $ARGUMENTS
 
-Execute: `devflow develop $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow develop $ARGUMENTS`

@@ -5,7 +5,7 @@ argument-hint: <task-description>
 
 Auto-route task to optimal agents: $ARGUMENTS
 
-Execute: `devflow route $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow route $ARGUMENTS`
 
 This intelligently selects the best agents based on task analysis:
 - Analyzes task description for keywords and patterns

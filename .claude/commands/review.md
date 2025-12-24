@@ -5,4 +5,4 @@ argument-hint: <story-key>
 
 Run the Devflow code review for story: $ARGUMENTS
 
-Execute: `devflow review $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow review $ARGUMENTS`

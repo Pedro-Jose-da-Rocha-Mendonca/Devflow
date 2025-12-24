@@ -5,7 +5,7 @@ argument-hint: <story-key> [--swarm|--pair|--auto]
 
 Run Devflow collaboration for: $ARGUMENTS
 
-Execute: `devflow collab $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow collab $ARGUMENTS`
 
 This is the unified collaboration CLI with all modes:
 

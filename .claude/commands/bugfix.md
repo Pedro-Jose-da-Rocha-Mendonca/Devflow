@@ -5,4 +5,4 @@ argument-hint: <bug-id>
 
 Run the Devflow bugfix automation for: $ARGUMENTS
 
-Execute: `devflow bugfix $ARGUMENTS`
+Execute: `npx @pjmendonca/devflow bugfix $ARGUMENTS`
