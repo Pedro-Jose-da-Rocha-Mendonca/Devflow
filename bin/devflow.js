@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-const fs = require('fs');
-const path = require('path');
 const { spawn } = require('child_process');
 
 const commands = {
@@ -22,22 +20,6 @@ const commands = {
   'version': 'Show version information'
 };
 
-/**
- * Check if we're in a Devflow project
- */
-function isInDevflowProject() {
-  const indicators = [
-    'tooling/.automation',
-    'tooling/scripts',
-    '.claude'
-  ];
-
-  return indicators.some(indicator => fs.existsSync(path.join(process.cwd(), indicator)));
-}
-
-/**
- * Show help message
- */
 function showHelp() {
   console.log('Devflow - Development workflow automation with Claude Code\n');
   console.log('Usage: devflow <command> [options]\n');
@@ -48,37 +30,26 @@ function showHelp() {
   });
 
   console.log('\nRun "devflow <command> --help" for more information on a command.');
-  console.log('\nGet started: devflow init');
+  console.log('\nGet started:');
+  console.log('  devflow install    Install into existing project');
+  console.log('  devflow init       Initialize configuration');
 }
 
 const args = process.argv.slice(2);
 
-// If no arguments or --help, check if we're in a project
 if (args.length === 0 || args[0] === '--help' || args[0] === '-h') {
-  if (!isInDevflowProject()) {
-    // Not in a project - suggest install
-    console.log('No Devflow project detected.\n');
-    console.log('To install Devflow in this directory, run:');
-    console.log('  npx @pjmendonca/devflow install\n');
-    console.log('Or to create a new standalone Devflow project:');
-    console.log('  npm create @pjmendonca/devflow\n');
-    process.exit(1);
-  } else {
-    // In a project - show help
-    showHelp();
-    process.exit(0);
-  }
-} else {
-  // Command provided
-  const command = args[0];
+  showHelp();
+  process.exit(0);
+}
 
-  if (commands[command]) {
-    const binPath = require.resolve(`./devflow-${command}.js`);
-    const child = spawn('node', [binPath, ...args.slice(1)], { stdio: 'inherit' });
-    child.on('exit', (code) => process.exit(code || 0));
-  } else {
-    console.error(`Unknown command: ${command}`);
-    console.error('Run "devflow --help" to see available commands.');
-    process.exit(1);
-  }
+const command = args[0];
+
+if (commands[command]) {
+  const binPath = require.resolve(`./devflow-${command}.js`);
+  const child = spawn('node', [binPath, ...args.slice(1)], { stdio: 'inherit' });
+  child.on('exit', (code) => process.exit(code || 0));
+} else {
+  console.error(`Unknown command: ${command}`);
+  console.error('Run "devflow --help" to see available commands.');
+  process.exit(1);
 }

@@ -1,44 +1,25 @@
 #!/usr/bin/env node
 
-/**
- * create-devflow - NPM initializer for Devflow
- *
- * Creates a new "Devflow" directory with all necessary files
- * Usage: npm create @pjmendonca/devflow
- */
-
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-// Get the current working directory where the user ran the command
 const targetDir = path.join(process.cwd(), 'Devflow');
-
-// Get the source directory (where this package is installed)
 const sourceDir = path.join(__dirname, '..');
 
-console.log('\n========================================');
-console.log('  Devflow Project Initializer');
-console.log('========================================\n');
+console.log('\nDevflow Project Initializer\n');
 
-// Check if Devflow directory already exists
 if (fs.existsSync(targetDir)) {
-  console.error(`Error: Directory "Devflow" already exists in ${process.cwd()}`);
-  console.error('Please remove it or run this command from a different location.\n');
+  console.error(`Error: "Devflow" directory already exists`);
+  console.error('Remove it or run from a different location.\n');
   process.exit(1);
 }
 
-console.log(`Creating Devflow directory at: ${targetDir}`);
+console.log(`Creating: ${targetDir}\n`);
 fs.mkdirSync(targetDir, { recursive: true });
 
-/**
- * Recursively copy directory
- */
 function copyDir(src, dest) {
-  // Create destination directory
   fs.mkdirSync(dest, { recursive: true });
-
-  // Read source directory
   const entries = fs.readdirSync(src, { withFileTypes: true });
 
   for (const entry of entries) {
@@ -53,17 +34,7 @@ function copyDir(src, dest) {
   }
 }
 
-/**
- * Copy file
- */
-function copyFile(src, dest) {
-  const destDir = path.dirname(dest);
-  fs.mkdirSync(destDir, { recursive: true });
-  fs.copyFileSync(src, dest);
-}
-
-// Files and directories to copy
-const itemsToCopy = [
+const items = [
   { type: 'dir', name: 'tooling' },
   { type: 'dir', name: 'bin' },
   { type: 'dir', name: 'lib' },
@@ -75,67 +46,43 @@ const itemsToCopy = [
   { type: 'file', name: '.gitignore' }
 ];
 
-console.log('\nCopying project files...');
-for (const item of itemsToCopy) {
+console.log('Copying files...');
+for (const item of items) {
   const src = path.join(sourceDir, item.name);
   const dest = path.join(targetDir, item.name);
 
-  if (!fs.existsSync(src)) {
-    console.log(`  Skipping ${item.name} (not found)`);
-    continue;
-  }
-
-  try {
+  if (fs.existsSync(src)) {
+    console.log(`  ${item.name}`);
     if (item.type === 'dir') {
-      console.log(`  Copying ${item.name}/ ...`);
       copyDir(src, dest);
     } else {
-      console.log(`  Copying ${item.name} ...`);
-      copyFile(src, dest);
+      fs.mkdirSync(path.dirname(dest), { recursive: true });
+      fs.copyFileSync(src, dest);
     }
-  } catch (error) {
-    console.error(`  Error copying ${item.name}: ${error.message}`);
   }
 }
 
-console.log('\n[OK] Files copied successfully!\n');
-
-// Initialize git repo if not already in one
-console.log('Initializing git repository...');
+console.log('\nInitializing git...');
 try {
   process.chdir(targetDir);
   execSync('git init', { stdio: 'ignore' });
-  console.log('[OK] Git repository initialized\n');
+  console.log('Done\n');
 } catch (error) {
-  console.log('[INFO] Git not available or already initialized\n');
+  console.log('Skipped\n');
 }
 
-// Run the setup wizard
-console.log('========================================');
-console.log('  Running Setup Wizard');
-console.log('========================================\n');
-
+console.log('Running setup wizard...\n');
 try {
   const initScript = path.join(targetDir, 'bin', 'devflow-init.js');
-
   if (fs.existsSync(initScript)) {
-    console.log('Starting interactive setup wizard...\n');
     execSync(`node "${initScript}"`, { stdio: 'inherit' });
-  } else {
-    console.log('[WARNING] Setup wizard not found. You may need to run it manually:');
-    console.log('  cd Devflow');
-    console.log('  npx devflow-init\n');
   }
 } catch (error) {
-  console.log('[WARNING] Setup wizard encountered an issue.');
-  console.log('You can run it manually later with: npx devflow-init\n');
+  console.log('\nSetup wizard failed. Run manually: cd Devflow && npx devflow-init\n');
 }
 
-console.log('\n========================================');
-console.log('  Setup Complete!');
-console.log('========================================\n');
-console.log('Next steps:');
-console.log('  1. cd Devflow');
-console.log('  2. Review the README.md for usage instructions');
-console.log('  3. Start using Devflow with: /story <key>\n');
+console.log('\nProject created successfully!');
+console.log('\nNext steps:');
+console.log('  cd Devflow');
+console.log('  Use /story <key> in Claude Code\n');
 console.log('Documentation: https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow\n');
