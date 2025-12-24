@@ -44,67 +44,24 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ### Installation
 
-**Option 1: Install into Existing Project (Recommended - BMAD-style)**
+**Option 1: Quick Start**
 
-Install Devflow directly into your current project directory:
-
-```bash
-# Navigate to your project
-cd your-project
-
-# Install Devflow
-npx @pjmendonca/devflow install
-
-# This will:
-# 1. Copy .claude/ directory (slash commands for Claude Code)
-# 2. Copy tooling/ directory (automation scripts and agents)
-# 3. Run the interactive setup wizard
-
-# Immediately use slash commands in Claude Code:
-# /story <key>
-# /swarm <key>
-# /pair <key>
-
-# Or run directly:
-npx @pjmendonca/devflow story <key>
-```
-
-**How it works:**
-- The `.claude/` directory is automatically detected by Claude Code
-- Slash commands (`/story`, `/swarm`, etc.) appear instantly in Claude Code
-- Commands execute via `npx @pjmendonca/devflow` - no global install needed
-- Works exactly like BMAD-METHOD
-
-**Requirements:** Python 3.9+ and Node.js 14+
-
-**Option 2: Create Standalone Devflow Project**
-
-Create a dedicated "Devflow" directory for workflow automation:
+This creates a new "Devflow" directory with all necessary files:
 
 ```bash
 # Create a new Devflow project directory
-npm create @pjmendonca/devflow
+npx @pjmendonca/devflow@latest
 
-# This creates a "Devflow" folder with all files
+# This will:
+# 1. Create a "Devflow" folder in your current directory
+# 2. Copy all essential files into it
+# 3. Run the interactive setup wizard
+
+# Then use it:
 cd Devflow
-
-# Use it:
 /story <key>
 ```
 
-**Option 3: Global Installation (Advanced)**
-
-Install Devflow globally for system-wide access:
-
-```bash
-# Install globally
-npm install -g @pjmendonca/devflow
-
-# Then in any project:
-cd your-project
-devflow install  # Install .claude/ and tooling/ directories
-devflow story <key>  # No npx prefix needed
-```
 
 ### Agent Personas
 

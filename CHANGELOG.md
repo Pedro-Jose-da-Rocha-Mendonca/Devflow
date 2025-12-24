@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.11.0] - 2025-12-24
 
 ### Added
-- **BMAD-Style Installation** - Seamless Claude Code ecosystem integration like BMAD-METHOD
+- **Installation** - Seamless Claude Code ecosystem integration
   - New `devflow install` command copies .claude/ and tooling/ into any project
   - Claude Code automatically detects slash commands in .claude/commands/ directory
   - Usage: `npx @pjmendonca/devflow install` integrates into existing projects
