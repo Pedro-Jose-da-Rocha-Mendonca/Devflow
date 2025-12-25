@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.0] - 2025-12-25
+
+### Added
+- **AI-Driven Init Wizard** - Interactive AI-guided Devflow initialization
+  - New `/init` command that Claude Code recognizes and executes conversationally
+  - AI analyzes project structure and makes intelligent configuration recommendations
+  - Interactive multi-step setup with AskUserQuestion integration
+  - Supports workflow mode selection (Greenfield, Brownfield, Both)
+  - Model strategy configuration with cost context (Quality First, Balanced, Cost Optimized)
+  - Currency selection for cost tracking (USD, EUR, GBP, BRL, CAD, AUD)
+  - Optional agent personalization during setup
+  - Quick mode (`/init --quick`) for streamlined setup with smart defaults
+  - Handles existing installations with reconfigure/update/exit options
+  - Created `.claude/commands/init.md` for command integration
+  - Created `.claude/skills/init/SKILL.md` for comprehensive skill definition
+
 ## [1.12.1] - 2025-12-25
 
 ### Fixed
