@@ -7,6 +7,7 @@ all version references throughout the project. Run this after updating
 the changelog, or use the pre-commit hook to automate it.
 
 Files updated:
+    - package.json (version field) - FIRST, to include in commit
     - README.md (version block)
     - pyproject.toml (version field)
     - tooling/scripts/lib/__init__.py (__version__ variable)
@@ -18,6 +19,7 @@ Usage:
 """
 
 import argparse
+import json
 import re
 import sys
 from datetime import date
@@ -79,6 +81,41 @@ def get_init_version(init_path: Path) -> str | None:
     if match:
         return match.group(1)
     return None
+
+
+def get_package_json_version(package_path: Path) -> str | None:
+    """Extract the current version from package.json."""
+    if not package_path.exists():
+        return None
+
+    try:
+        data = json.loads(package_path.read_text())
+        return data.get("version")
+    except json.JSONDecodeError:
+        return None
+
+
+def update_package_json_version(package_path: Path, version: str) -> bool:
+    """Update the version in package.json."""
+    if not package_path.exists():
+        print(f"Error: package.json not found at {package_path}")
+        return False
+
+    try:
+        content = package_path.read_text()
+        data = json.loads(content)
+        old_version = data.get("version")
+
+        if old_version == version:
+            print(f"package.json already at version {version}")
+            return True
+
+        data["version"] = version
+        package_path.write_text(json.dumps(data, indent=2) + "\n")
+        return True
+    except json.JSONDecodeError as e:
+        print(f"Error: Invalid JSON in package.json: {e}")
+        return False
 
 
 def update_readme_version(readme_path: Path, version: str) -> bool:
@@ -173,12 +210,14 @@ def main():
 
     root = get_project_root()
     changelog_path = root / "CHANGELOG.md"
+    package_path = root / "package.json"
     readme_path = root / "README.md"
     pyproject_path = root / "pyproject.toml"
     init_path = root / "tooling" / "scripts" / "lib" / "__init__.py"
 
     # Get versions from all sources
     changelog_version = get_changelog_version(changelog_path)
+    package_version = get_package_json_version(package_path)
     readme_version = get_readme_version(readme_path)
     pyproject_version = get_pyproject_version(pyproject_path)
     init_version = get_init_version(init_path)
@@ -192,6 +231,7 @@ def main():
         sys.exit(1)
 
     print(f"CHANGELOG version:   {changelog_version or 'not found'}")
+    print(f"package.json:        {package_version or 'not found'}")
     print(f"README version:      {readme_version or 'not found'}")
     print(f"pyproject version:   {pyproject_version or 'not found'}")
     print(f"__init__ version:    {init_version or 'not found'}")
@@ -201,7 +241,7 @@ def main():
     if args.check:
         all_match = all(
             v == target_version
-            for v in [readme_version, pyproject_version, init_version]
+            for v in [package_version, readme_version, pyproject_version, init_version]
             if v is not None
         )
         if all_match:
@@ -211,8 +251,14 @@ def main():
             print("[X] Versions are out of sync")
             sys.exit(1)
 
-    # Update all files
+    # Update all files (package.json first so it's included in commit)
     success = True
+
+    if update_package_json_version(package_path, target_version):
+        print(f"[OK] Updated package.json to version {target_version}")
+    else:
+        print("[X] Failed to update package.json")
+        success = False
 
     if update_readme_version(readme_path, target_version):
         print(f"[OK] Updated README.md to version {target_version}")
