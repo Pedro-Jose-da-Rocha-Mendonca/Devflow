@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.12.0] - 2025-12-25
+
+### Changed
+- **Documentation** - Standardized installation instructions across all documentation
+  - README now shows all three installation methods with clear use cases
+  - Option 1 (Recommended): `npx @pjmendonca/devflow install` for existing projects
+  - Option 2: `npx @pjmendonca/devflow@latest` or `npm create @pjmendonca/devflow` for standalone projects
+  - Option 3: `npm install -g @pjmendonca/devflow` for global installation
+  - Consistent formatting and explanations across README and CHANGELOG
+
 ## [1.11.1] - 2025-12-24
 
 ### Changed

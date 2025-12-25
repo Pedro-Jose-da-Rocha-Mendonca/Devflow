@@ -44,9 +44,34 @@ A production-ready, portable workflow automation system that uses Claude Code CL
 
 ### Installation
 
+Choose the method that best fits your needs:
+
+#### Option 1: Add to Existing Project (Recommended)
+
 ```bash
-# Create a new Devflow project directory
+# Navigate to your project directory
+cd your-project
+
+# Install Devflow into your existing project
+npx @pjmendonca/devflow install
+
+# This will:
+# 1. Copy .claude/ and tooling/ directories into your project
+# 2. Claude Code automatically detects the slash commands
+# 3. Optionally run the setup wizard (use --skip-setup to skip)
+
+# Start using immediately:
+/story <key>
+```
+
+#### Option 2: Create Standalone Project
+
+```bash
+# Create a new Devflow directory
 npx @pjmendonca/devflow@latest
+
+# Or use npm create:
+npm create @pjmendonca/devflow
 
 # This will:
 # 1. Create a "Devflow" folder in your current directory
@@ -56,6 +81,17 @@ npx @pjmendonca/devflow@latest
 # Then use it:
 cd Devflow
 /story <key>
+```
+
+#### Option 3: Global Installation
+
+```bash
+# Install globally for system-wide access
+npm install -g @pjmendonca/devflow
+
+# Then run from anywhere:
+devflow install          # Add to existing project
+devflow --help           # Show available commands
 ```
 
 
@@ -514,7 +550,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.11.1
+**Version**: 1.12.0
 **Status**: Production Ready
-**Last Updated**: 2025-12-24
+**Last Updated**: 2025-12-25
 <!-- VERSION_END -->
