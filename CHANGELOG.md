@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated next steps messaging to include `/init` command
   - Cleaner install experience that defers configuration to Claude Code
 
+### Removed
+- **Duplicate Init Command** - Removed `.claude/commands/init.md` in favor of the skill
+
 ## [1.13.0] - 2025-12-25
 
 ### Added
