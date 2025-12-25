@@ -53,7 +53,7 @@ Choose the method that best fits your needs:
 cd your-project
 
 # Install Devflow into your existing project
-npx @pjmendonca/devflow install
+npx @pjmendonca/devflow@latest install
 
 # This will:
 # 1. Copy .claude/ and tooling/ directories into your project
@@ -550,7 +550,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.12.0
+**Version**: 1.12.1
 **Status**: Production Ready
 **Last Updated**: 2025-12-25
 <!-- VERSION_END -->
