@@ -550,7 +550,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.13.0
+**Version**: 1.13.1
 **Status**: Production Ready
 **Last Updated**: 2025-12-25
 <!-- VERSION_END -->

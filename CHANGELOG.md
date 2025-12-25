@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.1] - 2025-12-25
+
+### Changed
+- **Install Flow** - Removed automatic setup wizard from install commands
+  - `devflow install` and `create-devflow` no longer auto-run the old wizard
+  - Users now directed to use `/init` for AI-guided project setup
+  - Updated next steps messaging to include `/init` command
+  - Cleaner install experience that defers configuration to Claude Code
+
 ## [1.13.0] - 2025-12-25
 
 ### Added

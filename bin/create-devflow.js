@@ -71,18 +71,10 @@ try {
   console.log('Skipped\n');
 }
 
-console.log('Running setup wizard...\n');
-try {
-  const initScript = path.join(targetDir, 'bin', 'devflow-init.js');
-  if (fs.existsSync(initScript)) {
-    execSync(`node "${initScript}"`, { stdio: 'inherit' });
-  }
-} catch (error) {
-  console.log('\nSetup wizard failed. Run manually: cd Devflow && npx devflow-init\n');
-}
-
-console.log('\nProject created successfully!');
+console.log('Project created successfully!');
 console.log('\nNext steps:');
-console.log('  cd Devflow');
-console.log('  Use /story <key> in Claude Code\n');
-console.log('Documentation: https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow\n');
+console.log('  1. cd Devflow');
+console.log('  2. Open Claude Code');
+console.log('  3. Run /init for AI-guided project setup');
+console.log('  4. Use /story <key> to start development');
+console.log('\nDocumentation: https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow\n');

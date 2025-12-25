@@ -64,20 +64,9 @@ for (const file of configs) {
   }
 }
 
-console.log('\nInstallation complete!\n');
-
-const args = process.argv.slice(2);
-if (!args.includes('--skip-setup') && !args.includes('-s')) {
-  console.log('Running setup wizard...\n');
-  try {
-    execSync(`node "${path.join(__dirname, 'devflow-init.js')}"`, { stdio: 'inherit', cwd: targetDir });
-  } catch (error) {
-    console.log('\nSetup wizard failed. Run manually: npx @pjmendonca/devflow init\n');
-  }
-}
-
 console.log('\nDevflow installed successfully!');
 console.log('\nNext steps:');
 console.log('  1. Open Claude Code in this directory');
-console.log('  2. Use /story <key> or npx @pjmendonca/devflow story <key>');
+console.log('  2. Run /init for AI-guided project setup');
+console.log('  3. Use /story <key> to start development');
 console.log('\nDocumentation: https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow\n');
