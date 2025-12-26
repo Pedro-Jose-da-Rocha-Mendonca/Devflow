@@ -9,7 +9,7 @@
 
 A production-ready, portable workflow automation system that uses Claude Code CLI to implement user stories with minimal human intervention. Think "CI/CD for development" - but instead of deploying code, it writes code.
 
-Find us at: https://github.com/Pedro-Jose-da-Rocha-Mendonca/Devflow
+Find us at our [discord](https://discord.gg/mHdyQ7VN8R)
 
 ### Key Features
 
