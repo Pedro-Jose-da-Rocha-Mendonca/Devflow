@@ -4,7 +4,6 @@ const { spawn } = require('child_process');
 
 const commands = {
   'install': 'Install Devflow into your project',
-  'init': 'Initialize Devflow configuration',
   'story': 'Run full story pipeline (context + dev + review)',
   'collab': 'Run collaborative story with mode selection',
   'checkpoint': 'Create or restore context checkpoints',
@@ -32,7 +31,7 @@ function showHelp() {
   console.log('\nRun "devflow <command> --help" for more information on a command.');
   console.log('\nGet started:');
   console.log('  devflow install    Install into existing project');
-  console.log('  devflow init       Initialize configuration');
+  console.log('  /init              Initialize configuration (in Claude Code)');
 }
 
 const args = process.argv.slice(2);

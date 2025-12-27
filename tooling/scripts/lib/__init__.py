@@ -18,7 +18,7 @@ Usage:
     from lib.agent_router import AgentRouter
 """
 
-__version__ = "1.13.1"
+__version__ = "1.13.2"
 
 # Lazy imports to avoid circular dependencies
 __all__ = [

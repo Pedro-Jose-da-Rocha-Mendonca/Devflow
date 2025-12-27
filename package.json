@@ -1,6 +1,6 @@
 {
   "name": "@pjmendonca/devflow",
-  "version": "1.13.1",
+  "version": "1.13.2",
   "description": "Development workflow automation with Claude Code - agent-based development system with cost tracking",
   "keywords": [
     "devflow",
@@ -39,7 +39,6 @@
     "devflow-new-doc": "bin/devflow-new-doc.js",
     "devflow-tech-debt": "bin/devflow-tech-debt.js",
     "devflow-setup-checkpoint": "bin/devflow-setup-checkpoint.js",
-    "devflow-init": "bin/devflow-init.js",
     "devflow-version": "bin/devflow-version.js"
   },
   "files": [

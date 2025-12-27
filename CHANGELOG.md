@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.2] - 2025-12-27
+
+### Removed
+- **CLI Init Command** - Removed `devflow init` in favor of `/init` skill
+  - Deleted `bin/devflow-init.js` and related shell scripts
+  - Removed from `package.json` bin entries
+  - All initialization now handled by the AI-driven `/init` skill in Claude Code
+
 ## [1.13.1] - 2025-12-25
 
 ### Changed
