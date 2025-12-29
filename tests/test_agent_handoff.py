@@ -426,9 +426,11 @@ class TestHandoffGenerator:
     @patch("subprocess.run")
     def test_get_git_changes_error(self, mock_run, mock_dependencies):
         """Test git changes returns empty on error."""
+        import subprocess
+
         generator = HandoffGenerator(story_key="test-1")
 
-        mock_run.side_effect = Exception("Git error")
+        mock_run.side_effect = subprocess.SubprocessError("Git error")
 
         changes = generator.get_git_changes()
         assert changes == []
@@ -449,9 +451,11 @@ class TestHandoffGenerator:
     @patch("subprocess.run")
     def test_get_staged_changes_error(self, mock_run, mock_dependencies):
         """Test staged changes returns empty on error."""
+        import subprocess
+
         generator = HandoffGenerator(story_key="test-1")
 
-        mock_run.side_effect = Exception("Git error")
+        mock_run.side_effect = subprocess.SubprocessError("Git error")
 
         changes = generator.get_staged_changes()
         assert changes == []
