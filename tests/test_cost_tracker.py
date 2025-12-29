@@ -9,26 +9,23 @@ Tests the critical cost tracking functionality including:
 - Historical data aggregation
 """
 
-import pytest
-import json
-from pathlib import Path
-from datetime import datetime
-from unittest.mock import patch, MagicMock
 import sys
+from datetime import datetime
+from pathlib import Path
 
 # Ensure imports work
 sys.path.insert(0, str(Path(__file__).parent.parent / "tooling" / "scripts" / "lib"))
 
 from lib.cost_tracker import (
-    CostTracker,
-    CostEntry,
-    SessionCost,
-    PRICING,
     DEFAULT_THRESHOLDS,
-    parse_token_usage,
-    start_tracking,
+    PRICING,
+    CostEntry,
+    CostTracker,
+    SessionCost,
     get_tracker,
+    parse_token_usage,
     set_tracker,
+    start_tracking,
 )
 
 
@@ -43,7 +40,7 @@ class TestCostEntry:
             model="opus",
             input_tokens=1000,
             output_tokens=500,
-            cost_usd=0.0525
+            cost_usd=0.0525,
         )
         assert entry.agent == "DEV"
         assert entry.model == "opus"
@@ -59,7 +56,7 @@ class TestCostEntry:
             model="sonnet",
             input_tokens=5000,
             output_tokens=1000,
-            cost_usd=0.030
+            cost_usd=0.030,
         )
         result = entry.to_dict()
         assert isinstance(result, dict)
@@ -77,7 +74,7 @@ class TestSessionCost:
             session_id="test_session",
             story_key="PROJ-123",
             start_time="2024-12-21T10:00:00",
-            budget_limit_usd=15.00
+            budget_limit_usd=15.00,
         )
         assert session.session_id == "test_session"
         assert session.story_key == "PROJ-123"
@@ -86,27 +83,27 @@ class TestSessionCost:
 
     def test_session_total_tokens(self):
         """Test total token calculations."""
-        session = SessionCost(
-            session_id="test",
-            story_key="test",
-            start_time="2024-12-21T10:00:00"
+        session = SessionCost(session_id="test", story_key="test", start_time="2024-12-21T10:00:00")
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:01:00",
+                agent="DEV",
+                model="opus",
+                input_tokens=1000,
+                output_tokens=500,
+                cost_usd=0.05,
+            )
         )
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:01:00",
-            agent="DEV",
-            model="opus",
-            input_tokens=1000,
-            output_tokens=500,
-            cost_usd=0.05
-        ))
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:02:00",
-            agent="SM",
-            model="sonnet",
-            input_tokens=2000,
-            output_tokens=1000,
-            cost_usd=0.02
-        ))
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:02:00",
+                agent="SM",
+                model="sonnet",
+                input_tokens=2000,
+                output_tokens=1000,
+                cost_usd=0.02,
+            )
+        )
 
         assert session.total_input_tokens == 3000
         assert session.total_output_tokens == 1500
@@ -114,27 +111,27 @@ class TestSessionCost:
 
     def test_session_total_cost(self):
         """Test total cost calculation."""
-        session = SessionCost(
-            session_id="test",
-            story_key="test",
-            start_time="2024-12-21T10:00:00"
+        session = SessionCost(session_id="test", story_key="test", start_time="2024-12-21T10:00:00")
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:01:00",
+                agent="DEV",
+                model="opus",
+                input_tokens=1000,
+                output_tokens=500,
+                cost_usd=0.05,
+            )
         )
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:01:00",
-            agent="DEV",
-            model="opus",
-            input_tokens=1000,
-            output_tokens=500,
-            cost_usd=0.05
-        ))
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:02:00",
-            agent="SM",
-            model="sonnet",
-            input_tokens=2000,
-            output_tokens=1000,
-            cost_usd=0.02
-        ))
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:02:00",
+                agent="SM",
+                model="sonnet",
+                input_tokens=2000,
+                output_tokens=1000,
+                cost_usd=0.02,
+            )
+        )
 
         assert session.total_cost_usd == 0.07
 
@@ -144,16 +141,18 @@ class TestSessionCost:
             session_id="test",
             story_key="test",
             start_time="2024-12-21T10:00:00",
-            budget_limit_usd=10.00
+            budget_limit_usd=10.00,
         )
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:01:00",
-            agent="DEV",
-            model="opus",
-            input_tokens=1000,
-            output_tokens=500,
-            cost_usd=3.00
-        ))
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:01:00",
+                agent="DEV",
+                model="opus",
+                input_tokens=1000,
+                output_tokens=500,
+                cost_usd=3.00,
+            )
+        )
 
         assert session.budget_remaining == 7.00
         assert session.budget_used_percent == 30.0
@@ -164,51 +163,55 @@ class TestSessionCost:
             session_id="test",
             story_key="test",
             start_time="2024-12-21T10:00:00",
-            budget_limit_usd=5.00
+            budget_limit_usd=5.00,
         )
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:01:00",
-            agent="DEV",
-            model="opus",
-            input_tokens=1000,
-            output_tokens=500,
-            cost_usd=7.00
-        ))
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:01:00",
+                agent="DEV",
+                model="opus",
+                input_tokens=1000,
+                output_tokens=500,
+                cost_usd=7.00,
+            )
+        )
 
         assert session.budget_remaining == 0  # Should not go negative
         assert session.budget_used_percent == 100  # Capped at 100%
 
     def test_session_get_cost_by_agent(self):
         """Test cost breakdown by agent."""
-        session = SessionCost(
-            session_id="test",
-            story_key="test",
-            start_time="2024-12-21T10:00:00"
+        session = SessionCost(session_id="test", story_key="test", start_time="2024-12-21T10:00:00")
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:01:00",
+                agent="DEV",
+                model="opus",
+                input_tokens=1000,
+                output_tokens=500,
+                cost_usd=0.05,
+            )
         )
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:01:00",
-            agent="DEV",
-            model="opus",
-            input_tokens=1000,
-            output_tokens=500,
-            cost_usd=0.05
-        ))
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:02:00",
-            agent="SM",
-            model="sonnet",
-            input_tokens=2000,
-            output_tokens=1000,
-            cost_usd=0.02
-        ))
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:03:00",
-            agent="DEV",
-            model="opus",
-            input_tokens=500,
-            output_tokens=250,
-            cost_usd=0.03
-        ))
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:02:00",
+                agent="SM",
+                model="sonnet",
+                input_tokens=2000,
+                output_tokens=1000,
+                cost_usd=0.02,
+            )
+        )
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:03:00",
+                agent="DEV",
+                model="opus",
+                input_tokens=500,
+                output_tokens=250,
+                cost_usd=0.03,
+            )
+        )
 
         by_agent = session.get_cost_by_agent()
         assert by_agent["DEV"] == 0.08
@@ -216,27 +219,27 @@ class TestSessionCost:
 
     def test_session_get_cost_by_model(self):
         """Test cost breakdown by model."""
-        session = SessionCost(
-            session_id="test",
-            story_key="test",
-            start_time="2024-12-21T10:00:00"
+        session = SessionCost(session_id="test", story_key="test", start_time="2024-12-21T10:00:00")
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:01:00",
+                agent="DEV",
+                model="opus",
+                input_tokens=1000,
+                output_tokens=500,
+                cost_usd=0.05,
+            )
         )
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:01:00",
-            agent="DEV",
-            model="opus",
-            input_tokens=1000,
-            output_tokens=500,
-            cost_usd=0.05
-        ))
-        session.entries.append(CostEntry(
-            timestamp="2024-12-21T10:02:00",
-            agent="SM",
-            model="sonnet",
-            input_tokens=2000,
-            output_tokens=1000,
-            cost_usd=0.02
-        ))
+        session.entries.append(
+            CostEntry(
+                timestamp="2024-12-21T10:02:00",
+                agent="SM",
+                model="sonnet",
+                input_tokens=2000,
+                output_tokens=1000,
+                cost_usd=0.02,
+            )
+        )
 
         by_model = session.get_cost_by_model()
         assert by_model["opus"] == 0.05
@@ -248,7 +251,7 @@ class TestSessionCost:
             session_id="test",
             story_key="test",
             start_time="2024-12-21T10:00:00",
-            budget_limit_usd=15.00
+            budget_limit_usd=15.00,
         )
         result = session.to_dict()
 
@@ -316,10 +319,7 @@ class TestCostTracker:
     def test_log_usage(self, sample_tracker):
         """Test logging usage."""
         entry = sample_tracker.log_usage(
-            agent="DEV",
-            model="opus",
-            input_tokens=10000,
-            output_tokens=5000
+            agent="DEV", model="opus", input_tokens=10000, output_tokens=5000
         )
 
         assert entry.agent == "DEV"
@@ -442,15 +442,11 @@ class TestCostTracker:
     def test_custom_thresholds(self, mock_costs_directories):
         """Test custom budget thresholds."""
         custom_thresholds = {
-            "warning": 0.50,    # 50%
+            "warning": 0.50,  # 50%
             "critical": 0.80,  # 80%
-            "stop": 0.95,      # 95%
+            "stop": 0.95,  # 95%
         }
-        tracker = CostTracker(
-            story_key="test",
-            budget_limit_usd=1.00,
-            thresholds=custom_thresholds
-        )
+        tracker = CostTracker(story_key="test", budget_limit_usd=1.00, thresholds=custom_thresholds)
         # Log usage at ~55% ($0.55 of $1)
         tracker.log_usage("SM", "sonnet", 90000, 18000)
 
@@ -459,11 +455,7 @@ class TestCostTracker:
 
     def test_auto_save_disabled(self, mock_costs_directories):
         """Test that auto_save can be disabled."""
-        tracker = CostTracker(
-            story_key="test",
-            budget_limit_usd=10.00,
-            auto_save=False
-        )
+        tracker = CostTracker(story_key="test", budget_limit_usd=10.00, auto_save=False)
         tracker.log_usage("DEV", "opus", 10000, 5000)
 
         sessions_dir = mock_costs_directories / "sessions"
@@ -669,7 +661,7 @@ class TestEdgeCases:
             model="haiku",
             input_tokens=0,
             output_tokens=0,
-            cost_usd=0.75  # Exactly 75%
+            cost_usd=0.75,  # Exactly 75%
         )
         tracker.session.entries.append(entry)
 

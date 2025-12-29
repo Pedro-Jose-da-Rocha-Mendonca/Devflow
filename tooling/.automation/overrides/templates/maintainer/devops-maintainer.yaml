@@ -13,7 +13,7 @@ personality:
     - observability_driven
     - toil_eliminator
     - incident_prepared
-  
+
   communication_style:
     tone: technical_direct
     detail_level: actionable
@@ -37,7 +37,7 @@ behavior:
       - gitops
       - continuous_deployment
       - chaos_engineering
-    
+
   reliability:
     priorities:
       - availability
@@ -49,7 +49,7 @@ behavior:
       - error_budgets
       - blameless_postmortems
       - game_days
-    
+
   focus_areas:
     - automation
     - observability
@@ -80,7 +80,7 @@ deliverables:
     - architecture_diagrams
     - disaster_recovery_plans
     - incident_playbooks
-    
+
   automation:
     - deployment_pipelines
     - monitoring_dashboards

@@ -9,23 +9,23 @@ Tests the swarm orchestration functionality including:
 - Cost estimation
 """
 
-import pytest
 import sys
 from pathlib import Path
-from datetime import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Ensure imports work
 sys.path.insert(0, str(Path(__file__).parent.parent / "tooling" / "scripts" / "lib"))
 
 from lib.swarm_orchestrator import (
-    SwarmState,
-    ConsensusType,
     AgentResponse,
-    SwarmIteration,
-    SwarmResult,
+    ConsensusType,
     SwarmConfig,
+    SwarmIteration,
     SwarmOrchestrator,
+    SwarmResult,
+    SwarmState,
 )
 
 
@@ -83,7 +83,7 @@ class TestAgentResponse:
             model="opus",
             content="Test content",
             timestamp="2024-12-21T10:00:00",
-            iteration=0
+            iteration=0,
         )
         assert response.agent == "DEV"
         assert response.model == "opus"
@@ -104,7 +104,7 @@ class TestAgentResponse:
             issues_found=["Issue 1", "Issue 2"],
             approvals=["LGTM"],
             suggestions=["Consider X"],
-            vote="approve"
+            vote="approve",
         )
         assert response.tokens_used == 500
         assert response.vote == "approve"
@@ -118,7 +118,7 @@ class TestAgentResponse:
             content="Test content",
             timestamp="2024-12-21T10:00:00",
             iteration=0,
-            vote="approve"
+            vote="approve",
         )
         result = response.to_dict()
         assert isinstance(result, dict)
@@ -133,7 +133,7 @@ class TestAgentResponse:
             model="opus",
             content=long_content,
             timestamp="2024-12-21T10:00:00",
-            iteration=0
+            iteration=0,
         )
         result = response.to_dict()
         assert len(result["content"]) < 600
@@ -157,14 +157,14 @@ class TestSwarmIteration:
             model="opus",
             content="Content",
             timestamp="2024-12-21T10:00:00",
-            iteration=0
+            iteration=0,
         )
         iteration = SwarmIteration(
             iteration_num=1,
             responses=[response],
             consensus_reached=True,
             issues_remaining=["Issue"],
-            decisions_made=["DEV: approve"]
+            decisions_made=["DEV: approve"],
         )
         assert len(iteration.responses) == 1
         assert iteration.consensus_reached
@@ -172,9 +172,7 @@ class TestSwarmIteration:
     def test_iteration_to_dict(self):
         """Test converting iteration to dictionary."""
         iteration = SwarmIteration(
-            iteration_num=0,
-            consensus_reached=False,
-            issues_remaining=["Issue 1"]
+            iteration_num=0, consensus_reached=False, issues_remaining=["Issue 1"]
         )
         result = iteration.to_dict()
         assert isinstance(result, dict)
@@ -198,7 +196,7 @@ class TestSwarmResult:
             total_cost_usd=0.10,
             start_time="2024-12-21T10:00:00",
             end_time="2024-12-21T10:05:00",
-            consensus_type=ConsensusType.MAJORITY
+            consensus_type=ConsensusType.MAJORITY,
         )
         assert result.story_key == "test-1"
         assert result.state == SwarmState.COMPLETED
@@ -216,7 +214,7 @@ class TestSwarmResult:
             total_cost_usd=0.05,
             start_time="2024-12-21T10:00:00",
             end_time="2024-12-21T10:01:00",
-            consensus_type=ConsensusType.UNANIMOUS
+            consensus_type=ConsensusType.UNANIMOUS,
         )
         d = result.to_dict()
         assert d["state"] == "consensus"
@@ -235,7 +233,7 @@ class TestSwarmResult:
             total_cost_usd=0.15,
             start_time="2024-12-21T10:00:00",
             end_time="2024-12-21T10:05:00",
-            consensus_type=ConsensusType.REVIEWER_APPROVAL
+            consensus_type=ConsensusType.REVIEWER_APPROVAL,
         )
         summary = result.to_summary()
         assert "test-1" in summary
@@ -255,7 +253,7 @@ class TestSwarmResult:
             total_cost_usd=0.10,
             start_time="2024-12-21T10:00:00",
             end_time="2024-12-21T10:05:00",
-            consensus_type=ConsensusType.MAJORITY
+            consensus_type=ConsensusType.MAJORITY,
         )
         summary = result.to_summary()
         assert "Max iterations reached" in summary
@@ -281,7 +279,7 @@ class TestSwarmConfig:
             max_iterations=5,
             consensus_type=ConsensusType.UNANIMOUS,
             parallel_execution=True,
-            budget_limit_usd=50.0
+            budget_limit_usd=50.0,
         )
         assert config.max_iterations == 5
         assert config.consensus_type == ConsensusType.UNANIMOUS
@@ -302,22 +300,23 @@ class TestSwarmOrchestrator:
     @pytest.fixture
     def mock_dependencies(self):
         """Mock external dependencies."""
-        with patch('lib.swarm_orchestrator.get_shared_memory') as mock_sm, \
-             patch('lib.swarm_orchestrator.get_knowledge_graph') as mock_kg, \
-             patch('lib.swarm_orchestrator.HandoffGenerator') as mock_hg, \
-             patch('lib.swarm_orchestrator.AgentRouter') as mock_router:
-            
+        with (
+            patch("lib.swarm_orchestrator.get_shared_memory") as mock_sm,
+            patch("lib.swarm_orchestrator.get_knowledge_graph") as mock_kg,
+            patch("lib.swarm_orchestrator.HandoffGenerator") as mock_hg,
+            patch("lib.swarm_orchestrator.AgentRouter") as mock_router,
+        ):
             mock_sm.return_value = MagicMock()
             mock_kg.return_value = MagicMock()
             mock_hg.return_value = MagicMock()
             mock_hg.return_value.generate_context_for_agent.return_value = "Context"
             mock_router.return_value = MagicMock()
-            
+
             yield {
-                'shared_memory': mock_sm,
-                'knowledge_graph': mock_kg,
-                'handoff_generator': mock_hg,
-                'router': mock_router,
+                "shared_memory": mock_sm,
+                "knowledge_graph": mock_kg,
+                "handoff_generator": mock_hg,
+                "router": mock_router,
             }
 
     def test_orchestrator_creation(self, mock_dependencies):
@@ -346,7 +345,7 @@ class TestSwarmOrchestrator:
     def test_extract_issues(self, mock_dependencies):
         """Test extracting issues from content."""
         orchestrator = SwarmOrchestrator(story_key="test-1")
-        
+
         content = """
         Here are some issues:
         Issue: Missing error handling
@@ -361,7 +360,7 @@ class TestSwarmOrchestrator:
     def test_extract_approvals(self, mock_dependencies):
         """Test extracting approvals from content."""
         orchestrator = SwarmOrchestrator(story_key="test-1")
-        
+
         content = """
         LGTM! This looks good.
          Well implemented
@@ -373,7 +372,7 @@ class TestSwarmOrchestrator:
     def test_extract_suggestions(self, mock_dependencies):
         """Test extracting suggestions from content."""
         orchestrator = SwarmOrchestrator(story_key="test-1")
-        
+
         content = """
         Suggest: Use async/await
          Consider caching
@@ -385,34 +384,26 @@ class TestSwarmOrchestrator:
     def test_determine_vote_approve(self, mock_dependencies):
         """Test determining approve vote."""
         orchestrator = SwarmOrchestrator(story_key="test-1")
-        
+
         vote = orchestrator._determine_vote(
-            "LGTM! Approved for merge.",
-            issues=[],
-            approvals=["Approved"]
+            "LGTM! Approved for merge.", issues=[], approvals=["Approved"]
         )
         assert vote == "approve"
 
     def test_determine_vote_reject(self, mock_dependencies):
         """Test determining reject vote."""
         orchestrator = SwarmOrchestrator(story_key="test-1")
-        
+
         vote = orchestrator._determine_vote(
-            "This needs work. Do not merge.",
-            issues=["Issue 1", "Issue 2"],
-            approvals=[]
+            "This needs work. Do not merge.", issues=["Issue 1", "Issue 2"], approvals=[]
         )
         assert vote == "reject"
 
     def test_determine_vote_abstain(self, mock_dependencies):
         """Test determining abstain vote."""
         orchestrator = SwarmOrchestrator(story_key="test-1")
-        
-        vote = orchestrator._determine_vote(
-            "Some observations here.",
-            issues=[],
-            approvals=[]
-        )
+
+        vote = orchestrator._determine_vote("Some observations here.", issues=[], approvals=[])
         assert vote == "abstain"
 
     def test_estimate_cost_opus(self, mock_dependencies):
@@ -443,15 +434,22 @@ class TestSwarmOrchestrator:
         """Test unanimous consensus check."""
         config = SwarmConfig(consensus_type=ConsensusType.UNANIMOUS)
         orchestrator = SwarmOrchestrator(story_key="test-1", config=config)
-        
+
         responses = [
-            AgentResponse(agent="DEV", model="opus", content="", 
-                         timestamp="", iteration=0, vote="approve"),
-            AgentResponse(agent="REVIEWER", model="opus", content="", 
-                         timestamp="", iteration=0, vote="approve"),
+            AgentResponse(
+                agent="DEV", model="opus", content="", timestamp="", iteration=0, vote="approve"
+            ),
+            AgentResponse(
+                agent="REVIEWER",
+                model="opus",
+                content="",
+                timestamp="",
+                iteration=0,
+                vote="approve",
+            ),
         ]
         assert orchestrator._check_consensus(responses)
-        
+
         responses[1].vote = "reject"
         assert not orchestrator._check_consensus(responses)
 
@@ -459,14 +457,27 @@ class TestSwarmOrchestrator:
         """Test majority consensus check."""
         config = SwarmConfig(consensus_type=ConsensusType.MAJORITY)
         orchestrator = SwarmOrchestrator(story_key="test-1", config=config)
-        
+
         responses = [
-            AgentResponse(agent="DEV", model="opus", content="", 
-                         timestamp="", iteration=0, vote="approve"),
-            AgentResponse(agent="REVIEWER", model="opus", content="", 
-                         timestamp="", iteration=0, vote="approve"),
-            AgentResponse(agent="ARCHITECT", model="sonnet", content="", 
-                         timestamp="", iteration=0, vote="reject"),
+            AgentResponse(
+                agent="DEV", model="opus", content="", timestamp="", iteration=0, vote="approve"
+            ),
+            AgentResponse(
+                agent="REVIEWER",
+                model="opus",
+                content="",
+                timestamp="",
+                iteration=0,
+                vote="approve",
+            ),
+            AgentResponse(
+                agent="ARCHITECT",
+                model="sonnet",
+                content="",
+                timestamp="",
+                iteration=0,
+                vote="reject",
+            ),
         ]
         assert orchestrator._check_consensus(responses)
 
@@ -474,14 +485,27 @@ class TestSwarmOrchestrator:
         """Test quorum consensus check."""
         config = SwarmConfig(consensus_type=ConsensusType.QUORUM, quorum_size=2)
         orchestrator = SwarmOrchestrator(story_key="test-1", config=config)
-        
+
         responses = [
-            AgentResponse(agent="DEV", model="opus", content="", 
-                         timestamp="", iteration=0, vote="approve"),
-            AgentResponse(agent="REVIEWER", model="opus", content="", 
-                         timestamp="", iteration=0, vote="approve"),
-            AgentResponse(agent="ARCHITECT", model="sonnet", content="", 
-                         timestamp="", iteration=0, vote="reject"),
+            AgentResponse(
+                agent="DEV", model="opus", content="", timestamp="", iteration=0, vote="approve"
+            ),
+            AgentResponse(
+                agent="REVIEWER",
+                model="opus",
+                content="",
+                timestamp="",
+                iteration=0,
+                vote="approve",
+            ),
+            AgentResponse(
+                agent="ARCHITECT",
+                model="sonnet",
+                content="",
+                timestamp="",
+                iteration=0,
+                vote="reject",
+            ),
         ]
         assert orchestrator._check_consensus(responses)
 
@@ -489,15 +513,22 @@ class TestSwarmOrchestrator:
         """Test reviewer approval consensus check."""
         config = SwarmConfig(consensus_type=ConsensusType.REVIEWER_APPROVAL)
         orchestrator = SwarmOrchestrator(story_key="test-1", config=config)
-        
+
         responses = [
-            AgentResponse(agent="DEV", model="opus", content="", 
-                         timestamp="", iteration=0, vote="approve"),
-            AgentResponse(agent="REVIEWER", model="opus", content="", 
-                         timestamp="", iteration=0, vote="approve"),
+            AgentResponse(
+                agent="DEV", model="opus", content="", timestamp="", iteration=0, vote="approve"
+            ),
+            AgentResponse(
+                agent="REVIEWER",
+                model="opus",
+                content="",
+                timestamp="",
+                iteration=0,
+                vote="approve",
+            ),
         ]
         assert orchestrator._check_consensus(responses)
-        
+
         responses[1].vote = "reject"
         assert not orchestrator._check_consensus(responses)
 
@@ -505,22 +536,33 @@ class TestSwarmOrchestrator:
         """Test consensus with no votes."""
         orchestrator = SwarmOrchestrator(story_key="test-1")
         responses = [
-            AgentResponse(agent="DEV", model="opus", content="", 
-                         timestamp="", iteration=0, vote=None),
+            AgentResponse(
+                agent="DEV", model="opus", content="", timestamp="", iteration=0, vote=None
+            ),
         ]
         assert not orchestrator._check_consensus(responses)
 
     def test_collect_issues(self, mock_dependencies):
         """Test collecting issues from responses."""
         orchestrator = SwarmOrchestrator(story_key="test-1")
-        
+
         responses = [
-            AgentResponse(agent="DEV", model="opus", content="", 
-                         timestamp="", iteration=0, 
-                         issues_found=["Issue 1", "Issue 2"]),
-            AgentResponse(agent="REVIEWER", model="opus", content="", 
-                         timestamp="", iteration=0, 
-                         issues_found=["Issue 2", "Issue 3"]),
+            AgentResponse(
+                agent="DEV",
+                model="opus",
+                content="",
+                timestamp="",
+                iteration=0,
+                issues_found=["Issue 1", "Issue 2"],
+            ),
+            AgentResponse(
+                agent="REVIEWER",
+                model="opus",
+                content="",
+                timestamp="",
+                iteration=0,
+                issues_found=["Issue 2", "Issue 3"],
+            ),
         ]
         issues = orchestrator._collect_issues(responses)
         assert len(issues) == 3  # Unique issues
@@ -530,13 +572,13 @@ class TestSwarmOrchestrator:
     def test_build_iteration_prompt_first(self, mock_dependencies):
         """Test building prompt for first iteration."""
         orchestrator = SwarmOrchestrator(story_key="test-1")
-        
+
         prompt = orchestrator._build_iteration_prompt(
             agent="DEV",
             task="Implement feature X",
             iteration=0,
             previous_responses=[],
-            issues_to_fix=[]
+            issues_to_fix=[],
         )
         assert "DEV" in prompt
         assert "Implement feature X" in prompt
@@ -545,22 +587,25 @@ class TestSwarmOrchestrator:
     def test_build_iteration_prompt_subsequent(self, mock_dependencies):
         """Test building prompt for subsequent iteration."""
         orchestrator = SwarmOrchestrator(story_key="test-1")
-        
+
         previous_responses = [
             AgentResponse(
-                agent="REVIEWER", model="opus", content="",
-                timestamp="", iteration=0,
+                agent="REVIEWER",
+                model="opus",
+                content="",
+                timestamp="",
+                iteration=0,
                 issues_found=["Missing tests"],
-                suggestions=["Add unit tests"]
+                suggestions=["Add unit tests"],
             )
         ]
-        
+
         prompt = orchestrator._build_iteration_prompt(
             agent="DEV",
             task="Implement feature X",
             iteration=1,
             previous_responses=previous_responses,
-            issues_to_fix=["Missing tests"]
+            issues_to_fix=["Missing tests"],
         )
         assert "DEV" in prompt
         assert "iteration 2" in prompt.lower()
@@ -571,7 +616,7 @@ class TestSwarmOrchestrator:
         """Test logging in verbose mode."""
         config = SwarmConfig(verbose=True)
         orchestrator = SwarmOrchestrator(story_key="test-1", config=config)
-        
+
         orchestrator._log("Test message", "INFO")
         captured = capsys.readouterr()
         assert "Test message" in captured.out
@@ -580,7 +625,7 @@ class TestSwarmOrchestrator:
         """Test logging in silent mode."""
         config = SwarmConfig(verbose=False)
         orchestrator = SwarmOrchestrator(story_key="test-1", config=config)
-        
+
         orchestrator._log("Test message", "INFO")
         captured = capsys.readouterr()
         assert "Test message" not in captured.out

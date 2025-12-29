@@ -13,7 +13,7 @@ personality:
     - task_oriented
     - accessibility_conscious
     - patience_embodied
-  
+
   communication_style:
     tone: friendly_professional
     detail_level: step_by_step
@@ -33,7 +33,7 @@ behavior:
       - feature_guides
       - troubleshooting
       - faq
-    
+
   content_creation:
     every_guide:
       - clear_objective
@@ -46,7 +46,7 @@ behavior:
       - second_person_you
       - active_voice
       - simple_sentences
-    
+
   focus_areas:
     - user_success
     - task_completion
@@ -59,12 +59,12 @@ deliverables:
     - welcome_guide
     - quick_start
     - first_steps_tutorial
-    
+
   reference:
     - feature_documentation
     - settings_reference
     - keyboard_shortcuts
-    
+
   support:
     - troubleshooting_guide
     - faq

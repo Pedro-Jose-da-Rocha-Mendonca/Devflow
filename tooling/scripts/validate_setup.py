@@ -24,6 +24,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+from lib.colors import Colors
+
 
 class CheckStatus(Enum):
     """Status of a validation check."""
@@ -44,36 +46,6 @@ class CheckResult:
     message: str
     details: Optional[str] = None
     fix_command: Optional[str] = None
-
-
-class Colors:
-    """ANSI color codes."""
-
-    RESET = "\033[0m"
-    RED = "\033[31m"
-    GREEN = "\033[32m"
-    YELLOW = "\033[33m"
-    BLUE = "\033[34m"
-    CYAN = "\033[36m"
-    BOLD = "\033[1m"
-    DIM = "\033[2m"
-
-    @classmethod
-    def disable(cls):
-        """Disable colors (for non-TTY output)."""
-        cls.RESET = ""
-        cls.RED = ""
-        cls.GREEN = ""
-        cls.YELLOW = ""
-        cls.BLUE = ""
-        cls.CYAN = ""
-        cls.BOLD = ""
-        cls.DIM = ""
-
-
-# Detect if running in non-TTY
-if not sys.stdout.isatty():
-    Colors.disable()
 
 
 # Project paths

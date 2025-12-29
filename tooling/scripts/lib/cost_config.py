@@ -61,19 +61,41 @@ class CostConfig:
         """Load configuration from environment variables."""
         config = cls()
 
+        def _safe_float(env_var: str, default: float) -> float:
+            """Safely convert env var to float, returning default on failure."""
+            value = os.getenv(env_var)
+            if not value:
+                return default
+            try:
+                return float(value)
+            except ValueError:
+                print(f"Warning: Invalid float value for {env_var}: '{value}', using default")
+                return default
+
+        def _safe_int(env_var: str, default: int) -> int:
+            """Safely convert env var to int, returning default on failure."""
+            value = os.getenv(env_var)
+            if not value:
+                return default
+            try:
+                return int(value)
+            except ValueError:
+                print(f"Warning: Invalid int value for {env_var}: '{value}', using default")
+                return default
+
         # Budget limits
         if os.getenv("MAX_BUDGET_CONTEXT"):
-            config.budget_context = float(os.getenv("MAX_BUDGET_CONTEXT"))
+            config.budget_context = _safe_float("MAX_BUDGET_CONTEXT", config.budget_context)
         if os.getenv("MAX_BUDGET_DEV"):
-            config.budget_dev = float(os.getenv("MAX_BUDGET_DEV"))
+            config.budget_dev = _safe_float("MAX_BUDGET_DEV", config.budget_dev)
         if os.getenv("MAX_BUDGET_REVIEW"):
-            config.budget_review = float(os.getenv("MAX_BUDGET_REVIEW"))
+            config.budget_review = _safe_float("MAX_BUDGET_REVIEW", config.budget_review)
 
         # Alert thresholds
         if os.getenv("COST_WARNING_PERCENT"):
-            config.warning_percent = int(os.getenv("COST_WARNING_PERCENT"))
+            config.warning_percent = _safe_int("COST_WARNING_PERCENT", config.warning_percent)
         if os.getenv("COST_CRITICAL_PERCENT"):
-            config.critical_percent = int(os.getenv("COST_CRITICAL_PERCENT"))
+            config.critical_percent = _safe_int("COST_CRITICAL_PERCENT", config.critical_percent)
         if os.getenv("COST_AUTO_STOP"):
             config.auto_stop = os.getenv("COST_AUTO_STOP").lower() in ("true", "1", "yes")
 
@@ -83,11 +105,17 @@ class CostConfig:
 
         # Currency rates from environment
         if os.getenv("CURRENCY_RATE_EUR"):
-            config.currency_rates["EUR"] = float(os.getenv("CURRENCY_RATE_EUR"))
+            config.currency_rates["EUR"] = _safe_float(
+                "CURRENCY_RATE_EUR", config.currency_rates["EUR"]
+            )
         if os.getenv("CURRENCY_RATE_GBP"):
-            config.currency_rates["GBP"] = float(os.getenv("CURRENCY_RATE_GBP"))
+            config.currency_rates["GBP"] = _safe_float(
+                "CURRENCY_RATE_GBP", config.currency_rates["GBP"]
+            )
         if os.getenv("CURRENCY_RATE_BRL"):
-            config.currency_rates["BRL"] = float(os.getenv("CURRENCY_RATE_BRL"))
+            config.currency_rates["BRL"] = _safe_float(
+                "CURRENCY_RATE_BRL", config.currency_rates["BRL"]
+            )
 
         return config
 
@@ -127,8 +155,10 @@ class CostConfig:
             if "display_currencies" in data:
                 config.display_currencies = data["display_currencies"]
 
-        except Exception as e:
-            print(f"Warning: Could not load config file: {e}")
+        except json.JSONDecodeError as e:
+            print(f"Warning: Invalid JSON in config file: {e}")
+        except OSError as e:
+            print(f"Warning: Could not read config file: {e}")
 
         return config
 

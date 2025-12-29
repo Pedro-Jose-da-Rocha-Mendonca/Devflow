@@ -5,6 +5,112 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.13.6] - 2025-12-29
+
+### Fixed
+- **Logic Bug in Prompt Sanitization** - Fixed always-true condition in `_sanitize_prompt()`
+  - `swarm_orchestrator.py` - Condition `(ord(char) >= 32 or ord(char) >= 128)` was always true
+  - `pair_programming.py` - Same bug fixed
+  - Now correctly filters control characters while preserving printable content
+- **Environment Variable Validation** - Added safe parsing in `cost_config.py`
+  - `from_env()` now uses `_safe_float()` and `_safe_int()` helpers
+  - Invalid values are logged and defaults are used instead of crashing
+- **Module-level Import** - Moved `import re` to module level in `cost_tracker.py`
+  - Was previously inside `parse_token_usage()` function
+  - Improves import time consistency
+
+## [1.13.5] - 2025-12-29
+
+### Added
+- **Subprocess Sanitization** - Security hardening for agent invocations
+  - `swarm_orchestrator.py` - Added `_sanitize_prompt()` for safe subprocess execution
+  - `pair_programming.py` - Same sanitization to prevent injection attacks
+  - Removes null bytes, control characters, and enforces length limits
+- **Pricing Cache** - Performance optimization for cost calculations
+  - `cost_tracker.py` - Added `_get_pricing()` with model lookup caching
+  - Eliminates repeated dictionary iterations for same models
+
+### Fixed
+- **Dead Code** - Removed unused code paths in `run-collab.py`
+  - Fixed unused `prompt` variable (was discarded f-string)
+  - Now captures and reports `run_sequential_mode()` return value
+- **Input Validation** - Added type validation in `cost_tracker.py`
+  - `calculate_cost()` now validates token inputs are numeric
+  - Raises `CalculationError` with helpful message for invalid inputs
+- **Negative Padding Crash** - Fixed crash in `cost_display.py`
+  - `_content_line()` now truncates content if too long
+  - Prevents negative padding that caused display errors
+- **Atomic File Writes** - Prevent config corruption in `currency_converter.py`
+  - `save_config()` now writes to temp file first, then atomic rename
+  - Cleans up temp file on failure
+
+### Changed
+- **Configurable Constants** - Extracted hardcoded values in `agent_router.py`
+  - `CONFIDENCE_BASE`, `CONFIDENCE_PATTERN_WEIGHT`, `CONFIDENCE_FILE_CONTEXT_WEIGHT`
+  - `COMPLEXITY_SIMPLE_THRESHOLD`, `COST_OPT_COMPLEXITY_THRESHOLD`, `MAX_ALTERNATIVES`
+- **Pre-compiled Patterns** - Performance optimization in `agent_router.py`
+  - `COMPILED_TASK_PATTERNS` - Pre-compiled regex for task type detection
+  - Faster pattern matching in `analyze_task()` method
+
+## [1.13.4] - 2025-12-27
+
+### Added
+- **Pre-commit Configuration** - New `.pre-commit-config.yaml` for automated code quality
+  - Ruff linting and formatting
+  - MyPy type checking
+  - Shell script linting with shellcheck
+  - General file hygiene (trailing whitespace, YAML/JSON validation)
+- **Agent Router Tests** - Comprehensive test suite for `agent_router.py`
+  - Tests for task type detection, complexity estimation, routing logic
+  - Tests for workflow selection and alternative agent suggestions
+
+### Fixed
+- **Bare Exception Handling** - Replaced broad `except Exception` with specific types
+  - `cost_config.py` - Now catches `json.JSONDecodeError` and `OSError` separately
+  - `currency_converter.py` - Now catches `json.JSONDecodeError` and `OSError` separately
+  - `agent_handoff.py` - Git operations now catch `subprocess.SubprocessError`
+- **Silent Failures** - Added warning messages to previously silent catch blocks
+  - `shared_memory.py` - Now logs warnings for corrupted memory/knowledge graph files
+  - `agent_handoff.py` - Now logs warnings when git operations fail
+- **Regex Performance** - Pre-compiled regex patterns in `memory_summarize.py`
+
+### Changed
+- **Environment Variables** - Standardized on `os.getenv()` across all files
+  - Updated `colors.py`, `cost_display.py`, `run-collab.py`
+  - Consistent pattern for environment variable access
+
+## [1.13.3] - 2025-12-27
+
+### Added
+- **Shared Python Libraries** - New reusable modules in `lib/`
+  - `colors.py` - Consolidated ANSI color codes with cross-platform support
+  - `platform.py` - Unified platform detection utilities
+- **Agent Improvements** - Enhanced all agent definitions
+  - Added "When Complete" sections to ARCHITECT, MAINTAINER, BA, PM, WRITER agents
+  - Added "Context Management" sections to all agents missing them
+- **Command Documentation** - Expanded command help files
+  - Enhanced `/bugfix` with workflow description and options
+  - Enhanced `/devflow` with full command reference table
+  - Enhanced `/review` with verdict explanations and options
+
+### Fixed
+- **JavaScript Bug** - Fixed no-op ternary in `lib/exec-python.js:53-55` that did nothing
+- **Stale Reference** - Removed orphaned `devflow-init` from `lib/constants.js`
+- **Error Handling** - Added error handler to `spawn()` in `bin/devflow.js`
+- **Silent Failures** - Added error logging to `bin/devflow-install.js`
+- **Regex Bug** - Fixed `.match()` to `.test()` in `bin/devflow-install.js:30`
+- **Empty List Crash** - Added guard for empty list in `memory_summarize.py:138`
+- **Emoji Policy Violation** - Removed emojis from `CONTRIBUTING.md` table
+- **README Examples** - Updated deprecated `./run-story.sh` to `npx @pjmendonca/devflow story`
+- **SECURITY Agent** - Removed references to non-existent SECURITY agent from README
+
+### Changed
+- **DOC-STANDARD.md** - Renamed from "Stronger Project" to "Devflow"
+- **DOC-STANDARD.md** - Updated callout conventions to use text-based format (no emojis)
+- **REVIEWER Agent** - Fixed contradictory "rubber stamping" rule
+- **Agent Command** - Added missing `writer` to available agents list
+- **.gitignore** - Added `.claude/plans/` exclusion
+
 ## [1.13.2] - 2025-12-27
 
 ### Removed

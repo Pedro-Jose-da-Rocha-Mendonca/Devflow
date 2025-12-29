@@ -80,42 +80,42 @@ info() {
 # Check if file has valid YAML syntax using basic shell parsing
 check_yaml_syntax() {
     local file="$1"
-    
+
     # Check for common YAML syntax issues
     local line_num=0
     local in_list=false
     local prev_indent=0
-    
+
     while IFS= read -r line || [[ -n "$line" ]]; do
         ((line_num++))
-        
+
         # Skip empty lines and comments
         [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-        
+
         # Check for tabs (YAML should use spaces)
         if [[ "$line" == *$'\t'* ]]; then
             error "Line $line_num: Contains tabs (use spaces instead)"
             return 1
         fi
-        
+
         # Check for trailing spaces
         if [[ "$line" =~ [[:space:]]$ ]]; then
             warning "Line $line_num: Trailing whitespace"
         fi
-        
+
         # Check for unclosed quotes
         local quote_count=$(echo "$line" | grep -o '"' | wc -l | tr -d ' ')
         if [[ $((quote_count % 2)) -ne 0 ]]; then
             error "Line $line_num: Unclosed double quote"
             return 1
         fi
-        
+
         local single_quote_count=$(echo "$line" | grep -o "'" | wc -l | tr -d ' ')
         if [[ $((single_quote_count % 2)) -ne 0 ]]; then
             error "Line $line_num: Unclosed single quote"
             return 1
         fi
-        
+
         # Check for proper colon spacing in key-value pairs
         if [[ "$line" =~ ^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*:[^[:space:]] && ! "$line" =~ ^[[:space:]]*[a-zA-Z_][a-zA-Z0-9_]*:$ ]]; then
             # Allow for URLs and special cases
@@ -123,9 +123,9 @@ check_yaml_syntax() {
                 warning "Line $line_num: Missing space after colon"
             fi
         fi
-        
+
     done < "$file"
-    
+
     return 0
 }
 
@@ -152,10 +152,10 @@ validate_override_file() {
     local file="$1"
     local filename=$(basename "$file")
     local agent_name="${filename%.override.yaml}"
-    
+
     echo ""
     echo -e "${BLUE}Validating:${NC} $filename"
-    
+
     # Check if corresponding agent exists
     local agent_file="$AGENTS_DIR/${agent_name}.md"
     if [[ ! -f "$agent_file" ]]; then
@@ -164,14 +164,14 @@ validate_override_file() {
     else
         info "Agent file found: ${agent_name}.md"
     fi
-    
+
     # Check YAML syntax
     if ! check_yaml_syntax "$file"; then
         error "YAML syntax validation failed"
         return 1
     fi
     success "YAML syntax is valid"
-    
+
     # Validate model override if present
     local model=$(yaml_get "$file" "model")
     if [[ -n "$model" ]]; then
@@ -182,14 +182,14 @@ validate_override_file() {
                 break
             fi
         done
-        
+
         if [[ "$valid" == "true" ]]; then
             success "Model override is valid: $model"
         else
             error "Invalid model: '$model'. Valid options: ${VALID_MODELS[*]}"
         fi
     fi
-    
+
     # Validate budget override if present
     local budget=$(yaml_get "$file" "max_budget_usd")
     if [[ -n "$budget" ]]; then
@@ -206,56 +206,56 @@ validate_override_file() {
             error "Invalid budget format: '$budget' (must be a number)"
         fi
     fi
-    
+
     # Check for additional_rules
     if yaml_has_list "$file" "additional_rules"; then
         local rule_count=$(awk '/^additional_rules:/{found=1; next} found && /^[[:space:]]*-/{count++} found && /^[a-zA-Z]/{exit} END{print count}' "$file")
         success "Additional rules defined: ${rule_count:-0} rules"
     fi
-    
+
     # Check for memories
     if yaml_has_list "$file" "memories"; then
         local memory_count=$(awk '/^memories:/{found=1; next} found && /^[[:space:]]*-/{count++} found && /^[a-zA-Z]/{exit} END{print count}' "$file")
         success "Memories defined: ${memory_count:-0} items"
     fi
-    
+
     # Check for critical_actions
     if yaml_has_list "$file" "critical_actions"; then
         local action_count=$(awk '/^critical_actions:/{found=1; next} found && /^[[:space:]]*-/{count++} found && /^[a-zA-Z]/{exit} END{print count}' "$file")
         success "Critical actions defined: ${action_count:-0} actions"
     fi
-    
+
     ((VALIDATED++))
     return 0
 }
 
 validate_user_profile() {
     local file="$OVERRIDES_DIR/user-profile.yaml"
-    
+
     if [[ ! -f "$file" ]]; then
         warning "No user-profile.yaml found"
         return 0
     fi
-    
+
     echo ""
     echo -e "${BLUE}Validating:${NC} user-profile.yaml"
-    
+
     # Check YAML syntax
     if ! check_yaml_syntax "$file"; then
         error "YAML syntax validation failed"
         return 1
     fi
     success "YAML syntax is valid"
-    
+
     # Check for user section
     if grep -q "^user:" "$file"; then
         success "User section found"
-        
+
         local name=$(grep -A10 "^user:" "$file" | grep "name:" | sed 's/.*name:[[:space:]]*//' | head -1)
         if [[ -n "$name" && "$name" != "User" ]]; then
             success "User name configured: $name"
         fi
-        
+
         local level=$(grep -A10 "^user:" "$file" | grep "technical_level:" | sed 's/.*technical_level:[[:space:]]*//' | head -1)
         if [[ -n "$level" ]]; then
             local valid_levels=("beginner" "intermediate" "advanced" "expert")
@@ -266,7 +266,7 @@ validate_user_profile() {
                     break
                 fi
             done
-            
+
             if [[ "$valid" == "true" ]]; then
                 success "Technical level: $level"
             else
@@ -276,7 +276,7 @@ validate_user_profile() {
     else
         warning "No user section found in profile"
     fi
-    
+
     ((VALIDATED++))
     return 0
 }
@@ -305,13 +305,13 @@ auto_fix_file() {
     local file="$1"
     echo ""
     echo -e "${YELLOW}Auto-fixing:${NC} $(basename "$file")"
-    
+
     # Backup original
     cp "$file" "${file}.bak"
-    
+
     fix_trailing_whitespace "$file"
     fix_tabs "$file"
-    
+
     # Remove backup if no changes
     if diff -q "$file" "${file}.bak" > /dev/null 2>&1; then
         rm "${file}.bak"
@@ -345,7 +345,7 @@ main() {
     local target=""
     local FIX_MODE=false
     VERBOSE=false
-    
+
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -365,14 +365,14 @@ main() {
         esac
         shift
     done
-    
+
     print_header
-    
+
     if [[ ! -d "$OVERRIDES_DIR" ]]; then
         error "Overrides directory not found: $OVERRIDES_DIR"
         exit 1
     fi
-    
+
     if [[ -n "$target" ]]; then
         # Validate specific override
         local file="$OVERRIDES_DIR/${target}.override.yaml"
@@ -380,7 +380,7 @@ main() {
             error "Override file not found: $file"
             exit 1
         fi
-        
+
         if [[ "$FIX_MODE" == "true" ]]; then
             auto_fix_file "$file"
         fi
@@ -388,13 +388,13 @@ main() {
     else
         # Validate all overrides
         echo -e "${BLUE}Scanning:${NC} $OVERRIDES_DIR"
-        
+
         # Validate user profile first
         if [[ "$FIX_MODE" == "true" && -f "$OVERRIDES_DIR/user-profile.yaml" ]]; then
             auto_fix_file "$OVERRIDES_DIR/user-profile.yaml"
         fi
         validate_user_profile
-        
+
         # Validate all override files
         for file in "$OVERRIDES_DIR"/*.override.yaml; do
             if [[ -f "$file" ]]; then
@@ -405,7 +405,7 @@ main() {
             fi
         done
     fi
-    
+
     # Summary
     echo ""
     echo -e "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
@@ -416,7 +416,7 @@ main() {
     echo -e "  Errors:          ${RED}$ERRORS${NC}"
     echo -e "  Warnings:        ${YELLOW}$WARNINGS${NC}"
     echo ""
-    
+
     if [[ $ERRORS -gt 0 ]]; then
         echo -e "${RED} Validation failed with $ERRORS error(s)${NC}"
         exit 1

@@ -27,4 +27,3 @@ Automatic checkpointing occurs at:
 - Before each agent phase starts
 - When approaching context limits
 - After major milestones
-

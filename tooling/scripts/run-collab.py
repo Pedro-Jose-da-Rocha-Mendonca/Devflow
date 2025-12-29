@@ -28,7 +28,7 @@ Examples:
 import argparse
 import json
 import os
-import platform
+import platform as platform_stdlib
 import shutil
 import sys
 from datetime import datetime
@@ -38,10 +38,9 @@ from typing import Optional
 SCRIPT_DIR = Path(__file__).parent
 sys.path.insert(0, str(SCRIPT_DIR / "lib"))
 
-# Cross-platform detection
-IS_WINDOWS = platform.system() == "Windows"
-IS_MACOS = platform.system() == "Darwin"
-IS_LINUX = platform.system() == "Linux"
+from platform import IS_MACOS, IS_WINDOWS
+
+from colors import Colors
 
 
 def detect_claude_cli() -> Optional[str]:
@@ -63,8 +62,8 @@ def detect_claude_cli() -> Optional[str]:
     if IS_WINDOWS:
         # Check common Windows install locations
         possible_paths = [
-            Path(os.environ.get("LOCALAPPDATA", "")) / "Programs" / "claude" / "claude.exe",
-            Path(os.environ.get("PROGRAMFILES", "")) / "Claude" / "claude.exe",
+            Path(os.getenv("LOCALAPPDATA", "")) / "Programs" / "claude" / "claude.exe",
+            Path(os.getenv("PROGRAMFILES", "")) / "Claude" / "claude.exe",
             Path.home() / ".claude" / "local" / "claude.exe",
             Path.home() / "AppData" / "Local" / "Programs" / "claude" / "claude.exe",
         ]
@@ -130,13 +129,13 @@ def get_config_dir() -> Path:
         Path to configuration directory.
     """
     if IS_WINDOWS:
-        base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
+        base = Path(os.getenv("APPDATA") or str(Path.home() / "AppData" / "Roaming"))
         return base / "devflow"
     elif IS_MACOS:
         return Path.home() / "Library" / "Application Support" / "devflow"
     else:
         # Linux/Unix: Use XDG
-        xdg_data = os.environ.get("XDG_DATA_HOME", Path.home() / ".local" / "share")
+        xdg_data = os.getenv("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
         return Path(xdg_data) / "devflow"
 
 
@@ -147,12 +146,12 @@ def get_cache_dir() -> Path:
         Path to cache directory.
     """
     if IS_WINDOWS:
-        base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
+        base = Path(os.getenv("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local"))
         return base / "devflow" / "cache"
     elif IS_MACOS:
         return Path.home() / "Library" / "Caches" / "devflow"
     else:
-        xdg_cache = os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")
+        xdg_cache = os.getenv("XDG_CACHE_HOME") or str(Path.home() / ".cache")
         return Path(xdg_cache) / "devflow"
 
 
@@ -162,47 +161,6 @@ from lib.agent_router import AgentRouter, RoutingResult  # noqa: E402
 from lib.pair_programming import PairConfig, PairSession  # noqa: E402
 from lib.shared_memory import get_knowledge_graph, get_shared_memory, share_learning  # noqa: E402
 from lib.swarm_orchestrator import ConsensusType, SwarmConfig, SwarmOrchestrator  # noqa: E402
-
-
-# Colors for terminal output (with Windows support)
-class Colors:
-    """ANSI color codes with Windows compatibility."""
-
-    # Enable ANSI colors on Windows
-    if IS_WINDOWS:
-        try:
-            import ctypes
-
-            kernel32 = ctypes.windll.kernel32
-            kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-        except Exception:
-            pass  # Fall back to no colors
-
-    # Check if colors should be enabled
-    _use_colors = (
-        sys.stdout.isatty()
-        and os.environ.get("NO_COLOR") is None
-        and os.environ.get("TERM") != "dumb"
-    )
-
-    if _use_colors:
-        HEADER = "\033[95m"
-        BLUE = "\033[94m"
-        CYAN = "\033[96m"
-        GREEN = "\033[92m"
-        YELLOW = "\033[93m"
-        RED = "\033[91m"
-        BOLD = "\033[1m"
-        END = "\033[0m"
-    else:
-        HEADER = ""
-        BLUE = ""
-        CYAN = ""
-        GREEN = ""
-        YELLOW = ""
-        RED = ""
-        BOLD = ""
-        END = ""
 
 
 def print_banner():
@@ -314,8 +272,8 @@ def run_sequential_mode(story_key: str, task: str, agents: list[str], args: argp
         # Get context including handoffs
         context = handoff_gen.generate_context_for_agent(agent)
 
-        # Build prompt
-        f"""You are the {agent} agent.
+        # Build prompt for agent invocation
+        prompt = f"""You are the {agent} agent.
 
 {context}
 
@@ -329,6 +287,8 @@ Complete your part of this task according to your role.
 """
 
         # Invoke agent (simplified - in real use would call Claude CLI)
+        # Note: prompt is prepared above for when full agent invocation is implemented
+        _ = prompt  # Acknowledge prompt is ready for future use
         print("  -> Generating response...")
 
         # For demo, we'll note the handoff
@@ -379,7 +339,7 @@ def save_result(story_key: str, mode: str, result: dict):
                 "story_key": story_key,
                 "mode": mode,
                 "timestamp": datetime.now().isoformat(),
-                "platform": platform.system(),
+                "platform": platform_stdlib.system(),
                 "result": result,
             },
             f,
@@ -579,7 +539,9 @@ def main():
             print("Sequential")
             if not agents:
                 agents = ["SM", "DEV", "REVIEWER"]
-            run_sequential_mode(story_key, task, agents, args)
+            results = run_sequential_mode(story_key, task, agents, args)
+            if results:
+                print(f"  Completed {len(results)} agent(s)")
 
         else:  # auto mode
             print("Auto-Route")

@@ -13,7 +13,7 @@ personality:
     - pragmatic
     - stakeholder_savvy
     - bridge_builder
-  
+
   communication_style:
     tone: adaptive_to_audience
     detail_level: context_appropriate
@@ -33,7 +33,7 @@ behavior:
       - team_maturity
       - regulatory_requirements
     flexibility: methodology_blending
-    
+
   execution:
     governance: lightweight_appropriate
     tracking:
@@ -41,7 +41,7 @@ behavior:
       - leading_indicators
       - stakeholder_satisfaction
     adaptation: continuous_calibration
-    
+
   focus_areas:
     - methodology_selection
     - stakeholder_translation

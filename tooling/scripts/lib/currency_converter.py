@@ -28,6 +28,8 @@ Exchange Rate Notice:
 """
 
 import json
+import os
+import tempfile
 import threading
 from pathlib import Path
 from typing import Optional
@@ -128,8 +130,10 @@ class CurrencyConverter:
             if "display_currencies" in config:
                 self.display_currencies = config["display_currencies"]
 
-        except Exception as e:
-            print(f"Warning: Could not load currency config: {e}")
+        except json.JSONDecodeError as e:
+            print(f"Warning: Invalid JSON in currency config: {e}")
+        except OSError as e:
+            print(f"Warning: Could not read currency config: {e}")
 
     def convert(self, amount_usd: float, currency: str) -> float:
         """
@@ -237,14 +241,33 @@ class CurrencyConverter:
         ]
 
     def save_config(self, config_path: Path):
-        """Save current rates to config file."""
+        """Save current rates to config file (atomic write).
+
+        Uses a temporary file and rename to prevent corruption on write failure.
+        """
         config = {
             "currency_rates": self.rates,
             "display_currencies": self.display_currencies,
         }
 
-        with open(config_path, "w") as f:
-            json.dump(config, f, indent=2)
+        # Ensure parent directory exists
+        config_path = Path(config_path)
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Write to temp file first, then atomic rename
+        fd, tmp_path = tempfile.mkstemp(
+            suffix=".tmp", prefix=config_path.stem, dir=config_path.parent
+        )
+        try:
+            with os.fdopen(fd, "w") as f:
+                json.dump(config, f, indent=2)
+            # Atomic rename (works on POSIX, best-effort on Windows)
+            os.replace(tmp_path, config_path)
+        except Exception:
+            # Clean up temp file on failure
+            if os.path.exists(tmp_path):
+                os.unlink(tmp_path)
+            raise
 
 
 # Thread-safe global converter storage

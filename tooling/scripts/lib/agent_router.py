@@ -29,6 +29,14 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+# Configuration constants (can be overridden via environment or config)
+CONFIDENCE_BASE = 0.3  # Base confidence score
+CONFIDENCE_PATTERN_WEIGHT = 0.1  # Weight per detected pattern
+CONFIDENCE_FILE_CONTEXT_WEIGHT = 0.1  # Weight per file context match
+COMPLEXITY_SIMPLE_THRESHOLD = 2  # Complexity <= this is "simple"
+COST_OPT_COMPLEXITY_THRESHOLD = 3  # Max complexity for cost optimization
+MAX_ALTERNATIVES = 3  # Maximum alternative agents to suggest
+
 
 class TaskType(Enum):
     """Types of development tasks."""
@@ -242,6 +250,12 @@ TASK_PATTERNS = {
     ],
 }
 
+# Pre-compile regex patterns for performance
+COMPILED_TASK_PATTERNS: dict[TaskType, list[re.Pattern]] = {
+    task_type: [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
+    for task_type, patterns in TASK_PATTERNS.items()
+}
+
 # File extension to specialty mapping
 FILE_SPECIALTIES = {
     # Security-sensitive files
@@ -337,14 +351,14 @@ class AgentRouter:
         """
         description_lower = description.lower()
 
-        # Detect task type from patterns
+        # Detect task type from pre-compiled patterns (faster than re.findall each time)
         type_scores: dict[TaskType, int] = {}
         detected_patterns: list[str] = []
 
-        for task_type, patterns in TASK_PATTERNS.items():
+        for task_type, compiled_patterns in COMPILED_TASK_PATTERNS.items():
             score = 0
-            for pattern in patterns:
-                matches = re.findall(pattern, description_lower)
+            for pattern in compiled_patterns:
+                matches = pattern.findall(description_lower)
                 if matches:
                     score += len(matches)
                     detected_patterns.extend(matches)
@@ -368,8 +382,13 @@ class AgentRouter:
         # Estimate complexity
         complexity = self._estimate_complexity(description, files)
 
-        # Calculate confidence
-        confidence = min(1.0, 0.3 + (0.1 * len(detected_patterns)) + (0.1 * len(file_contexts)))
+        # Calculate confidence using configurable weights
+        confidence = min(
+            1.0,
+            CONFIDENCE_BASE
+            + (CONFIDENCE_PATTERN_WEIGHT * len(detected_patterns))
+            + (CONFIDENCE_FILE_CONTEXT_WEIGHT * len(file_contexts)),
+        )
 
         return TaskAnalysis(
             task_type=task_type,
@@ -562,7 +581,9 @@ class AgentRouter:
         }
 
         # Determine complexity level
-        complexity_level = "simple" if complexity.value <= 2 else "complex"
+        complexity_level = (
+            "simple" if complexity.value <= COMPLEXITY_SIMPLE_THRESHOLD else "complex"
+        )
 
         # Get routing
         rule = routing_rules.get(task_type, {}).get(complexity_level)
@@ -572,11 +593,11 @@ class AgentRouter:
         agents, workflow, reasoning = rule
 
         # Cost optimization
-        if prefer_cost and complexity.value <= 3:
+        if prefer_cost and complexity.value <= COST_OPT_COMPLEXITY_THRESHOLD:
             # Replace Opus agents with Sonnet equivalents where possible
             cost_effective_agents = []
             for agent in agents:
-                if agent == "REVIEWER" and complexity.value <= 2:
+                if agent == "REVIEWER" and complexity.value <= COMPLEXITY_SIMPLE_THRESHOLD:
                     cost_effective_agents.append("SM")  # SM can do simple reviews
                 else:
                     cost_effective_agents.append(agent)
@@ -601,7 +622,7 @@ class AgentRouter:
             if matches and agent.max_complexity >= analysis.complexity.value:
                 alternatives.append(name)
 
-        return alternatives[:3]  # Top 3 alternatives
+        return alternatives[:MAX_ALTERNATIVES]
 
     def get_workflow_for_agents(self, agents: list[str]) -> str:
         """Determine the best workflow for a set of agents."""

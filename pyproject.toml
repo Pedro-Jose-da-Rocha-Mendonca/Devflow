@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "devflow"
-version = "1.13.2"
+version = "1.13.6"
 description = "Development workflow automation with Claude Code cost tracking"
 readme = "README.md"
 license = { text = "MIT" }
@@ -113,6 +113,13 @@ select = [
 ignore = [
     "E501",  # line too long (handled by formatter)
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Scripts need sys.path modification before local imports
+"tooling/scripts/*.py" = ["E402"]
+"tooling/scripts/lib/*.py" = ["E402"]
+# Test files may have unused variables for setup/assertions
+"tests/*.py" = ["F841"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["tooling"]

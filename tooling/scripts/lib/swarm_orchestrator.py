@@ -29,7 +29,6 @@ Usage:
 
 import re
 import subprocess
-import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -39,17 +38,50 @@ from typing import Optional
 
 # Import dependencies
 try:
+    from platform import IS_WINDOWS
+
     from agent_handoff import HandoffGenerator
     from agent_router import AgentRouter
     from shared_memory import get_knowledge_graph, get_shared_memory
 except ImportError:
     from lib.agent_handoff import HandoffGenerator
     from lib.agent_router import AgentRouter
+    from lib.platform import IS_WINDOWS
     from lib.shared_memory import get_knowledge_graph, get_shared_memory
 
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
-CLAUDE_CLI = "claude.cmd" if sys.platform == "win32" else "claude"
+CLAUDE_CLI = "claude.cmd" if IS_WINDOWS else "claude"
+
+# Security: Maximum prompt length to prevent resource exhaustion
+MAX_PROMPT_LENGTH = 500_000  # ~500KB
+
+
+def _sanitize_prompt(prompt: str) -> str:
+    """Sanitize prompt for safe subprocess execution.
+
+    - Removes null bytes and control characters (except newlines/tabs)
+    - Truncates to maximum length
+    - Ensures valid UTF-8
+
+    Args:
+        prompt: Raw prompt string
+
+    Returns:
+        Sanitized prompt safe for subprocess
+    """
+    if not prompt:
+        return ""
+
+    # Remove null bytes and control characters (keep newlines, tabs, and printable chars)
+    # Keep: \n (10), \t (9), \r (13), and all chars >= 32 (printable ASCII + UTF-8)
+    sanitized = "".join(char for char in prompt if char in "\n\t\r" or ord(char) >= 32)
+
+    # Truncate if too long
+    if len(sanitized) > MAX_PROMPT_LENGTH:
+        sanitized = sanitized[:MAX_PROMPT_LENGTH] + "\n[TRUNCATED]"
+
+    return sanitized
 
 
 class SwarmState(Enum):
@@ -260,7 +292,7 @@ class SwarmOrchestrator:
 
         # Build the full prompt with context
         context = self.handoff_generator.generate_context_for_agent(agent)
-        full_prompt = f"{context}\n\n---\n\n{prompt}"
+        full_prompt = _sanitize_prompt(f"{context}\n\n---\n\n{prompt}")
 
         try:
             result = subprocess.run(

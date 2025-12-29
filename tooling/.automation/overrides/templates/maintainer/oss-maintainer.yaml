@@ -13,7 +13,7 @@ personality:
     - patient
     - quality_guardian
     - contributor_enabler
-  
+
   communication_style:
     tone: welcoming_professional
     detail_level: helpful_thorough
@@ -35,7 +35,7 @@ behavior:
       - constructive_feedback
       - explain_reasoning
       - suggest_improvements
-    
+
   project_health:
     priorities:
       - clear_documentation
@@ -46,7 +46,7 @@ behavior:
       - regular_releases
       - dependency_updates
       - security_patches
-    
+
   focus_areas:
     - contributor_experience
     - documentation_quality
@@ -62,7 +62,7 @@ community:
     - SECURITY
     - issue_templates
     - pr_templates
-    
+
   engagement:
     - welcome_new_contributors
     - recognize_contributions

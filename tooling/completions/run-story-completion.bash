@@ -23,10 +23,10 @@ _run_story_completion() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    
+
     # Main options
     opts="--swarm --pair --auto-route --sequential --agents --max-iterations --model --budget --memory --query --route-only --quiet --debug --dry-run --help"
-    
+
     case "${prev}" in
         --agents|-a)
             # Support comma-separated agent completion
@@ -38,7 +38,7 @@ _run_story_completion() {
                 existing_agents=""
                 current_part="$cur"
             fi
-            
+
             local suggestions=""
             for agent in $_devflow_agents; do
                 if [[ "$agent" == ${current_part}* ]]; then
@@ -67,7 +67,7 @@ _run_story_completion() {
         *)
             ;;
     esac
-    
+
     # Complete options
     if [[ ${cur} == -* ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
@@ -81,9 +81,9 @@ _run_collab_completion() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    
+
     opts="--swarm --pair --auto --sequential --agents --max-iterations --model --budget --memory --query --route-only --quiet --help"
-    
+
     case "${prev}" in
         --agents)
             local existing_agents current_part
@@ -94,7 +94,7 @@ _run_collab_completion() {
                 existing_agents=""
                 current_part="$cur"
             fi
-            
+
             local suggestions=""
             for agent in $_devflow_agents; do
                 if [[ "$agent" == ${current_part}* ]]; then
@@ -119,7 +119,7 @@ _run_collab_completion() {
         *)
             ;;
     esac
-    
+
     if [[ ${cur} == -* ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
         return 0

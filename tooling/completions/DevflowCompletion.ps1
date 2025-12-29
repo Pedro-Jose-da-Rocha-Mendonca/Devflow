@@ -25,7 +25,7 @@ $script:DevflowModes = @('swarm', 'pair', 'auto', 'sequential')
 # Argument completer for run-story.ps1
 Register-ArgumentCompleter -CommandName 'run-story.ps1', 'run-story' -Native -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
-    
+
     $params = @(
         @{ Name = '-Swarm'; Tooltip = 'Enable swarm mode (multi-agent debate)' }
         @{ Name = '-Pair'; Tooltip = 'Enable pair programming mode' }
@@ -41,18 +41,18 @@ Register-ArgumentCompleter -CommandName 'run-story.ps1', 'run-story' -Native -Sc
         @{ Name = '-Quiet'; Tooltip = 'Reduce output verbosity' }
         @{ Name = '-Help'; Tooltip = 'Show help' }
     )
-    
+
     # Get the current word being typed
     $commandElements = $commandAst.CommandElements
-    $lastWord = if ($commandElements.Count -gt 1) { 
-        $commandElements[-1].Extent.Text 
+    $lastWord = if ($commandElements.Count -gt 1) {
+        $commandElements[-1].Extent.Text
     } else { '' }
-    
+
     # Check if completing a parameter value
     $previousWord = if ($commandElements.Count -gt 2) {
         $commandElements[-2].Extent.Text
     } else { '' }
-    
+
     # Model completion
     if ($previousWord -eq '-Model') {
         $script:DevflowModels | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
@@ -65,18 +65,18 @@ Register-ArgumentCompleter -CommandName 'run-story.ps1', 'run-story' -Native -Sc
         }
         return
     }
-    
+
     # Agent completion
     if ($previousWord -eq '-Agents') {
         # Support comma-separated completion
         $existingAgents = if ($wordToComplete -match ',') {
             $wordToComplete -replace ',[^,]*$', ','
         } else { '' }
-        
+
         $currentPart = if ($wordToComplete -match ',') {
             ($wordToComplete -split ',')[-1]
         } else { $wordToComplete }
-        
+
         $script:DevflowAgents | Where-Object { $_.Name -like "$currentPart*" } | ForEach-Object {
             [System.Management.Automation.CompletionResult]::new(
                 "$existingAgents$($_.Name)",
@@ -87,7 +87,7 @@ Register-ArgumentCompleter -CommandName 'run-story.ps1', 'run-story' -Native -Sc
         }
         return
     }
-    
+
     # Parameter completion
     $params | Where-Object { $_.Name -like "$wordToComplete*" } | ForEach-Object {
         [System.Management.Automation.CompletionResult]::new(
@@ -102,7 +102,7 @@ Register-ArgumentCompleter -CommandName 'run-story.ps1', 'run-story' -Native -Sc
 # Argument completer for run-collab.ps1
 Register-ArgumentCompleter -CommandName 'run-collab.ps1', 'run-collab' -Native -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
-    
+
     $params = @(
         @{ Name = '-Swarm'; Tooltip = 'Enable swarm mode' }
         @{ Name = '-Pair'; Tooltip = 'Enable pair programming' }
@@ -118,12 +118,12 @@ Register-ArgumentCompleter -CommandName 'run-collab.ps1', 'run-collab' -Native -
         @{ Name = '-Quiet'; Tooltip = 'Quiet mode' }
         @{ Name = '-StoryKey'; Tooltip = 'Story key or description' }
     )
-    
+
     $commandElements = $commandAst.CommandElements
     $previousWord = if ($commandElements.Count -gt 2) {
         $commandElements[-2].Extent.Text
     } else { '' }
-    
+
     # Model completion
     if ($previousWord -eq '-Model') {
         $script:DevflowModels | Where-Object { $_ -like "$wordToComplete*" } | ForEach-Object {
@@ -131,17 +131,17 @@ Register-ArgumentCompleter -CommandName 'run-collab.ps1', 'run-collab' -Native -
         }
         return
     }
-    
+
     # Agent completion
     if ($previousWord -eq '-Agents') {
         $existingAgents = if ($wordToComplete -match ',') {
             $wordToComplete -replace ',[^,]*$', ','
         } else { '' }
-        
+
         $currentPart = if ($wordToComplete -match ',') {
             ($wordToComplete -split ',')[-1]
         } else { $wordToComplete }
-        
+
         $script:DevflowAgents | Where-Object { $_.Name -like "$currentPart*" } | ForEach-Object {
             [System.Management.Automation.CompletionResult]::new(
                 "$existingAgents$($_.Name)",
@@ -152,7 +152,7 @@ Register-ArgumentCompleter -CommandName 'run-collab.ps1', 'run-collab' -Native -
         }
         return
     }
-    
+
     # Parameter completion
     $params | Where-Object { $_.Name -like "$wordToComplete*" } | ForEach-Object {
         [System.Management.Automation.CompletionResult]::new(
@@ -167,22 +167,22 @@ Register-ArgumentCompleter -CommandName 'run-collab.ps1', 'run-collab' -Native -
 # Helper function to show available commands
 function Get-DevflowCommands {
     @"
-    
+
 Devflow Collaboration Commands
 ==============================
 
 run-story.ps1 / run-story.sh
   Main story runner with collaboration modes
-  
+
   Modes:
     -Swarm        Multi-agent debate/consensus
-    -Pair         DEV + REVIEWER pair programming  
+    -Pair         DEV + REVIEWER pair programming
     -Auto         Intelligent auto-routing (default)
     -Sequential   Traditional sequential pipeline
 
 run-collab.ps1 / run-collab.py
   Direct Python collaboration CLI
-  
+
   Same modes as run-story with additional:
     -Memory       View shared memory
     -Query        Query knowledge graph

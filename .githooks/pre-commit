@@ -15,10 +15,10 @@ set -e
 # Check if CHANGELOG.md is staged for commit
 if git diff --cached --name-only | grep -q "^CHANGELOG.md$"; then
     echo "CHANGELOG.md modified, syncing version..."
-    
+
     # Get the project root (where this hook is located)
     REPO_ROOT="$(git rev-parse --show-toplevel)"
-    
+
     # Run the version sync script
     if python3 "$REPO_ROOT/tooling/scripts/update_version.py"; then
         # Stage the updated files

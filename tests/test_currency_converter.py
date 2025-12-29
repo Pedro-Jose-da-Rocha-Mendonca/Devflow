@@ -8,23 +8,20 @@ Tests the currency conversion functionality including:
 - Global converter instance
 """
 
-import pytest
-import sys
 import json
+import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-import tempfile
 
 # Ensure imports work
 sys.path.insert(0, str(Path(__file__).parent.parent / "tooling" / "scripts" / "lib"))
 
 from lib.currency_converter import (
     CurrencyConverter,
+    convert,
+    format_all_currencies,
+    format_currency,
     get_converter,
     set_converter,
-    convert,
-    format_currency,
-    format_all_currencies,
 )
 
 
@@ -223,7 +220,7 @@ class TestListCurrencies:
         currencies = converter.list_currencies()
         assert isinstance(currencies, list)
         assert len(currencies) > 0
-        
+
         # Check structure
         for curr in currencies:
             assert "code" in curr
@@ -245,10 +242,8 @@ class TestConfigLoading:
     def test_load_config_rates(self, tmp_path):
         """Test loading rates from config file."""
         config_file = tmp_path / "currency_config.json"
-        config_file.write_text(json.dumps({
-            "currency_rates": {"EUR": 0.88, "GBP": 0.75}
-        }))
-        
+        config_file.write_text(json.dumps({"currency_rates": {"EUR": 0.88, "GBP": 0.75}}))
+
         converter = CurrencyConverter(config_path=config_file)
         assert converter.rates["EUR"] == 0.88
         assert converter.rates["GBP"] == 0.75
@@ -256,9 +251,7 @@ class TestConfigLoading:
     def test_load_config_display_currencies(self, tmp_path):
         """Test loading display currencies from config file."""
         config_file = tmp_path / "currency_config.json"
-        config_file.write_text(json.dumps({
-            "display_currencies": ["USD", "BRL"]
-        }))
+        config_file.write_text(json.dumps({"display_currencies": ["USD", "BRL"]}))
 
         # Note: Due to implementation order, config display_currencies
         # is loaded but then overwritten by the default when no
@@ -278,7 +271,7 @@ class TestConfigLoading:
         """Test loading invalid JSON config file."""
         config_file = tmp_path / "invalid.json"
         config_file.write_text("not valid json {")
-        
+
         # Should not raise, just warn
         converter = CurrencyConverter(config_path=config_file)
         captured = capsys.readouterr()
@@ -290,18 +283,15 @@ class TestSaveConfig:
 
     def test_save_config(self, tmp_path):
         """Test saving config to file."""
-        converter = CurrencyConverter(
-            rates={"EUR": 0.90},
-            display_currencies=["USD", "EUR"]
-        )
-        
+        converter = CurrencyConverter(rates={"EUR": 0.90}, display_currencies=["USD", "EUR"])
+
         config_file = tmp_path / "saved_config.json"
         converter.save_config(config_file)
-        
+
         # Verify file contents
         with open(config_file) as f:
             saved = json.load(f)
-        
+
         assert "currency_rates" in saved
         assert "display_currencies" in saved
         assert saved["display_currencies"] == ["USD", "EUR"]
@@ -314,8 +304,9 @@ class TestGlobalConverter:
         """Test get_converter creates instance on first call."""
         # Reset global converter
         import lib.currency_converter as cc
+
         cc._converter = None
-        
+
         converter = get_converter()
         assert converter is not None
         assert isinstance(converter, CurrencyConverter)
@@ -330,7 +321,7 @@ class TestGlobalConverter:
         """Test setting global converter."""
         custom = CurrencyConverter(rates={"EUR": 0.99})
         set_converter(custom)
-        
+
         converter = get_converter()
         assert converter.rates["EUR"] == 0.99
 

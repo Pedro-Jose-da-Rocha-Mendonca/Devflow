@@ -158,13 +158,13 @@ This project does NOT use emojis anywhere in the codebase. This applies to:
 **Use text alternatives instead:**
 | Instead of | Use |
 |------------|-----|
-| ✅ | `[OK]`, `[PASS]` |
-| ❌ | `[ERROR]`, `[FAIL]` |
-| ⚠️ | `[WARNING]` |
-| ℹ️ | `[INFO]` |
-| 🔴 | `[CRITICAL]`, `[MUST FIX]` |
-| 🟡 | `[SHOULD FIX]` |
-| 💡 | `[SUGGESTION]`, `[TIP]` |
+| Checkmark | `[OK]`, `[PASS]` |
+| X mark | `[ERROR]`, `[FAIL]` |
+| Warning sign | `[WARNING]` |
+| Info icon | `[INFO]` |
+| Red indicator | `[CRITICAL]`, `[MUST FIX]` |
+| Yellow indicator | `[SHOULD FIX]` |
+| Light bulb | `[SUGGESTION]`, `[TIP]` |
 
 This ensures consistent display across all terminals and environments.
 
@@ -177,4 +177,4 @@ This ensures consistent display across all terminals and environments.
 
 ---
 
-**Thank you for contributing!** 
+**Thank you for contributing!**

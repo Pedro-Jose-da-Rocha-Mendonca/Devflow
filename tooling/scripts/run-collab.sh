@@ -84,25 +84,25 @@ main() {
         show_usage
         exit 0
     fi
-    
+
     # Check for Python
     PYTHON_CMD=$(detect_python)
     if [[ -z "$PYTHON_CMD" ]]; then
         echo -e "${RED}Error: Python 3 not found. Please install Python 3.9+${NC}"
         exit 1
     fi
-    
+
     # Check if Python script exists
     if [[ ! -f "$PYTHON_SCRIPT" ]]; then
         echo -e "${RED}Error: run-collab.py not found at $PYTHON_SCRIPT${NC}"
         exit 1
     fi
-    
+
     # Print banner for non-quiet mode
     if [[ "$*" != *"--quiet"* && "$*" != *"-q"* ]]; then
         print_banner
     fi
-    
+
     # Pass all arguments to Python script
     exec "$PYTHON_CMD" "$PYTHON_SCRIPT" "$@"
 }

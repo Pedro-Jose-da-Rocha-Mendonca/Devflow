@@ -25,30 +25,20 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from lib.colors import Colors
+from lib.platform import IS_WINDOWS
+
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 CHECKPOINT_DIR = PROJECT_ROOT / "tooling" / ".automation" / "checkpoints"
 LOGS_DIR = PROJECT_ROOT / "tooling" / ".automation" / "logs"
 # Platform-specific CLI command
-CLAUDE_CLI = "claude.cmd" if sys.platform == "win32" else "claude"
+CLAUDE_CLI = "claude.cmd" if IS_WINDOWS else "claude"
 
 # Context thresholds
 CONTEXT_WARNING_THRESHOLD = 0.75  # 75% - Start warning
 CONTEXT_CRITICAL_THRESHOLD = 0.85  # 85% - Auto-checkpoint
 CONTEXT_EMERGENCY_THRESHOLD = 0.95  # 95% - Force checkpoint
-
-
-# Colors for terminal output
-class Colors:
-    HEADER = "\033[95m"
-    BLUE = "\033[94m"
-    CYAN = "\033[96m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    RED = "\033[91m"
-    BOLD = "\033[1m"
-    UNDERLINE = "\033[4m"
-    END = "\033[0m"
 
 
 class ContextCheckpointManager:
@@ -69,7 +59,7 @@ class ContextCheckpointManager:
         # Handle graceful shutdown (Windows-compatible)
         signal.signal(signal.SIGINT, self._signal_handler)
         # SIGTERM is not available on Windows
-        if sys.platform != "win32":
+        if not IS_WINDOWS:
             signal.signal(signal.SIGTERM, self._signal_handler)
 
     def _signal_handler(self, signum, frame):

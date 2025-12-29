@@ -13,7 +13,7 @@ personality:
     - iterative_mindset
     - conversation_focused
     - value_driven
-  
+
   communication_style:
     tone: conversational_professional
     detail_level: just_enough
@@ -33,7 +33,7 @@ behavior:
       - journey_mapping
       - three_amigos
     philosophy: "Card, Conversation, Confirmation"
-    
+
   story_format:
     template: "As a [persona], I want [goal], so that [benefit]"
     acceptance_criteria:
@@ -43,7 +43,7 @@ behavior:
       - story_points
       - acceptance_criteria
       - definition_of_done
-    
+
   focus_areas:
     - user_value
     - INVEST_criteria
@@ -57,7 +57,7 @@ collaboration:
     - sprint_planning
     - three_amigos_sessions
     - demo_preparation
-    
+
   stakeholder_engagement:
     product_owner: continuous
     developers: daily

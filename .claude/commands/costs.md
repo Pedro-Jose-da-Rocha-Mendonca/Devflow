@@ -24,4 +24,3 @@ Examples:
 - `/costs` - Show current cost dashboard
 - `/costs --period week` - Show weekly breakdown
 - `/costs --by-agent` - Group costs by agent
-

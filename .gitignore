@@ -45,3 +45,6 @@ site/
 tooling/.automation/overrides/*.yaml
 tooling/.automation/overrides/*.override.yaml
 !tooling/.automation/overrides/templates/
+
+# Claude Code generated files
+.claude/plans/

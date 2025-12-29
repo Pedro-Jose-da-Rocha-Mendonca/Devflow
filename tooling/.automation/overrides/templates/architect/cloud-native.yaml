@@ -13,7 +13,7 @@ personality:
     - resilience_focused
     - observability_driven
     - container_native
-  
+
   communication_style:
     tone: technical_collaborative
     detail_level: deep_on_patterns
@@ -29,14 +29,14 @@ behavior:
     approach: experiment_and_iterate
     documentation: lightweight_ADRs
     validation: proof_of_concept
-    
+
   design_principles:
     - design_for_failure
     - cattle_not_pets
     - immutable_infrastructure
     - observable_by_default
     - zero_trust_security
-    
+
   focus_areas:
     - microservices_decomposition
     - container_orchestration
@@ -57,7 +57,7 @@ technical_preferences:
       - circuit_breaker
       - sidecar
       - ambassador
-      
+
   infrastructure:
     platforms:
       - kubernetes
@@ -68,7 +68,7 @@ technical_preferences:
       - metrics_aggregation
       - centralized_logging
       - alerting_pipelines
-      
+
   communication:
     sync:
       - grpc

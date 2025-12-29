@@ -277,16 +277,16 @@ Multiple agents work together, debating and iterating until consensus:
 
 ```bash
 # Run swarm with default agents (ARCHITECT, DEV, REVIEWER)
-./run-story.sh 3-5 --swarm
+npx @pjmendonca/devflow story 3-5 --swarm
 
 # Custom agent selection
-./run-story.sh 3-5 --swarm --agents ARCHITECT,DEV,REVIEWER,SECURITY
+npx @pjmendonca/devflow story 3-5 --swarm --agents ARCHITECT,DEV,REVIEWER
 
 # Control iterations
-./run-story.sh 3-5 --swarm --max-iter 5
+npx @pjmendonca/devflow story 3-5 --swarm --max-iter 5
 
 # Set budget limits
-./run-story.sh 3-5 --swarm --budget 20.00
+npx @pjmendonca/devflow story 3-5 --swarm --budget 20.00
 ```
 
 **Swarm Configuration Options:**
@@ -315,7 +315,7 @@ Multiple agents work together, debating and iterating until consensus:
 DEV and REVIEWER work together in real-time:
 
 ```bash
-./run-story.sh 3-5 --pair
+npx @pjmendonca/devflow story 3-5 --pair
 ```
 
 **How it works:**
@@ -330,16 +330,16 @@ Let Devflow automatically select the best agents:
 
 ```bash
 # Auto-detect task type and select appropriate agents
-./run-story.sh "fix authentication bug" --auto-route
+npx @pjmendonca/devflow story "fix authentication bug" --auto-route
 
 # Works with any task description
-./run-story.sh "add user profile feature" --auto-route
+npx @pjmendonca/devflow story "add user profile feature" --auto-route
 ```
 
 **How it works:**
 - Analyzes task description for keywords
 - Considers file types and complexity
-- Routes to appropriate specialists (e.g., security -> SECURITY agent)
+- Routes to appropriate specialists (e.g., bugs -> MAINTAINER agent, new features -> DEV agent)
 
 ## Cost Tracking & Currency Configuration
 
@@ -552,7 +552,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.13.2
+**Version**: 1.13.5
 **Status**: Production Ready
-**Last Updated**: 2025-12-27
+**Last Updated**: 2025-12-29
 <!-- VERSION_END -->

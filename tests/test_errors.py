@@ -9,37 +9,36 @@ Tests the error handling functionality including:
 - Logging helpers
 """
 
-import pytest
-import sys
 import json
+import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock
-from io import StringIO
+
+import pytest
 
 # Ensure imports work
 sys.path.insert(0, str(Path(__file__).parent.parent / "tooling" / "scripts" / "lib"))
 
 from lib.errors import (
-    ErrorCode,
-    ErrorContext,
-    CostTrackingError,
-    ConfigurationError,
-    SessionError,
+    ERROR_MESSAGES,
     BudgetError,
     CalculationError,
-    ERROR_MESSAGES,
+    ConfigurationError,
+    CostTrackingError,
+    ErrorCode,
+    ErrorContext,
+    ErrorReporter,
+    SessionError,
     create_error,
     format_error_for_user,
     handle_error,
-    wrap_errors,
-    ErrorReporter,
-    log_debug,
-    log_info,
-    log_warning,
-    log_error,
-    log_success,
-    set_verbose,
     is_verbose,
+    log_debug,
+    log_error,
+    log_info,
+    log_success,
+    log_warning,
+    set_verbose,
+    wrap_errors,
 )
 
 
@@ -102,7 +101,7 @@ class TestErrorContext:
             agent="DEV",
             tokens={"input": 1000, "output": 500},
             budget=15.00,
-            additional={"extra": "data"}
+            additional={"extra": "data"},
         )
         assert context.operation == "calculate cost"
         assert context.file_path == Path("/tmp/session.json")
@@ -124,24 +123,15 @@ class TestCostTrackingError:
 
     def test_error_with_code(self):
         """Test error with specific code."""
-        error = CostTrackingError(
-            "Budget exceeded",
-            code=ErrorCode.BUDGET_EXCEEDED
-        )
+        error = CostTrackingError("Budget exceeded", code=ErrorCode.BUDGET_EXCEEDED)
         assert error.code == ErrorCode.BUDGET_EXCEEDED
         assert "BUDGET_EXCEEDED" in str(error)
 
     def test_error_with_context(self):
         """Test error with context information."""
-        context = ErrorContext(
-            operation="logging usage",
-            model="opus",
-            agent="DEV"
-        )
+        context = ErrorContext(operation="logging usage", model="opus", agent="DEV")
         error = CostTrackingError(
-            "Error during logging",
-            code=ErrorCode.CALCULATION_ERROR,
-            context=context
+            "Error during logging", code=ErrorCode.CALCULATION_ERROR, context=context
         )
         formatted = error.format_message()
         assert "logging usage" in formatted
@@ -150,23 +140,14 @@ class TestCostTrackingError:
 
     def test_error_with_file_path_context(self):
         """Test error with file path in context."""
-        context = ErrorContext(
-            operation="reading config",
-            file_path=Path("/tmp/config.json")
-        )
-        error = CostTrackingError(
-            "Config error",
-            context=context
-        )
+        context = ErrorContext(operation="reading config", file_path=Path("/tmp/config.json"))
+        error = CostTrackingError("Config error", context=context)
         formatted = error.format_message()
         assert "config.json" in formatted
 
     def test_error_with_suggestion(self):
         """Test error with suggestion."""
-        error = CostTrackingError(
-            "File not found",
-            suggestion="Check the file path and try again"
-        )
+        error = CostTrackingError("File not found", suggestion="Check the file path and try again")
         formatted = error.format_message()
         assert "Suggestion" in formatted
         assert "Check the file path" in formatted
@@ -174,10 +155,7 @@ class TestCostTrackingError:
     def test_error_with_cause(self):
         """Test error with underlying cause."""
         original = ValueError("Invalid value")
-        error = CostTrackingError(
-            "Processing failed",
-            cause=original
-        )
+        error = CostTrackingError("Processing failed", cause=original)
         formatted = error.format_message()
         assert "Caused by" in formatted
         assert "ValueError" in formatted
@@ -267,15 +245,12 @@ class TestCreateError:
 
     def test_create_error_with_custom_message(self):
         """Test creating error with custom message."""
-        error = create_error(
-            ErrorCode.FILE_NOT_FOUND,
-            custom_message="Custom file error"
-        )
+        error = create_error(ErrorCode.FILE_NOT_FOUND, custom_message="Custom file error")
         assert "Custom file error" in str(error)
 
     def test_create_error_with_cause(self):
         """Test creating error with cause."""
-        original = IOError("Disk error")
+        original = OSError("Disk error")
         error = create_error(ErrorCode.FILE_WRITE_ERROR, cause=original)
         assert error.cause == original
 
@@ -353,6 +328,7 @@ class TestWrapErrors:
 
     def test_wrap_successful_function(self):
         """Test decorator with successful function."""
+
         @wrap_errors("test operation")
         def successful_func():
             return "success"
@@ -362,6 +338,7 @@ class TestWrapErrors:
 
     def test_wrap_failing_function(self):
         """Test decorator with failing function."""
+
         @wrap_errors("failing operation")
         def failing_func():
             raise ValueError("Something went wrong")
@@ -372,6 +349,7 @@ class TestWrapErrors:
 
     def test_wrap_preserves_cost_tracking_error(self):
         """Test decorator preserves CostTrackingError."""
+
         @wrap_errors("wrapped operation")
         def func_with_cost_error():
             raise BudgetError("Budget exceeded")

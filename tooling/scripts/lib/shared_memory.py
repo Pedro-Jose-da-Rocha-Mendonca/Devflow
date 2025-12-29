@@ -184,7 +184,11 @@ class SharedMemory:
                 with open(file_path) as f:
                     data = json.load(f)
                     self.entries = [MemoryEntry.from_dict(e) for e in data.get("entries", [])]
-            except (json.JSONDecodeError, KeyError):
+            except json.JSONDecodeError as e:
+                print(f"Warning: Corrupted memory file {file_path.name}, starting fresh: {e}")
+                self.entries = []
+            except KeyError as e:
+                print(f"Warning: Invalid memory structure in {file_path.name}: {e}")
                 self.entries = []
 
     def _save(self):
@@ -307,8 +311,10 @@ class KnowledgeGraph:
                     }
                     self.topic_index = data.get("topic_index", {})
                     self.handoffs = [HandoffSummary.from_dict(h) for h in data.get("handoffs", [])]
-            except (json.JSONDecodeError, KeyError):
-                pass
+            except json.JSONDecodeError as e:
+                print(f"Warning: Corrupted knowledge graph {file_path.name}, starting fresh: {e}")
+            except KeyError as e:
+                print(f"Warning: Invalid knowledge graph structure in {file_path.name}: {e}")
 
     def _save(self):
         """Save knowledge graph to disk."""

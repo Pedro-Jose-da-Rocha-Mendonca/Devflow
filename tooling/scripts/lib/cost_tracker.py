@@ -13,6 +13,7 @@ Usage:
 """
 
 import json
+import re
 import sys
 import threading
 import uuid
@@ -88,6 +89,37 @@ DEFAULT_THRESHOLDS = {
     "critical": 0.90,  # 90% - Red warning
     "stop": 1.00,  # 100% - Auto-stop
 }
+
+# Cache for model pricing lookups (model_lower -> pricing dict)
+_pricing_cache: dict[str, dict[str, float]] = {}
+
+
+def _get_pricing(model: str) -> tuple[dict[str, float], bool]:
+    """Get pricing for a model with caching.
+
+    Args:
+        model: Model name
+
+    Returns:
+        Tuple of (pricing dict, is_default) where is_default indicates if
+        sonnet default pricing was used for an unknown model.
+    """
+    model_lower = model.lower()
+
+    # Check cache first
+    if model_lower in _pricing_cache:
+        return _pricing_cache[model_lower], False
+
+    # Search for matching pricing
+    for key, price in PRICING.items():
+        if key in model_lower or model_lower in key:
+            _pricing_cache[model_lower] = price
+            return price, False
+
+    # Cache and return default
+    _pricing_cache[model_lower] = PRICING["sonnet"]
+    return PRICING["sonnet"], True
+
 
 # Storage paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
@@ -245,8 +277,22 @@ class CostTracker:
             Calculated cost in USD
 
         Raises:
-            CalculationError: If token counts are invalid
+            CalculationError: If token counts are invalid or non-numeric
         """
+        # Validate input types
+        try:
+            input_tokens = int(input_tokens)
+            output_tokens = int(output_tokens)
+        except (TypeError, ValueError) as e:
+            error_msg = f"Token counts must be numeric: {e}"
+            if ENHANCED_ERRORS:
+                raise create_error(
+                    ErrorCode.INVALID_TOKENS,
+                    context=ErrorContext(operation="calculating cost", model=model),
+                    custom_message=error_msg,
+                ) from e
+            raise CalculationError(error_msg) from e
+
         # Validate inputs
         if input_tokens < 0:
             error_msg = f"Invalid input_tokens: {input_tokens}. Token count cannot be negative."
@@ -268,18 +314,11 @@ class CostTracker:
                 )
             raise CalculationError(error_msg)
 
-        model_lower = model.lower()
+        # Get pricing with caching
+        pricing, is_default = _get_pricing(model)
 
-        # Find pricing
-        pricing = None
-        for key, price in PRICING.items():
-            if key in model_lower or model_lower in key:
-                pricing = price
-                break
-
-        if not pricing:
-            # Default to sonnet pricing if unknown, but warn user
-            pricing = PRICING["sonnet"]
+        if is_default:
+            # Warn about using default pricing for unknown model
             warning_msg = (
                 f"Unknown model '{model}'. Using sonnet pricing as default. "
                 f"Supported models: {', '.join(k for k in PRICING.keys() if not k.startswith('claude-'))}"
@@ -611,8 +650,6 @@ def parse_token_usage(output: str) -> Optional[tuple[int, int]]:
         the exact split. Returns None in this case to avoid inaccurate estimates.
         The caller should handle this appropriately.
     """
-    import re
-
     # Pattern 1: Explicit input/output tokens (most accurate)
     input_match = re.search(r"input[_\s]*tokens?[:\s]+(\d+)", output, re.IGNORECASE)
     output_match = re.search(r"output[_\s]*tokens?[:\s]+(\d+)", output, re.IGNORECASE)

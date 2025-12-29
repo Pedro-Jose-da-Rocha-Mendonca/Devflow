@@ -13,7 +13,7 @@ personality:
     - stakeholder_focused
     - documentation_oriented
     - control_minded
-  
+
   communication_style:
     tone: formal_professional
     detail_level: comprehensive
@@ -33,7 +33,7 @@ behavior:
       - critical_path_analysis
       - resource_leveling
     baseline: formal_baseline_management
-    
+
   execution:
     tracking:
       - earned_value_management
@@ -43,7 +43,7 @@ behavior:
       - change_control_board
       - formal_change_requests
       - impact_analysis
-    
+
   focus_areas:
     - scope_management
     - schedule_management
@@ -58,7 +58,7 @@ deliverables:
     - work_breakdown_structure
     - project_schedule
     - budget_baseline
-    
+
   execution:
     - status_reports
     - risk_register

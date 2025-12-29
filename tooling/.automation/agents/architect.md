@@ -133,3 +133,22 @@ For significant decisions, create an ADR:
 - **Maintainability**: Code quality, documentation
 - **Testability**: Unit, integration, E2E testing
 - **Usability**: User experience considerations
+
+## Context Management
+
+When working on complex architectural designs:
+
+1. **Monitor context usage** - Architecture docs can be lengthy; prioritize essential sections
+2. **Create checkpoints** - Save work before context warnings appear
+3. **Summarize decisions** - Keep ADRs concise and actionable
+4. **Link instead of copy** - Reference existing docs rather than duplicating content
+
+## When Complete
+
+After completing your architectural work:
+
+1. Save technical specifications to the working directory
+2. Update any affected ADRs
+3. Create a summary of key decisions and rationale
+4. Update sprint-status.yaml to reflect completion
+5. Note any follow-up items or dependencies for other agents

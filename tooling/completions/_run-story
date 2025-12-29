@@ -1,12 +1,12 @@
 #compdef run-story.sh run-story run-collab.sh run-collab
 
 # Devflow Story Runner Zsh Completion
-# 
+#
 # Installation:
 # 1. Copy this file to a directory in your $fpath (e.g., ~/.zsh/completions/)
 # 2. Add to ~/.zshrc: fpath=(~/.zsh/completions $fpath)
 # 3. Reload: source ~/.zshrc
-# 
+#
 # Or for quick setup, add to ~/.zshrc:
 #   source /path/to/devflow/tooling/completions/_run-story
 
@@ -106,7 +106,7 @@ _run-collab() {
         '--help[Show help]'
 }
 
-# Alias completions  
+# Alias completions
 compdef _run-story run-story.sh
 compdef _run-story run-story
 compdef _run-collab run-collab.py

@@ -2,6 +2,8 @@
 Devflow Library - Core modules for the Devflow automation system.
 
 This package provides:
+- colors: Shared terminal color codes
+- platform: Cross-platform detection utilities
 - cost_tracker: Token usage and cost tracking
 - cost_display: Terminal-based cost monitoring display
 - cost_config: Configuration management for costs
@@ -16,12 +18,16 @@ This package provides:
 Usage:
     from lib.cost_tracker import CostTracker
     from lib.agent_router import AgentRouter
+    from lib.colors import Colors
+    from lib.platform import get_platform, IS_WINDOWS
 """
 
-__version__ = "1.13.2"
+__version__ = "1.13.5"
 
 # Lazy imports to avoid circular dependencies
 __all__ = [
+    "colors",
+    "platform",
     "cost_tracker",
     "cost_display",
     "cost_config",

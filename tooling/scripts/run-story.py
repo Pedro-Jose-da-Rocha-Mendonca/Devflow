@@ -39,15 +39,9 @@ SCRIPT_DIR = Path(__file__).parent
 # Add lib directory for imports
 sys.path.insert(0, str(SCRIPT_DIR / "lib"))
 
+from platform import IS_WINDOWS, get_platform
 
-def get_platform():
-    """Detect the current platform."""
-    if sys.platform == "win32":
-        return "windows"
-    elif sys.platform == "darwin":
-        return "macos"
-    else:
-        return "linux"
+from colors import Colors
 
 
 def run_windows(args):
@@ -182,7 +176,7 @@ class NativeRunner:
 
     def run_claude(self, agent: str, model: str, prompt: str, timeout: int = 300) -> tuple:
         """Run Claude CLI and capture output."""
-        cli = "claude.cmd" if sys.platform == "win32" else "claude"
+        cli = "claude.cmd" if IS_WINDOWS else "claude"
 
         cmd = [cli, "--print", "--model", model, "-p", prompt]
 
@@ -243,9 +237,9 @@ class NativeRunner:
         ok, level, msg = self.tracker.check_budget()
 
         if level == "critical":
-            print(f"\n\033[91m{msg}\033[0m")
+            print(f"\n{Colors.RED}{msg}{Colors.RESET}")
         elif level == "warning":
-            print(f"\n\033[93m{msg}\033[0m")
+            print(f"\n{Colors.YELLOW}{msg}{Colors.RESET}")
 
         return ok
 

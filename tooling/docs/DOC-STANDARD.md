@@ -1,14 +1,14 @@
-# Documentation Standard - Stronger Project
+# Documentation Standard - Devflow
 
-**Version**: 1.0
-**Last Updated**: 2025-12-20
+**Version**: 1.1
+**Last Updated**: 2025-12-27
 **Applies To**: All documentation in `tooling/docs/`
 
 ---
 
 ## Purpose
 
-This document defines the standard format, structure, and conventions for all documentation in the Stronger project's `tooling/docs/` directory.
+This document defines the standard format, structure, and conventions for all documentation in the Devflow project's `tooling/docs/` directory.
 
 ---
 
@@ -212,26 +212,26 @@ Always include header separator:
 
 ### Alerts/Callouts
 
-Use these emoji conventions:
+Use these text-based conventions (no emojis per project policy):
 
 ```markdown
-  **WARNING**: Important warning
+**[WARNING]**: Important warning
 
- **TIP**: Helpful tip
+**[TIP]**: Helpful tip
 
- **NOTE**: Additional information
+**[NOTE]**: Additional information
 
- **CRITICAL**: Critical information
+**[CRITICAL]**: Critical information
 
- **SUCCESS**: Successful outcome
+**[OK]**: Successful outcome
 
- **ERROR**: Error or failure
+**[ERROR]**: Error or failure
 
-**GOAL**: Objective or target
+**[GOAL]**: Objective or target
 
- **DATA**: Data or statistics
+**[INFO]**: Data or statistics
 
- **TECHNICAL**: Technical details
+**[TECHNICAL]**: Technical details
 ```
 
 ---

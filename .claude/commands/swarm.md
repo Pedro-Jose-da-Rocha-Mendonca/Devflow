@@ -19,4 +19,3 @@ Examples:
 - `/swarm 3-5` - Run swarm with default agents
 - `/swarm 3-5 --agents ARCHITECT,DEV,REVIEWER,SECURITY` - Custom agents
 - `/swarm 3-5 --max-iter 5` - Increase max iterations
-

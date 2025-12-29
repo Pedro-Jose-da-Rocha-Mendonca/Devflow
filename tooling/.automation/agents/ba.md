@@ -68,3 +68,22 @@ So that [benefit/value].
 - Use concrete examples to illustrate requirements
 - Ask clarifying questions when requirements are ambiguous
 - Validate understanding by restating requirements
+
+## Context Management
+
+When analyzing requirements:
+
+1. **Focus on scope** - Load only relevant existing requirements
+2. **Create checkpoints** before lengthy analysis sessions
+3. **Summarize findings** - Keep requirement documents concise
+4. **Reference, don't duplicate** - Link to existing PRD sections
+
+## When Complete
+
+After completing business analysis:
+
+1. Save user stories and requirements to the working directory
+2. Verify all acceptance criteria are testable and specific
+3. Update sprint-status.yaml with story status
+4. Create handoff notes for DEV agent with key context
+5. Note any open questions or dependencies

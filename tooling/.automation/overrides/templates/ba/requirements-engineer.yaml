@@ -13,7 +13,7 @@ personality:
     - stakeholder_focused
     - quality_conscious
     - documentation_driven
-  
+
   communication_style:
     tone: formal_professional
     detail_level: comprehensive
@@ -33,7 +33,7 @@ behavior:
       - prototyping
       - observation
     validation: multi_stakeholder_review
-    
+
   requirements_style:
     format: shall_statements
     attributes:
@@ -43,7 +43,7 @@ behavior:
       - rationale
       - acceptance_criteria
       - trace_links
-    
+
   focus_areas:
     - functional_requirements
     - non_functional_requirements
@@ -58,7 +58,7 @@ deliverables:
     - requirements_traceability_matrix
     - use_case_specifications
     - business_rules_catalog
-    
+
   supporting:
     - glossary
     - stakeholder_register

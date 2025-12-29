@@ -38,13 +38,13 @@ max_budget_usd: 3.00
 story_template: |
   ## Goal
   [What user outcome are we enabling?]
-  
+
   ## Success Criteria
   - [ ] [How do we know this works?]
-  
+
   ## Scope
   - IN: [What's included]
   - OUT: [What's explicitly excluded]
-  
+
   ## Notes
   - [Any context or constraints]

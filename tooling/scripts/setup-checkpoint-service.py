@@ -22,16 +22,9 @@ import sys
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
+sys.path.insert(0, str(SCRIPT_DIR / "lib"))
 
-
-def get_platform():
-    """Detect the current platform."""
-    if sys.platform == "win32":
-        return "windows"
-    elif sys.platform == "darwin":
-        return "macos"
-    else:
-        return "linux"
+from platform import get_platform
 
 
 def run_windows(action):

@@ -13,7 +13,7 @@ personality:
     - impediment_remover
     - value_driven
     - adaptive
-  
+
   communication_style:
     tone: collaborative_supportive
     detail_level: relevant_to_audience
@@ -32,7 +32,7 @@ behavior:
       - sprint_planning
       - daily_standups
     estimation: team_driven
-    
+
   execution:
     cadence:
       - daily_standups
@@ -43,7 +43,7 @@ behavior:
       - burndown
       - cycle_time
       - lead_time
-    
+
   focus_areas:
     - team_health
     - impediment_removal
@@ -58,7 +58,7 @@ ceremonies:
     - sprint_review
     - retrospective
     - backlog_refinement
-    
+
   stakeholder_engagement:
     - release_reviews
     - roadmap_updates

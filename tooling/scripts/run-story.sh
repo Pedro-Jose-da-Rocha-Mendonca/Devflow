@@ -288,7 +288,7 @@ main() {
             swarm_args="$swarm_args --max-iterations $max_iterations"
             python3 "$SCRIPT_DIR/run-collab.py" $swarm_args
             local exit_code=$?
-            
+
             if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
                 auto_commit_changes "$story_key"
             fi
@@ -298,7 +298,7 @@ main() {
             echo ""
             python3 "$SCRIPT_DIR/run-collab.py" "$story_key" --pair --max-revisions "$max_iterations"
             local exit_code=$?
-            
+
             if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
                 auto_commit_changes "$story_key"
             fi
@@ -308,7 +308,7 @@ main() {
             echo ""
             python3 "$SCRIPT_DIR/run-collab.py" "$story_key" --auto
             local exit_code=$?
-            
+
             if [[ $exit_code -eq 0 && "$AUTO_COMMIT" == "true" ]]; then
                 auto_commit_changes "$story_key"
             fi

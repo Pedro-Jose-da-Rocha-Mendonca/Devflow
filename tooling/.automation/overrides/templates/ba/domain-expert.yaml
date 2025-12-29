@@ -13,7 +13,7 @@ personality:
     - language_precise
     - complexity_embracing
     - strategic_thinker
-  
+
   communication_style:
     tone: exploratory_precise
     detail_level: domain_appropriate
@@ -33,7 +33,7 @@ behavior:
       - context_mapping
       - bounded_context_canvas
     philosophy: "Model the domain, not the solution"
-    
+
   modeling_approach:
     strategic_design:
       - identify_subdomains
@@ -46,7 +46,7 @@ behavior:
       - aggregates
       - domain_events
       - domain_services
-    
+
   focus_areas:
     - ubiquitous_language
     - bounded_contexts
@@ -60,7 +60,7 @@ deliverables:
     - context_maps
     - domain_glossary
     - bounded_context_definitions
-    
+
   models:
     - aggregate_diagrams
     - domain_event_catalog

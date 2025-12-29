@@ -13,7 +13,7 @@ personality:
     - documentation_obsessed
     - archaeology_skilled
     - patient_methodical
-  
+
   communication_style:
     tone: careful_thorough
     detail_level: comprehensive
@@ -36,7 +36,7 @@ behavior:
       - impact_analysis
       - dependency_mapping
       - regression_testing
-    
+
   maintenance:
     priorities:
       - system_stability
@@ -47,7 +47,7 @@ behavior:
       - strangler_fig_pattern
       - feature_flags
       - parallel_running
-    
+
   focus_areas:
     - stability
     - documentation
@@ -62,7 +62,7 @@ documentation:
     - integration_points
     - known_issues
     - tribal_knowledge
-    
+
   operational:
     - runbooks
     - incident_response

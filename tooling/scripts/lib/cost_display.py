@@ -22,49 +22,11 @@ from typing import Optional
 # Add parent for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
+from platform import IS_WINDOWS
+
+from colors import Colors
 from cost_tracker import PRICING, CostTracker
 from currency_converter import CurrencyConverter, get_converter
-
-
-class Colors:
-    """ANSI color codes for terminal output."""
-
-    # Reset
-    RESET = "\033[0m"
-
-    # Regular colors
-    BLACK = "\033[30m"
-    RED = "\033[31m"
-    GREEN = "\033[32m"
-    YELLOW = "\033[33m"
-    BLUE = "\033[34m"
-    MAGENTA = "\033[35m"
-    CYAN = "\033[36m"
-    WHITE = "\033[37m"
-
-    # Bold colors
-    BOLD = "\033[1m"
-    BOLD_RED = "\033[1;31m"
-    BOLD_GREEN = "\033[1;32m"
-    BOLD_YELLOW = "\033[1;33m"
-    BOLD_BLUE = "\033[1;34m"
-    BOLD_CYAN = "\033[1;36m"
-    BOLD_WHITE = "\033[1;37m"
-
-    # Background
-    BG_RED = "\033[41m"
-    BG_GREEN = "\033[42m"
-    BG_YELLOW = "\033[43m"
-
-    # Dim
-    DIM = "\033[2m"
-
-    @staticmethod
-    def strip(text: str) -> str:
-        """Remove ANSI codes from text."""
-        import re
-
-        return re.sub(r"\033\[[0-9;]*m", "", text)
 
 
 class CostDisplay:
@@ -112,7 +74,7 @@ class CostDisplay:
         self.last_refresh = None
 
         # Get display currency from environment or parameter
-        self.display_currency = display_currency or os.environ.get("COST_DISPLAY_CURRENCY")
+        self.display_currency = display_currency or os.getenv("COST_DISPLAY_CURRENCY")
 
     def _box_line(self, left: str, right: str, fill: str = BOX_HORIZONTAL) -> str:
         """Create a box line."""
@@ -122,7 +84,20 @@ class CostDisplay:
         """Create a content line within the box."""
         # Remove color codes for length calculation
         clean_content = Colors.strip(content)
-        padding = self.width - 4 - len(clean_content)
+        max_content_width = self.width - 4  # Account for box borders and spaces
+
+        # Truncate content if too long
+        if len(clean_content) > max_content_width:
+            # Find how much to truncate (accounting for "..." suffix)
+            truncate_at = max_content_width - 3
+            if truncate_at > 0:
+                content = content[:truncate_at] + "..."
+                clean_content = Colors.strip(content)
+            else:
+                content = "..."
+                clean_content = "..."
+
+        padding = max(0, max_content_width - len(clean_content))
 
         if align == "center":
             left_pad = padding // 2
@@ -362,7 +337,7 @@ class CostDisplay:
 
     def clear_screen(self):
         """Clear the terminal screen."""
-        if sys.platform == "win32":
+        if IS_WINDOWS:
             os.system("cls")
         else:
             os.system("clear")
@@ -389,7 +364,7 @@ class CompactCostDisplay:
         self.tracker = tracker
         self.converter = converter or get_converter()
         # Get display currency from environment or parameter
-        self.display_currency = display_currency or os.environ.get("COST_DISPLAY_CURRENCY", "USD")
+        self.display_currency = display_currency or os.getenv("COST_DISPLAY_CURRENCY", "USD")
 
     def render(self) -> str:
         """Render compact display."""

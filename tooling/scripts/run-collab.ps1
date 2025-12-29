@@ -68,20 +68,20 @@
 param(
     [Parameter(Position=0)]
     [string]$StoryKey,
-    
+
     [switch]$Swarm,
     [switch]$Pair,
     [switch]$Auto,
     [switch]$Sequential,
-    
+
     [string]$Agents,
     [int]$MaxIterations = 3,
-    
+
     [ValidateSet("opus", "sonnet", "haiku")]
     [string]$Model = "opus",
-    
+
     [double]$Budget = 20.0,
-    
+
     [switch]$Memory,
     [string]$Query,
     [switch]$RouteOnly,
@@ -140,11 +140,11 @@ function Show-Usage {
 # Build Python command arguments
 function Build-PythonArgs {
     $args = @()
-    
+
     if ($StoryKey) {
         $args += $StoryKey
     }
-    
+
     if ($Swarm) {
         $args += "--swarm"
     } elseif ($Pair) {
@@ -154,44 +154,44 @@ function Build-PythonArgs {
     } else {
         $args += "--auto"
     }
-    
+
     if ($Agents) {
         $args += "--agents"
         $args += $Agents
     }
-    
+
     if ($MaxIterations -ne 3) {
         $args += "--max-iterations"
         $args += $MaxIterations.ToString()
     }
-    
+
     if ($Model -ne "opus") {
         $args += "--model"
         $args += $Model
     }
-    
+
     if ($Budget -ne 20.0) {
         $args += "--budget"
         $args += $Budget.ToString()
     }
-    
+
     if ($Memory) {
         $args += "--memory"
     }
-    
+
     if ($Query) {
         $args += "--query"
         $args += $Query
     }
-    
+
     if ($RouteOnly) {
         $args += "--route-only"
     }
-    
+
     if ($Quiet) {
         $args += "--quiet"
     }
-    
+
     return $args
 }
 

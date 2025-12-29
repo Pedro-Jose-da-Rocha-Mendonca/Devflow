@@ -1,11 +1,10 @@
 """Pytest configuration and fixtures."""
 
-import pytest
 import sys
-import tempfile
-from pathlib import Path
 from datetime import datetime
-from unittest.mock import patch
+from pathlib import Path
+
+import pytest
 
 # Add tooling scripts to path for imports
 REPO_ROOT = Path(__file__).parent.parent
@@ -27,8 +26,9 @@ def temp_costs_dir(tmp_path):
 def mock_costs_directories(temp_costs_dir, monkeypatch):
     """Mock the COSTS_DIR and SESSIONS_DIR to use temp directories."""
     from lib import cost_tracker
-    monkeypatch.setattr(cost_tracker, 'COSTS_DIR', temp_costs_dir)
-    monkeypatch.setattr(cost_tracker, 'SESSIONS_DIR', temp_costs_dir / "sessions")
+
+    monkeypatch.setattr(cost_tracker, "COSTS_DIR", temp_costs_dir)
+    monkeypatch.setattr(cost_tracker, "SESSIONS_DIR", temp_costs_dir / "sessions")
     return temp_costs_dir
 
 
@@ -36,6 +36,7 @@ def mock_costs_directories(temp_costs_dir, monkeypatch):
 def sample_tracker(mock_costs_directories):
     """Create a sample CostTracker with mocked directories."""
     from lib.cost_tracker import CostTracker
+
     return CostTracker(story_key="test-story", budget_limit_usd=10.00)
 
 

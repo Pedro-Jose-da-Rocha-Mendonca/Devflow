@@ -21,4 +21,3 @@ Benefits:
 
 Example:
 - `/pair 3-5` - Run pair programming for story 3-5
-

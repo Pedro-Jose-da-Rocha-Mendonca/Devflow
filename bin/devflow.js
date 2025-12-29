@@ -46,6 +46,10 @@ const command = args[0];
 if (commands[command]) {
   const binPath = require.resolve(`./devflow-${command}.js`);
   const child = spawn('node', [binPath, ...args.slice(1)], { stdio: 'inherit' });
+  child.on('error', (err) => {
+    console.error(`Failed to execute command: ${err.message}`);
+    process.exit(1);
+  });
   child.on('exit', (code) => process.exit(code || 0));
 } else {
   console.error(`Unknown command: ${command}`);

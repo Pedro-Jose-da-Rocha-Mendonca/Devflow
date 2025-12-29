@@ -20,4 +20,3 @@ Use `--query` to ask questions about past decisions:
 Examples:
 - `/memory 3-5` - Show all shared memory for story 3-5
 - `/memory 3-5 --query "security decisions"` - Query specific topic
-

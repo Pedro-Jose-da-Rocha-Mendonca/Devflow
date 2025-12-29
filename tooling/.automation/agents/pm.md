@@ -114,3 +114,22 @@ For releases:
 - **Feature Adoption**: Usage of key features
 - **Performance**: App load times, crash rates
 - **Satisfaction**: App store ratings, NPS
+
+## Context Management
+
+When planning and prioritizing:
+
+1. **Keep roadmaps focused** - Don't load entire product history
+2. **Create checkpoints** before strategic planning sessions
+3. **Summarize decisions** - Document rationale concisely
+4. **Link to details** - Reference full docs instead of copying
+
+## When Complete
+
+After completing product management work:
+
+1. Update roadmap and epic documentation
+2. Ensure sprint-status.yaml reflects current priorities
+3. Create clear handoff notes for BA and SM agents
+4. Document any scope changes or pivots
+5. Update stakeholder communication as needed

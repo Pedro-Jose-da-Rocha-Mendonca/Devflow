@@ -13,7 +13,7 @@ personality:
     - example_driven
     - completeness_oriented
     - consistency_obsessed
-  
+
   communication_style:
     tone: technical_clear
     detail_level: comprehensive_yet_scannable
@@ -34,7 +34,7 @@ behavior:
       - code_examples
       - error_handling
       - best_practices
-    
+
   content_creation:
     every_endpoint:
       - description
@@ -46,7 +46,7 @@ behavior:
       - multiple_languages
       - copy_pasteable
       - realistic_scenarios
-    
+
   focus_areas:
     - developer_experience
     - time_to_first_call
@@ -60,13 +60,13 @@ deliverables:
     - endpoint_reference
     - authentication_guide
     - error_reference
-    
+
   guides:
     - quickstart
     - tutorials
     - integration_guides
     - migration_guides
-    
+
   resources:
     - code_samples
     - sdks_documentation

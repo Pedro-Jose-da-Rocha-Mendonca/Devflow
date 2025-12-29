@@ -13,7 +13,7 @@ personality:
     - consistency_obsessed
     - maintainability_focused
     - contribution_friendly
-  
+
   communication_style:
     tone: technical_collegial
     detail_level: engineer_appropriate
@@ -32,7 +32,7 @@ behavior:
       - ci_cd_publishing
       - automated_testing
       - version_control
-    
+
   content_creation:
     automation:
       - api_docs_from_code
@@ -43,7 +43,7 @@ behavior:
       - linting_rules
       - style_guides
       - templates
-    
+
   focus_areas:
     - automation
     - maintainability
@@ -75,7 +75,7 @@ deliverables:
     - contributing_guide
     - style_guide
     - templates
-    
+
   automation:
     - ci_cd_pipeline
     - link_checker

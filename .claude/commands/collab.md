@@ -27,4 +27,3 @@ Examples:
 - `/collab 3-5 --swarm` - Run swarm mode
 - `/collab 3-5 --pair` - Run pair programming
 - `/collab "fix auth bug" --auto` - Auto-route task
-

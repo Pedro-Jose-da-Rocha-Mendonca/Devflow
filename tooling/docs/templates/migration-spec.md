@@ -96,7 +96,7 @@
 1. **[Change Description 1]**
    - Files affected: `path/to/file`
    - Changes needed: [describe the code changes]
-   
+
 2. **[Change Description 2]**
    - Files affected: `path/to/file`
    - Changes needed: [describe the code changes]
@@ -243,13 +243,13 @@ If automated rollback fails:
 *To be filled after migration*
 
 ### What Went Well
-- 
+-
 
 ### What Could Be Improved
-- 
+-
 
 ### Action Items
-- 
+-
 
 ## Notes
 

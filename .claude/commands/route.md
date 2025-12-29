@@ -23,4 +23,3 @@ Examples:
 - `/route fix authentication timeout` - Routes to bug specialists
 - `/route add payment integration` - Routes to feature team
 - `/route --route-only fix memory leak` - Preview routing only
-

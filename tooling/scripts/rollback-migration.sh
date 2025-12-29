@@ -82,16 +82,16 @@ create_rollback_point() {
     local timestamp=$(date '+%Y%m%d_%H%M%S')
     local rollback_name="${timestamp}_${name}"
     local rollback_path="$ROLLBACK_DIR/$rollback_name"
-    
+
     mkdir -p "$rollback_path"
-    
+
     echo -e "${CYAN}Creating rollback point: $rollback_name${NC}"
-    
+
     # Save git state
     local current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
     local current_commit=$(git rev-parse HEAD 2>/dev/null || echo "unknown")
     local has_changes=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
-    
+
     # Create manifest
     cat > "$rollback_path/manifest.json" << EOF
 {
@@ -103,7 +103,7 @@ create_rollback_point() {
     "type": "migration-rollback"
 }
 EOF
-    
+
     # Save uncommitted changes if any
     if [[ $has_changes -gt 0 ]]; then
         info "Saving uncommitted changes..."
@@ -111,33 +111,33 @@ EOF
         git stash show -p > "$rollback_path/uncommitted.patch" 2>/dev/null || true
         git stash pop 2>/dev/null || true
     fi
-    
+
     # Save package state
     if [[ -f "$PROJECT_ROOT/package.json" ]]; then
         cp "$PROJECT_ROOT/package.json" "$rollback_path/"
         info "Saved package.json"
     fi
-    
+
     if [[ -f "$PROJECT_ROOT/package-lock.json" ]]; then
         cp "$PROJECT_ROOT/package-lock.json" "$rollback_path/"
         info "Saved package-lock.json"
     fi
-    
+
     if [[ -f "$PROJECT_ROOT/pubspec.yaml" ]]; then
         cp "$PROJECT_ROOT/pubspec.yaml" "$rollback_path/"
         info "Saved pubspec.yaml"
     fi
-    
+
     if [[ -f "$PROJECT_ROOT/pubspec.lock" ]]; then
         cp "$PROJECT_ROOT/pubspec.lock" "$rollback_path/"
         info "Saved pubspec.lock"
     fi
-    
+
     if [[ -f "$PROJECT_ROOT/requirements.txt" ]]; then
         cp "$PROJECT_ROOT/requirements.txt" "$rollback_path/"
         info "Saved requirements.txt"
     fi
-    
+
     success "Rollback point created: $rollback_path"
     echo "$rollback_name"
 }
@@ -146,25 +146,25 @@ EOF
 list_rollback_points() {
     echo -e "${BOLD}Available Rollback Points:${NC}"
     echo ""
-    
+
     if [[ ! -d "$ROLLBACK_DIR" ]] || [[ -z "$(ls -A "$ROLLBACK_DIR" 2>/dev/null)" ]]; then
         info "No rollback points found."
         return 0
     fi
-    
+
     printf "%-25s %-20s %-15s %s\n" "NAME" "CREATED" "COMMIT" "BRANCH"
     printf "%s\n" "$(printf '─%.0s' {1..80})"
-    
+
     for dir in "$ROLLBACK_DIR"/*/; do
         if [[ -d "$dir" ]]; then
             local name=$(basename "$dir")
             local manifest="$dir/manifest.json"
-            
+
             if [[ -f "$manifest" ]]; then
                 local created=$(grep '"created"' "$manifest" | sed 's/.*: *"\([^"]*\)".*/\1/' | cut -c1-19)
                 local commit=$(grep '"commit"' "$manifest" | sed 's/.*: *"\([^"]*\)".*/\1/' | cut -c1-8)
                 local branch=$(grep '"branch"' "$manifest" | sed 's/.*: *"\([^"]*\)".*/\1/')
-                
+
                 printf "%-25s %-20s %-15s %s\n" "$name" "$created" "$commit" "$branch"
             fi
         fi
@@ -175,17 +175,17 @@ list_rollback_points() {
 # Delete old rollback points (keep last N)
 cleanup_rollback_points() {
     local keep="${1:-10}"
-    
+
     if [[ ! -d "$ROLLBACK_DIR" ]]; then
         return 0
     fi
-    
+
     local count=$(ls -d "$ROLLBACK_DIR"/*/ 2>/dev/null | wc -l | tr -d ' ')
-    
+
     if [[ $count -gt $keep ]]; then
         local to_delete=$((count - keep))
         info "Cleaning up $to_delete old rollback point(s)..."
-        
+
         ls -d "$ROLLBACK_DIR"/*/ 2>/dev/null | head -n "$to_delete" | while read dir; do
             rm -rf "$dir"
             success "Deleted: $(basename "$dir")"
@@ -200,35 +200,35 @@ cleanup_rollback_points() {
 # Find migration spec file
 find_migration_spec() {
     local migration_id="$1"
-    
+
     # Search in common locations
     local search_paths=(
         "$MIGRATIONS_DIR/${migration_id}.md"
         "$PROJECT_ROOT/docs/${migration_id}.md"
         "$PROJECT_ROOT/tooling/docs/migrations/${migration_id}.md"
     )
-    
+
     for path in "${search_paths[@]}"; do
         if [[ -f "$path" ]]; then
             echo "$path"
             return 0
         fi
     done
-    
+
     # Search by pattern
     local found=$(find "$PROJECT_ROOT" -name "*${migration_id}*.md" -path "*/migrations/*" 2>/dev/null | head -1)
     if [[ -n "$found" ]]; then
         echo "$found"
         return 0
     fi
-    
+
     return 1
 }
 
 # Parse rollback steps from migration spec
 parse_rollback_steps() {
     local spec_file="$1"
-    
+
     # Extract rollback steps section
     awk '/^### Rollback Steps/,/^##[^#]/' "$spec_file" 2>/dev/null | \
         grep -E '^\s*[0-9]+\.' | \
@@ -239,21 +239,21 @@ parse_rollback_steps() {
 rollback_to_commit() {
     local commit="$1"
     local dry_run="$2"
-    
+
     if [[ "$dry_run" == "true" ]]; then
         info "Would reset to commit: $commit"
         git log --oneline -1 "$commit"
         return 0
     fi
-    
+
     info "Rolling back to commit: $commit"
-    
+
     # Check for uncommitted changes
     if [[ -n "$(git status --porcelain)" ]]; then
         warning "You have uncommitted changes. These will be stashed."
         git stash push -m "pre-rollback-$(date +%s)"
     fi
-    
+
     # Perform rollback
     git checkout "$commit" -- .
     success "Rolled back to commit: $commit"
@@ -264,73 +264,73 @@ rollback_from_point() {
     local point_name="$1"
     local dry_run="$2"
     local point_path="$ROLLBACK_DIR/$point_name"
-    
+
     if [[ ! -d "$point_path" ]]; then
         error "Rollback point not found: $point_name"
     fi
-    
+
     local manifest="$point_path/manifest.json"
     if [[ ! -f "$manifest" ]]; then
         error "Invalid rollback point (no manifest): $point_name"
     fi
-    
+
     local commit=$(grep '"commit"' "$manifest" | sed 's/.*: *"\([^"]*\)".*/\1/')
-    
+
     echo ""
     info "Rollback Point Details:"
     cat "$manifest" | grep -E '"(name|created|branch|commit)"' | sed 's/^/  /'
     echo ""
-    
+
     if [[ "$dry_run" == "true" ]]; then
         info "[DRY RUN] Would restore from rollback point: $point_name"
-        
+
         if [[ -f "$point_path/package.json" ]]; then
             info "[DRY RUN] Would restore package.json"
         fi
         if [[ -f "$point_path/pubspec.yaml" ]]; then
             info "[DRY RUN] Would restore pubspec.yaml"
         fi
-        
+
         return 0
     fi
-    
+
     if ! confirm "This will rollback to the saved state. Continue?"; then
         info "Rollback cancelled."
         return 0
     fi
-    
+
     # Restore files
     if [[ -f "$point_path/package.json" ]]; then
         cp "$point_path/package.json" "$PROJECT_ROOT/"
         success "Restored package.json"
     fi
-    
+
     if [[ -f "$point_path/package-lock.json" ]]; then
         cp "$point_path/package-lock.json" "$PROJECT_ROOT/"
         success "Restored package-lock.json"
     fi
-    
+
     if [[ -f "$point_path/pubspec.yaml" ]]; then
         cp "$point_path/pubspec.yaml" "$PROJECT_ROOT/"
         success "Restored pubspec.yaml"
     fi
-    
+
     if [[ -f "$point_path/pubspec.lock" ]]; then
         cp "$point_path/pubspec.lock" "$PROJECT_ROOT/"
         success "Restored pubspec.lock"
     fi
-    
+
     if [[ -f "$point_path/requirements.txt" ]]; then
         cp "$point_path/requirements.txt" "$PROJECT_ROOT/"
         success "Restored requirements.txt"
     fi
-    
+
     # Rollback git if commit is available
     if [[ -n "$commit" && "$commit" != "unknown" ]]; then
         info "Rolling back git state..."
         rollback_to_commit "$commit" "false"
     fi
-    
+
     # Reinstall dependencies
     echo ""
     info "Dependencies may need to be reinstalled:"
@@ -343,7 +343,7 @@ rollback_from_point() {
     if [[ -f "$PROJECT_ROOT/requirements.txt" ]]; then
         echo "  pip install -r requirements.txt"
     fi
-    
+
     echo ""
     success "Rollback complete!"
 }
@@ -353,43 +353,43 @@ rollback_migration() {
     local migration_id="$1"
     local dry_run="$2"
     local force="$3"
-    
+
     echo -e "${BOLD}Rolling back migration: $migration_id${NC}"
     echo ""
-    
+
     # Look for a rollback point for this migration
     local rollback_point=$(ls -d "$ROLLBACK_DIR"/*"$migration_id"* 2>/dev/null | tail -1)
-    
+
     if [[ -n "$rollback_point" && -d "$rollback_point" ]]; then
         info "Found rollback point: $(basename "$rollback_point")"
         rollback_from_point "$(basename "$rollback_point")" "$dry_run"
         return 0
     fi
-    
+
     # Look for migration spec with rollback instructions
     local spec_file=$(find_migration_spec "$migration_id")
-    
+
     if [[ -n "$spec_file" ]]; then
         info "Found migration spec: $spec_file"
-        
+
         local steps=$(parse_rollback_steps "$spec_file")
-        
+
         if [[ -n "$steps" ]]; then
             echo ""
             echo -e "${BOLD}Rollback Steps:${NC}"
             echo "$steps" | nl
             echo ""
-            
+
             if [[ "$dry_run" == "true" ]]; then
                 info "[DRY RUN] Would execute the above rollback steps"
                 return 0
             fi
-            
+
             if ! confirm "Execute these rollback steps?"; then
                 info "Rollback cancelled."
                 return 0
             fi
-            
+
             # Execute steps (basic implementation - just displays them)
             info "Please execute the following steps manually:"
             echo "$steps" | nl
@@ -399,7 +399,7 @@ rollback_migration() {
     else
         warning "No migration spec found for: $migration_id"
     fi
-    
+
     # Offer git-based rollback
     echo ""
     info "You can also rollback using git:"
@@ -448,7 +448,7 @@ main() {
     local create_name=""
     local restore_point=""
     local cleanup_keep=""
-    
+
     # Parse arguments
     while [[ $# -gt 0 ]]; do
         case "$1" in
@@ -498,12 +498,12 @@ main() {
         esac
         shift
     done
-    
+
     print_header
-    
+
     # Ensure rollback directory exists
     mkdir -p "$ROLLBACK_DIR"
-    
+
     case "$command" in
         list)
             list_rollback_points

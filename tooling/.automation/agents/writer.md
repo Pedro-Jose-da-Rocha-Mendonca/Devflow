@@ -191,3 +191,22 @@ Before finalizing documentation:
 - [ ] Links are valid
 - [ ] Code examples work
 - [ ] Screenshots are current (if applicable)
+
+## Context Management
+
+When writing documentation:
+
+1. **Read source first** - Understand before documenting
+2. **Create checkpoints** before large documentation efforts
+3. **Write incrementally** - Save sections as you complete them
+4. **Keep examples minimal** - Use the simplest code that illustrates the point
+
+## When Complete
+
+After completing documentation work:
+
+1. Save documentation to the appropriate working directory
+2. Verify all links and references are valid
+3. Update any related README files
+4. Update sprint-status.yaml if documenting a story
+5. Note any areas needing future documentation updates

@@ -29,11 +29,15 @@ SCRIPT_DIR = Path(__file__).parent.resolve()
 PROJECT_ROOT = SCRIPT_DIR.parent.parent
 MEMORY_DIR = PROJECT_ROOT / ".automation" / "memory"
 
+# Pre-compiled regex patterns for performance
+_ENTRY_WITH_TIMESTAMP_RE = re.compile(r"^-\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}):\s*(.+)$")
+_ENTRY_WITHOUT_TIMESTAMP_RE = re.compile(r"^-\s*(.+)$")
+
 
 def parse_memory_entry(line: str) -> tuple[Optional[datetime], str]:
     """Parse a memory entry line into timestamp and content."""
     # Format: - YYYY-MM-DD HH:MM: content
-    match = re.match(r"^-\s*(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}):\s*(.+)$", line.strip())
+    match = _ENTRY_WITH_TIMESTAMP_RE.match(line.strip())
     if match:
         try:
             timestamp = datetime.strptime(match.group(1), "%Y-%m-%d %H:%M")
@@ -42,7 +46,7 @@ def parse_memory_entry(line: str) -> tuple[Optional[datetime], str]:
             pass
 
     # Format without timestamp: - content
-    match = re.match(r"^-\s*(.+)$", line.strip())
+    match = _ENTRY_WITHOUT_TIMESTAMP_RE.match(line.strip())
     if match:
         return None, match.group(1).strip()
 
@@ -137,6 +141,9 @@ def find_duplicates(
 
 def summarize_group(entries: list[tuple[Optional[datetime], str]]) -> str:
     """Create a summary for a group of similar entries."""
+    if not entries:
+        return ""
+
     # Keep the most recent entry's content
     sorted_entries = sorted(entries, key=lambda x: x[0] or datetime.min, reverse=True)
     most_recent = sorted_entries[0][1]

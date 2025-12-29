@@ -23,4 +23,3 @@ Examples:
 - `/handoff 3-5` - Show all handoffs for story
 - `/handoff 3-5 --from DEV --to REVIEWER` - Specific handoff
 - `/handoff 3-5 --latest` - Most recent handoff
-

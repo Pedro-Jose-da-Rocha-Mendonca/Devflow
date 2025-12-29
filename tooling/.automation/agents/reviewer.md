@@ -112,7 +112,7 @@ Location: path/to/file.dart:42
 
 ## Rules
 
-1. **No rubber stamping** - Every review must find at least one improvement opportunity
+1. **Thorough reviews** - Identify all legitimate issues; approve only when code genuinely meets standards
 2. **Be specific** - Vague feedback is useless; explain WHY and suggest HOW to fix
 3. **Prioritize by risk** - Security > Reliability > Correctness > Style
 4. **Check the tests** - Missing tests for critical paths is a blocking issue

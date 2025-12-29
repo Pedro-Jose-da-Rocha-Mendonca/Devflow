@@ -4,12 +4,11 @@ End-to-end test scenarios for Devflow cost tracking.
 These tests prove the system works in realistic usage scenarios.
 """
 
-import pytest
 import json
-import tempfile
-from pathlib import Path
-from datetime import datetime
 import sys
+from pathlib import Path
+
+import pytest
 
 # Add paths for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "tooling" / "scripts" / "lib"))
@@ -24,8 +23,9 @@ def isolated_cost_environment(tmp_path, monkeypatch):
     sessions_dir.mkdir(parents=True)
 
     from lib import cost_tracker
-    monkeypatch.setattr(cost_tracker, 'COSTS_DIR', costs_dir)
-    monkeypatch.setattr(cost_tracker, 'SESSIONS_DIR', sessions_dir)
+
+    monkeypatch.setattr(cost_tracker, "COSTS_DIR", costs_dir)
+    monkeypatch.setattr(cost_tracker, "SESSIONS_DIR", sessions_dir)
 
     return {
         "costs_dir": costs_dir,
@@ -40,28 +40,20 @@ class TestEndToEndScenarios:
     def test_scenario_simple_story_workflow(self, isolated_cost_environment):
         """
         Scenario: Developer works on a simple story (PROJ-123)
-        
+
         1. SM (Scrum Master) reviews requirements
         2. DEV works on implementation
         3. SM does final review
-        
+
         Expected: Total cost tracked, stays under budget
         """
         from lib.cost_tracker import CostTracker
 
         # Start tracking for story PROJ-123
-        tracker = CostTracker(
-            story_key="PROJ-123",
-            budget_limit_usd=15.00
-        )
+        tracker = CostTracker(story_key="PROJ-123", budget_limit_usd=15.00)
 
         # Step 1: SM reviews requirements (quick, uses Sonnet)
-        tracker.log_usage(
-            agent="SM",
-            model="sonnet",
-            input_tokens=8000,
-            output_tokens=2000
-        )
+        tracker.log_usage(agent="SM", model="sonnet", input_tokens=8000, output_tokens=2000)
 
         # Check we're still OK on budget
         ok, level, msg = tracker.check_budget()
@@ -69,20 +61,10 @@ class TestEndToEndScenarios:
         assert level == "ok"
 
         # Step 2: DEV implements (larger task, uses Opus)
-        tracker.log_usage(
-            agent="DEV",
-            model="opus",
-            input_tokens=45000,
-            output_tokens=12000
-        )
+        tracker.log_usage(agent="DEV", model="opus", input_tokens=45000, output_tokens=12000)
 
         # Step 3: SM final review
-        tracker.log_usage(
-            agent="SM",
-            model="sonnet",
-            input_tokens=5000,
-            output_tokens=1500
-        )
+        tracker.log_usage(agent="SM", model="sonnet", input_tokens=5000, output_tokens=1500)
 
         # End session
         summary = tracker.end_session()
@@ -103,7 +85,7 @@ class TestEndToEndScenarios:
     def test_scenario_multi_phase_project(self, isolated_cost_environment):
         """
         Scenario: Multi-phase project with different budget limits
-        
+
         Phase 1: Context gathering (budget: $3)
         Phase 2: Development (budget: $15)
         Phase 3: Review (budget: $5)
@@ -113,29 +95,20 @@ class TestEndToEndScenarios:
         results = []
 
         # Phase 1: Context
-        context_tracker = CostTracker(
-            story_key="PROJ-100-context",
-            budget_limit_usd=3.00
-        )
+        context_tracker = CostTracker(story_key="PROJ-100-context", budget_limit_usd=3.00)
         context_tracker.log_usage("BA", "haiku", 20000, 5000)
         context_tracker.log_usage("BA", "haiku", 15000, 4000)
         results.append(context_tracker.end_session())
 
         # Phase 2: Development
-        dev_tracker = CostTracker(
-            story_key="PROJ-100-dev",
-            budget_limit_usd=15.00
-        )
+        dev_tracker = CostTracker(story_key="PROJ-100-dev", budget_limit_usd=15.00)
         dev_tracker.log_usage("DEV", "opus", 50000, 15000)
         dev_tracker.log_usage("DEV", "opus", 30000, 10000)
         dev_tracker.log_usage("DEV", "sonnet", 25000, 8000)
         results.append(dev_tracker.end_session())
 
         # Phase 3: Review
-        review_tracker = CostTracker(
-            story_key="PROJ-100-review",
-            budget_limit_usd=5.00
-        )
+        review_tracker = CostTracker(story_key="PROJ-100-review", budget_limit_usd=5.00)
         review_tracker.log_usage("SM", "sonnet", 15000, 3000)
         results.append(review_tracker.end_session())
 
@@ -153,14 +126,14 @@ class TestEndToEndScenarios:
     def test_scenario_budget_warning_escalation(self, isolated_cost_environment):
         """
         Scenario: Track budget as it escalates through warning levels
-        
+
         Expected: Budget status changes from ok -> warning -> critical
         """
         from lib.cost_tracker import CostTracker
 
         tracker = CostTracker(
             story_key="PROJ-200",
-            budget_limit_usd=1.00  # Low budget to trigger warnings
+            budget_limit_usd=1.00,  # Low budget to trigger warnings
         )
 
         statuses = []
@@ -189,7 +162,7 @@ class TestEndToEndScenarios:
     def test_scenario_session_persistence(self, isolated_cost_environment):
         """
         Scenario: Session data persists across tracker instances
-        
+
         1. Create tracker and log usage
         2. Save session
         3. Load session in new context
@@ -200,10 +173,7 @@ class TestEndToEndScenarios:
         sessions_dir = isolated_cost_environment["sessions_dir"]
 
         # Create and populate tracker
-        tracker1 = CostTracker(
-            story_key="PROJ-300",
-            budget_limit_usd=10.00
-        )
+        tracker1 = CostTracker(story_key="PROJ-300", budget_limit_usd=10.00)
         tracker1.log_usage("DEV", "opus", 25000, 8000)
         tracker1.log_usage("SM", "sonnet", 10000, 3000)
 
@@ -232,7 +202,7 @@ class TestEndToEndScenarios:
     def test_scenario_historical_aggregation(self, isolated_cost_environment):
         """
         Scenario: Aggregate statistics across multiple sessions
-        
+
         1. Create several completed sessions
         2. Query historical data
         3. Verify aggregated statistics
@@ -272,7 +242,7 @@ class TestEndToEndScenarios:
     def test_scenario_model_comparison(self, isolated_cost_environment):
         """
         Scenario: Compare costs between different models
-        
+
         Same task performed with different models to show cost difference
         """
         from lib.cost_tracker import CostTracker
@@ -285,9 +255,7 @@ class TestEndToEndScenarios:
 
         for model in ["opus", "sonnet", "haiku"]:
             tracker = CostTracker(
-                story_key=f"model-test-{model}",
-                budget_limit_usd=100.00,
-                auto_save=False
+                story_key=f"model-test-{model}", budget_limit_usd=100.00, auto_save=False
             )
             tracker.log_usage("TEST", model, input_tokens, output_tokens)
             results[model] = tracker.session.total_cost_usd
@@ -303,7 +271,7 @@ class TestEndToEndScenarios:
     def test_scenario_concurrent_sessions(self, isolated_cost_environment):
         """
         Scenario: Multiple concurrent sessions (different stories)
-        
+
         Simulates working on multiple stories simultaneously
         """
         from lib.cost_tracker import CostTracker
@@ -371,16 +339,14 @@ class TestValidationScript:
     def test_validation_runs(self):
         """Test that validation script runs without error."""
         import subprocess
+
         script_path = Path(__file__).parent.parent / "tooling" / "scripts" / "validate_setup.py"
 
         if not script_path.exists():
             pytest.skip("Validation script not found")
 
         result = subprocess.run(
-            [sys.executable, str(script_path)],
-            capture_output=True,
-            text=True,
-            timeout=30
+            [sys.executable, str(script_path)], capture_output=True, text=True, timeout=30
         )
 
         # Should complete (exit 0 or 1, not 2 which is error)
@@ -389,25 +355,23 @@ class TestValidationScript:
     def test_validation_json_output(self):
         """Test that validation script can output JSON."""
         import subprocess
+
         script_path = Path(__file__).parent.parent / "tooling" / "scripts" / "validate_setup.py"
 
         if not script_path.exists():
             pytest.skip("Validation script not found")
 
         result = subprocess.run(
-            [sys.executable, str(script_path), "--json"],
-            capture_output=True,
-            text=True,
-            timeout=30
+            [sys.executable, str(script_path), "--json"], capture_output=True, text=True, timeout=30
         )
 
         # Should have JSON somewhere in output
         try:
             # Find JSON array in output
             output = result.stdout
-            if '[' in output:
-                json_start = output.index('[')
-                json_end = output.rindex(']') + 1
+            if "[" in output:
+                json_start = output.index("[")
+                json_end = output.rindex("]") + 1
                 json_data = json.loads(output[json_start:json_end])
                 assert isinstance(json_data, list)
         except (ValueError, json.JSONDecodeError):
@@ -448,8 +412,8 @@ class TestErrorRecovery:
         missing_costs = tmp_path / "missing" / "costs"
         missing_sessions = missing_costs / "sessions"
 
-        monkeypatch.setattr(cost_tracker, 'COSTS_DIR', missing_costs)
-        monkeypatch.setattr(cost_tracker, 'SESSIONS_DIR', missing_sessions)
+        monkeypatch.setattr(cost_tracker, "COSTS_DIR", missing_costs)
+        monkeypatch.setattr(cost_tracker, "SESSIONS_DIR", missing_sessions)
 
         # Creating tracker should create directories
         tracker = cost_tracker.CostTracker(story_key="test", budget_limit_usd=5.00)

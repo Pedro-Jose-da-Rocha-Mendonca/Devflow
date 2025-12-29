@@ -95,3 +95,22 @@ Brownfield development - working with existing, production code. Your approach i
 - **Quick fixes**: Sonnet (simple changes)
 - **Refactoring**: Opus (careful changes needed)
 - **Migrations**: Opus (complex, high-risk)
+
+## Context Management
+
+When investigating existing codebases:
+
+1. **Read strategically** - Focus on relevant files, don't load entire codebase
+2. **Create checkpoints** before starting large investigations
+3. **Document findings incrementally** - Don't wait until the end
+4. **Summarize learnings** - Keep notes for context preservation
+
+## When Complete
+
+After completing maintenance work:
+
+1. Document what was changed and why in commit messages
+2. Update any affected documentation
+3. Create fix summary if applicable (for bugs)
+4. Update sprint-status.yaml with new status
+5. Note any remaining technical debt or follow-up items

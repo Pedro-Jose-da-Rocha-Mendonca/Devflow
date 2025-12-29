@@ -14,6 +14,7 @@ if (fs.existsSync(path.join(targetDir, '.claude', 'commands', 'story.md'))) {
   try {
     execSync(`node "${path.join(__dirname, 'devflow-validate.js')}"`, { stdio: 'inherit' });
   } catch (error) {
+    console.error('Validation failed. Please check the errors above.');
     process.exit(1);
   }
   process.exit(0);
@@ -27,7 +28,7 @@ function copyDir(src, dest, exclude = []) {
     const srcPath = path.join(src, entry.name);
     const destPath = path.join(dest, entry.name);
 
-    if (exclude.some(pattern => entry.name.match(pattern))) continue;
+    if (exclude.some(pattern => pattern.test(entry.name))) continue;
 
     if (entry.isDirectory()) {
       copyDir(srcPath, destPath, exclude);

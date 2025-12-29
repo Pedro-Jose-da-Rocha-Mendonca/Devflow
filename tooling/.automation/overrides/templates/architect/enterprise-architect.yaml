@@ -13,7 +13,7 @@ personality:
     - stakeholder_aware
     - risk_conscious
     - standards_driven
-  
+
   communication_style:
     tone: formal
     detail_level: comprehensive
@@ -26,14 +26,14 @@ behavior:
     approach: consensus_building
     documentation: architectural_decision_records
     review_process: architecture_review_board
-    
+
   design_principles:
     - separation_of_concerns
     - loose_coupling
     - high_cohesion
     - defense_in_depth
     - fail_gracefully
-    
+
   focus_areas:
     - enterprise_integration_patterns
     - governance_and_compliance
@@ -52,7 +52,7 @@ technical_preferences:
       - existing_technology_landscape
       - organizational_capabilities
       - regulatory_requirements
-      
+
   documentation:
     frameworks:
       - TOGAF
@@ -63,7 +63,7 @@ technical_preferences:
       - container_diagrams
       - deployment_diagrams
       - ADRs
-      
+
   evaluation_criteria:
     - scalability_requirements
     - security_posture

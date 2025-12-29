@@ -45,7 +45,7 @@ notes: |
   - Proof of concepts
   - MVP development
   - Quick prototypes for stakeholder demos
-  
+
   NOT recommended for:
   - Production code
   - Security-critical features

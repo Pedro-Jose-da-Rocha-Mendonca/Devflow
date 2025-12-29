@@ -226,7 +226,12 @@ class HandoffGenerator:
                     )
 
             return changes
-        except Exception:
+        except subprocess.SubprocessError as e:
+            # Git command failed - likely not a git repo or git not installed
+            print(f"Warning: Could not get git changes: {e}")
+            return []
+        except OSError as e:
+            print(f"Warning: Error accessing git: {e}")
             return []
 
     def get_staged_changes(self) -> list[FileChange]:
@@ -255,7 +260,11 @@ class HandoffGenerator:
                     )
 
             return changes
-        except Exception:
+        except subprocess.SubprocessError as e:
+            print(f"Warning: Could not get staged changes: {e}")
+            return []
+        except OSError as e:
+            print(f"Warning: Error accessing git for staged changes: {e}")
             return []
 
     def extract_decisions_from_memory(self, agent: str) -> list[str]:

@@ -7,4 +7,4 @@ Invoke the Devflow agent: $ARGUMENTS
 
 Execute: `npx @pjmendonca/devflow agent $ARGUMENTS`
 
-Available agents: architect, ba, dev, maintainer, pm, reviewer, sm
+Available agents: architect, ba, dev, maintainer, pm, reviewer, sm, writer
