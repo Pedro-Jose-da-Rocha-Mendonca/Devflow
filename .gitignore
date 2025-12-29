@@ -54,3 +54,5 @@ tooling/.automation/memory/shared/
 tooling/.automation/memory/knowledge/
 tooling/.automation/validation/history/
 tooling/.automation/costs/sessions/
+tooling/.automation/context/
+tooling/.automation/checkpoints/

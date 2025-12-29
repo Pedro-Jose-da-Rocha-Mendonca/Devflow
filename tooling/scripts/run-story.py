@@ -43,6 +43,14 @@ from platform import IS_WINDOWS, get_platform
 
 from colors import Colors
 
+# Try to import context monitor
+try:
+    from context_monitor import ContextMonitor, StatusLine, get_status_manager
+
+    HAS_CONTEXT_MONITOR = True
+except ImportError:
+    HAS_CONTEXT_MONITOR = False
+
 # Try to import validation loop
 try:
     from validation_loop import (
@@ -147,12 +155,14 @@ Examples:
 
 
 class NativeRunner:
-    """Native Python runner with cost tracking and validation."""
+    """Native Python runner with cost tracking, context monitoring, and validation."""
 
     def __init__(self, args):
         self.args = args
         self.tracker = None
         self.display = None
+        self.context_monitor = None
+        self.status_line = None
         self.monitor_thread = None
         self.running = False
         self.validation_loop = None
@@ -171,12 +181,56 @@ class NativeRunner:
             print(f"Warning: Cost tracking not available: {e}")
             self.cost_available = False
 
+        # Initialize context monitor if available
+        if HAS_CONTEXT_MONITOR:
+            self.context_monitor = ContextMonitor(
+                story_key=args.story_key,
+                model=args.model,
+                on_threshold=self._on_context_threshold,
+            )
+        else:
+            self.context_monitor = None
+
         # Initialize validation if available and enabled
         self.validation_enabled = (
             HAS_VALIDATION and (args.validate or not args.no_validate) and not args.no_validate
         )
         if self.validation_enabled:
             self._init_validation()
+
+    def _on_context_threshold(self, level, state):
+        """Handle context threshold crossing."""
+        from context_monitor import ContextLevel
+
+        if level == ContextLevel.EMERGENCY:
+            print(f"\n{Colors.BG_RED}{Colors.WHITE} CONTEXT EMERGENCY {Colors.RESET}")
+            print(f"Context at {state.context_usage_percent:.0f}% - compaction imminent!")
+            print("Recommendation: Save checkpoint NOW and clear session.")
+            self._trigger_auto_checkpoint("emergency")
+        elif level == ContextLevel.CRITICAL:
+            print(f"\n{Colors.BOLD_RED}[CRITICAL]{Colors.RESET} Context at {state.context_usage_percent:.0f}%")
+            print("Recommendation: Consider wrapping up and checkpointing soon.")
+            self._trigger_auto_checkpoint("critical")
+        elif level == ContextLevel.WARNING:
+            print(f"\n{Colors.YELLOW}[WARNING]{Colors.RESET} Context at {state.context_usage_percent:.0f}%")
+            print(f"~{state.exchanges_remaining} exchanges remaining before compaction.")
+
+    def _trigger_auto_checkpoint(self, reason: str):
+        """Trigger automatic checkpoint at critical thresholds."""
+        try:
+            # Import checkpoint manager
+            sys.path.insert(0, str(SCRIPT_DIR))
+            from context_checkpoint import ContextCheckpointManager
+
+            manager = ContextCheckpointManager()
+            context_level = self.context_monitor.state.context_usage_ratio if self.context_monitor else 0.0
+            checkpoint_file = manager.create_checkpoint(context_level, reason=reason)
+            print(f"[CHECKPOINT] Saved to: {checkpoint_file.name}")
+
+            if self.context_monitor:
+                self.context_monitor.record_checkpoint()
+        except Exception as e:
+            print(f"{Colors.YELLOW}[WARN] Could not create auto-checkpoint: {e}{Colors.RESET}")
 
     def _init_validation(self):
         """Initialize validation loop."""
@@ -265,7 +319,7 @@ class NativeRunner:
             return True
 
     def start_tracking(self):
-        """Initialize cost tracking."""
+        """Initialize cost tracking and status line."""
         if not self.cost_available:
             return
 
@@ -273,6 +327,13 @@ class NativeRunner:
             story_key=self.args.story_key, budget_limit_usd=self.args.budget
         )
         self.display = self.CompactCostDisplay(self.tracker)
+
+        # Create unified status line with context + cost
+        if HAS_CONTEXT_MONITOR and self.context_monitor:
+            self.status_line = StatusLine(
+                context_monitor=self.context_monitor,
+                cost_tracker=self.tracker,
+            )
 
     def start_monitor(self):
         """Start the monitoring display thread."""
@@ -286,7 +347,10 @@ class NativeRunner:
     def _monitor_loop(self):
         """Monitor loop for live display updates."""
         while self.running:
-            if self.tracker:
+            # Use unified status line if available, otherwise fall back to cost display
+            if self.status_line:
+                self.status_line.print(newline=False)
+            elif self.tracker:
                 self.display.print()
             time.sleep(2)
 
@@ -318,10 +382,14 @@ class NativeRunner:
             output = result.stdout + result.stderr
 
             # Parse token usage from output (if available)
-            if self.tracker:
-                tokens = self._parse_tokens(output)
-                if tokens:
+            tokens = self._parse_tokens(output)
+            if tokens:
+                # Update cost tracker
+                if self.tracker:
                     self.tracker.log_usage(agent, model, tokens[0], tokens[1])
+                # Update context monitor
+                if self.context_monitor:
+                    self.context_monitor.update_from_tokens(tokens[0], tokens[1])
 
             return (result.returncode == 0, output)
 
@@ -367,11 +435,15 @@ class NativeRunner:
 
     def run(self) -> int:
         """Run the story automation."""
-        print(f"Starting story: {self.args.story_key}")
-        print(f"Model: {self.args.model}")
-        print(f"Budget: ${self.args.budget:.2f}")
+        # Print header with status line
+        print(f"{Colors.DIM}{'─' * 70}{Colors.RESET}")
+        print(f"{Colors.BOLD}DEVFLOW STORY RUNNER{Colors.RESET}")
+        print(f"Story: {self.args.story_key} | Model: {self.args.model} | Budget: ${self.args.budget:.2f}")
         if self.validation_enabled:
             print("Validation: Enabled")
+        if self.context_monitor:
+            print(f"Context Monitor: Active (window: {self.context_monitor.state.context_window:,} tokens)")
+        print(f"{Colors.DIM}{'─' * 70}{Colors.RESET}")
         print()
 
         # Run pre-flight validation
@@ -382,15 +454,34 @@ class NativeRunner:
         self.start_tracking()
         self.start_monitor()
 
+        # Print initial status line
+        if self.status_line:
+            self.status_line.print()
+
         try:
             # Determine which phases to run
             run_context = self.args.context or (not self.args.develop and not self.args.review)
             run_develop = self.args.develop or (not self.args.context and not self.args.review)
             run_review = self.args.review or (not self.args.context and not self.args.develop)
 
+            # Calculate total phases
+            total_phases = sum([run_context, run_develop, run_review])
+            phases_completed = 0
+
+            # Set initial activity state
+            if self.context_monitor:
+                self.context_monitor.set_current_activity(total_phases=total_phases, phases_completed=0)
+
             # Context phase
             if run_context:
                 print("\n[1/3] Context Phase...")
+                if self.context_monitor:
+                    self.context_monitor.set_current_activity(
+                        agent="SM",
+                        phase="Context Analysis",
+                        task="Preparing development context",
+                        phases_completed=phases_completed,
+                    )
                 success, output = self.run_claude(
                     "SM",
                     "sonnet",
@@ -399,6 +490,10 @@ class NativeRunner:
                 if not success:
                     print(f"Context phase failed: {output[:200]}")
                     return 1
+
+                phases_completed += 1
+                if self.context_monitor:
+                    self.context_monitor.set_current_activity(phases_completed=phases_completed)
 
                 if not self.check_budget():
                     return 1
@@ -410,6 +505,13 @@ class NativeRunner:
             # Development phase
             if run_develop:
                 print("\n[2/3] Development Phase...")
+                if self.context_monitor:
+                    self.context_monitor.set_current_activity(
+                        agent="DEV",
+                        phase="Development",
+                        task="Implementing story",
+                        phases_completed=phases_completed,
+                    )
                 success, output = self.run_claude(
                     "DEV",
                     self.args.model,
@@ -418,6 +520,10 @@ class NativeRunner:
                 if not success:
                     print(f"Development phase failed: {output[:200]}")
                     return 1
+
+                phases_completed += 1
+                if self.context_monitor:
+                    self.context_monitor.set_current_activity(phases_completed=phases_completed)
 
                 if not self.check_budget():
                     return 1
@@ -429,6 +535,13 @@ class NativeRunner:
             # Review phase
             if run_review and not self.args.context and not self.args.develop:
                 print("\n[3/3] Review Phase...")
+                if self.context_monitor:
+                    self.context_monitor.set_current_activity(
+                        agent="REVIEWER",
+                        phase="Code Review",
+                        task="Reviewing implementation",
+                        phases_completed=phases_completed,
+                    )
                 success, output = self.run_claude(
                     "SM", "sonnet", f"Review the implementation of story {self.args.story_key}"
                 )
@@ -436,8 +549,16 @@ class NativeRunner:
                     print(f"Review phase failed: {output[:200]}")
                     return 1
 
+                phases_completed += 1
+                if self.context_monitor:
+                    self.context_monitor.set_current_activity(phases_completed=phases_completed)
+
                 # Validate review -> complete transition
                 self.run_phase_validation("REVIEW", "COMPLETE")
+
+            # Clear activity when done
+            if self.context_monitor:
+                self.context_monitor.clear_current_activity()
 
             print("\n[OK] Story automation complete!")
 

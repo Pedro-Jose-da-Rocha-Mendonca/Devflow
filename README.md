@@ -552,7 +552,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.14.0
+**Version**: 1.15.0
 **Status**: Production Ready
 **Last Updated**: 2025-12-29
 <!-- VERSION_END -->

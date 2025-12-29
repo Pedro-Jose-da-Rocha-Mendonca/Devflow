@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.15.0] - 2025-12-29
+
+### Added
+- **Context Monitor** - Real-time context window tracking and compaction awareness
+  - `lib/context_monitor.py` - Core context monitoring with threshold detection
+  - Tracks token usage and estimates context window consumption
+  - Five-level threshold system: SAFE, CAUTION, WARNING, CRITICAL, EMERGENCY
+  - Automatic checkpoint triggers at critical thresholds
+  - Activity tracking (current agent, phase, task) for status display
+- **Persistent Status Line** - Always-visible CLI status during operations
+  - Shows: Agent, Phase, Context%, Cost, Time in compact format
+  - Color-coded context indicators based on usage level
+  - Phase progress display (e.g., "[2/3] DEV Development (0:45)")
+  - Proactive warnings before compaction thresholds
+- **Status Line Integration** - Added to story runner
+  - `run-story.py` - Integrated context monitor with cost tracking
+  - Real-time status updates during phase execution
+  - Auto-checkpoint at critical/emergency context levels
+- **Unit Tests** - Comprehensive test coverage
+  - `tests/test_context_monitor.py` - 38 tests for context monitoring
+
+### Changed
+- **NativeRunner** - Now includes context monitoring alongside cost tracking
+- **.gitignore** - Added context and checkpoint directories for user-specific data
+
 ## [1.14.0] - 2025-12-29
 
 ### Added
