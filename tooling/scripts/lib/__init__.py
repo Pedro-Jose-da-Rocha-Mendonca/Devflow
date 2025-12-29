@@ -22,7 +22,7 @@ Usage:
     from lib.platform import get_platform, IS_WINDOWS
 """
 
-__version__ = "1.13.5"
+__version__ = "1.14.0"
 
 # Lazy imports to avoid circular dependencies
 __all__ = [

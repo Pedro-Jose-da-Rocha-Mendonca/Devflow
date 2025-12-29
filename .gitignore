@@ -48,3 +48,9 @@ tooling/.automation/overrides/*.override.yaml
 
 # Claude Code generated files
 .claude/plans/
+
+# User-specific automation data (kept local for personalization)
+tooling/.automation/memory/shared/
+tooling/.automation/memory/knowledge/
+tooling/.automation/validation/history/
+tooling/.automation/costs/sessions/

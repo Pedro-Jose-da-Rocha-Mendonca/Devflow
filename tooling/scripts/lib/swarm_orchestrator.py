@@ -49,6 +49,27 @@ except ImportError:
     from lib.platform import IS_WINDOWS
     from lib.shared_memory import get_knowledge_graph, get_shared_memory
 
+# Try to import validation loop
+try:
+    from validation_loop import (
+        INTER_PHASE_GATES,
+        LoopContext,
+        ValidationLoop,
+    )
+
+    HAS_VALIDATION = True
+except ImportError:
+    try:
+        from lib.validation_loop import (
+            INTER_PHASE_GATES,
+            LoopContext,
+            ValidationLoop,
+        )
+
+        HAS_VALIDATION = True
+    except ImportError:
+        HAS_VALIDATION = False
+
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 CLAUDE_CLI = "claude.cmd" if IS_WINDOWS else "claude"
@@ -228,6 +249,7 @@ class SwarmConfig:
     auto_fix_enabled: bool = True  # DEV automatically addresses REVIEWER issues
     verbose: bool = True
     budget_limit_usd: float = 20.0
+    validation_enabled: bool = True  # Enable inter-iteration validation
 
     def to_dict(self) -> dict:
         return {
@@ -238,6 +260,7 @@ class SwarmConfig:
             "parallel_execution": self.parallel_execution,
             "auto_fix_enabled": self.auto_fix_enabled,
             "budget_limit_usd": self.budget_limit_usd,
+            "validation_enabled": self.validation_enabled,
         }
 
 
@@ -270,6 +293,20 @@ class SwarmOrchestrator:
             "MAINTAINER": "sonnet",
             "SECURITY": "opus",
         }
+
+        # Initialize validation loop if available and enabled
+        self.validation_loop = None
+        self.validation_context = None
+        if HAS_VALIDATION and self.config.validation_enabled:
+            self.validation_loop = ValidationLoop(
+                gates=INTER_PHASE_GATES,
+                config={"auto_fix_enabled": self.config.auto_fix_enabled},
+                story_key=story_key,
+            )
+            self.validation_context = LoopContext(
+                story_key=story_key,
+                max_iterations=self.config.max_iterations,
+            )
 
     def _log(self, message: str, level: str = "INFO"):
         """Log a message with timestamp."""
@@ -472,6 +509,40 @@ class SwarmOrchestrator:
             all_issues.extend(r.issues_found)
         return list(set(all_issues))
 
+    def _run_iteration_validation(self, iteration: int, responses: list[AgentResponse]) -> bool:
+        """Run validation between iterations.
+
+        Args:
+            iteration: Current iteration number
+            responses: Agent responses from this iteration
+
+        Returns:
+            True if validation passed, False otherwise
+        """
+        if not self.validation_loop or not self.validation_context:
+            return True
+
+        self.validation_context.iteration = iteration
+        self.validation_context.phase = f"iteration_{iteration}"
+
+        # Update context with iteration data
+        self.validation_context.accumulated_issues = self._collect_issues(responses)
+
+        report = self.validation_loop.run_gates(self.validation_context, tier=2)
+
+        if report.passed:
+            self._log(f"[VALIDATION] Iteration {iteration + 1} passed validation")
+            return True
+        else:
+            # Log warnings but don't block swarm - just record issues
+            for failure in report.failures:
+                self._log(f"[VALIDATION] {failure.gate_name}: {failure.message}", "WARN")
+                # Add to accumulated issues for next iteration
+                self.validation_context.accumulated_issues.append(
+                    f"Validation: {failure.gate_name} - {failure.message}"
+                )
+            return True  # Don't block swarm, just inform
+
     def _build_iteration_prompt(
         self,
         agent: str,
@@ -589,6 +660,9 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
 
             # Collect issues
             issues_to_fix = self._collect_issues(iter_responses)
+
+            # Run validation between iterations
+            self._run_iteration_validation(iteration, iter_responses)
 
             # Check consensus
             consensus = self._check_consensus(iter_responses)

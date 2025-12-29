@@ -162,6 +162,19 @@ from lib.pair_programming import PairConfig, PairSession  # noqa: E402
 from lib.shared_memory import get_knowledge_graph, get_shared_memory, share_learning  # noqa: E402
 from lib.swarm_orchestrator import ConsensusType, SwarmConfig, SwarmOrchestrator  # noqa: E402
 
+# Try to import validation loop
+try:
+    from lib.validation_loop import (
+        POST_COMPLETION_GATES,
+        PREFLIGHT_GATES,
+        LoopContext,
+        ValidationLoop,
+    )
+
+    HAS_VALIDATION = True
+except ImportError:
+    HAS_VALIDATION = False
+
 
 def print_banner():
     """Print the CLI banner."""
@@ -457,7 +470,59 @@ Examples:
     parser.add_argument("--quiet", "-q", action="store_true", help="Reduce output verbosity")
     parser.add_argument("--task", type=str, help="Override task description")
 
+    # Validation options
+    parser.add_argument("--validate", action="store_true", help="Enable validation loop")
+    parser.add_argument("--no-validate", action="store_true", help="Disable validation loop")
+
     return parser.parse_args()
+
+
+def run_validation(story_key: str, args: argparse.Namespace, tier: str = "preflight") -> bool:
+    """Run validation checks.
+
+    Args:
+        story_key: Story identifier
+        args: Command line arguments
+        tier: Which tier to run ("preflight" or "post")
+
+    Returns:
+        True if validation passed, False otherwise
+    """
+    if not HAS_VALIDATION:
+        return True
+
+    validation_enabled = args.validate and not args.no_validate
+    if not validation_enabled:
+        return True
+
+    gates = PREFLIGHT_GATES if tier == "preflight" else POST_COMPLETION_GATES
+    validation_loop = ValidationLoop(
+        gates=gates,
+        config={"auto_fix_enabled": True},
+        story_key=story_key,
+    )
+    context = LoopContext(story_key=story_key, phase=tier)
+
+    if tier == "preflight":
+        print(f"\n{Colors.CYAN}[VALIDATION] Running pre-flight checks...{Colors.END}")
+        report = validation_loop.run_preflight(context)
+    else:
+        print(f"\n{Colors.CYAN}[VALIDATION] Running post-completion checks...{Colors.END}")
+        report = validation_loop.run_post_completion(context)
+
+    if report.passed:
+        print(
+            f"{Colors.GREEN}[PASS] Validation passed ({len(report.gate_results)} gates){Colors.END}"
+        )
+        if report.warnings:
+            for warn in report.warnings:
+                print(f"  {Colors.YELLOW}[WARN] {warn.gate_name}: {warn.message}{Colors.END}")
+        return True
+    else:
+        print(f"{Colors.RED}[FAIL] Validation failed{Colors.END}")
+        for failure in report.failures:
+            print(f"  - {failure.gate_name}: {failure.message}")
+        return tier != "preflight"  # Block on preflight, warn on post
 
 
 def main():
@@ -491,6 +556,11 @@ def main():
 
     print(f"{Colors.BOLD}Story/Task:{Colors.END} {story_key}")
     print(f"{Colors.BOLD}Mode:{Colors.END} ", end="")
+
+    # Run pre-flight validation
+    if not run_validation(story_key, args, "preflight"):
+        print(f"\n{Colors.RED}[BLOCKED] Pre-flight validation failed. Aborting.{Colors.END}")
+        return 1
 
     # Route-only mode
     if args.route_only:
@@ -546,6 +616,9 @@ def main():
         else:  # auto mode
             print("Auto-Route")
             run_auto_mode(story_key, task, args)
+
+        # Run post-completion validation
+        run_validation(story_key, args, "post")
 
         print(f"\n{Colors.GREEN}{'═' * 60}{Colors.END}")
         print(f"{Colors.GREEN} Collaboration complete!{Colors.END}")

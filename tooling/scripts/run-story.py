@@ -43,6 +43,21 @@ from platform import IS_WINDOWS, get_platform
 
 from colors import Colors
 
+# Try to import validation loop
+try:
+    from validation_loop import (
+        INTER_PHASE_GATES,
+        POST_COMPLETION_GATES,
+        PREFLIGHT_GATES,
+        LoopContext,
+        ValidationLoop,
+        get_phase_gates,
+    )
+
+    HAS_VALIDATION = True
+except ImportError:
+    HAS_VALIDATION = False
+
 
 def run_windows(args):
     """Run PowerShell script on Windows."""
@@ -115,12 +130,24 @@ Examples:
         "--native", action="store_true", help="Run natively with Python (enables cost tracking)"
     )
     parser.add_argument("--no-monitor", action="store_true", help="Disable live monitoring display")
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Enable validation loop (pre-flight, inter-phase, post-completion)",
+    )
+    parser.add_argument("--no-validate", action="store_true", help="Disable validation loop")
+    parser.add_argument(
+        "--validation-tier",
+        type=int,
+        choices=[1, 2, 3],
+        help="Run specific validation tier only (1=preflight, 2=inter-phase, 3=post-completion)",
+    )
 
     return parser.parse_args()
 
 
 class NativeRunner:
-    """Native Python runner with cost tracking."""
+    """Native Python runner with cost tracking and validation."""
 
     def __init__(self, args):
         self.args = args
@@ -128,6 +155,8 @@ class NativeRunner:
         self.display = None
         self.monitor_thread = None
         self.running = False
+        self.validation_loop = None
+        self.validation_context = None
 
         # Import cost modules
         try:
@@ -141,6 +170,99 @@ class NativeRunner:
         except ImportError as e:
             print(f"Warning: Cost tracking not available: {e}")
             self.cost_available = False
+
+        # Initialize validation if available and enabled
+        self.validation_enabled = (
+            HAS_VALIDATION and (args.validate or not args.no_validate) and not args.no_validate
+        )
+        if self.validation_enabled:
+            self._init_validation()
+
+    def _init_validation(self):
+        """Initialize validation loop."""
+        all_gates = PREFLIGHT_GATES + INTER_PHASE_GATES + POST_COMPLETION_GATES
+        self.validation_loop = ValidationLoop(
+            gates=all_gates,
+            config={"auto_fix_enabled": True},
+            story_key=self.args.story_key,
+        )
+        self.validation_context = LoopContext(
+            story_key=self.args.story_key,
+            max_iterations=3,
+        )
+
+    def run_preflight_validation(self) -> bool:
+        """Run pre-flight validation. Returns True if passed."""
+        if not self.validation_enabled or not self.validation_loop:
+            return True
+
+        print("[VALIDATION] Running pre-flight checks...")
+        self.validation_context.phase = "preflight"
+        report = self.validation_loop.run_preflight(self.validation_context)
+
+        if report.passed:
+            print(f"[PASS] Pre-flight validation passed ({len(report.gate_results)} gates)")
+            return True
+        else:
+            print(f"{Colors.RED}[FAIL] Pre-flight validation failed{Colors.RESET}")
+            for failure in report.failures:
+                print(f"  - {failure.gate_name}: {failure.message}")
+            return False
+
+    def run_phase_validation(self, from_phase: str, to_phase: str) -> bool:
+        """Run inter-phase validation. Returns True if passed."""
+        if not self.validation_enabled or not self.validation_loop:
+            return True
+
+        phase_gates = get_phase_gates(from_phase, to_phase)
+        if not phase_gates:
+            return True  # No gates for this transition
+
+        print(f"[VALIDATION] Checking {from_phase} -> {to_phase} transition...")
+        self.validation_context.phase = f"{from_phase}_to_{to_phase}"
+        self.validation_context.from_agent = from_phase
+        self.validation_context.to_agent = to_phase
+
+        # Create a temporary loop with just the phase gates
+        phase_loop = ValidationLoop(
+            gates=phase_gates,
+            config={"auto_fix_enabled": True},
+            story_key=self.args.story_key,
+        )
+        report = phase_loop.run_gates(self.validation_context, tier=2)
+
+        if report.passed:
+            print("[PASS] Phase transition validated")
+            return True
+        else:
+            print(f"{Colors.YELLOW}[WARN] Phase validation issues:{Colors.RESET}")
+            for failure in report.failures:
+                print(f"  - {failure.gate_name}: {failure.message}")
+            # Don't block on inter-phase, just warn
+            return True
+
+    def run_post_validation(self) -> bool:
+        """Run post-completion validation. Returns True if passed."""
+        if not self.validation_enabled or not self.validation_loop:
+            return True
+
+        print("\n[VALIDATION] Running post-completion checks...")
+        self.validation_context.phase = "post-completion"
+        report = self.validation_loop.run_post_completion(self.validation_context)
+
+        if report.passed:
+            print("[PASS] Post-completion validation passed")
+            if report.warnings:
+                print(f"{Colors.YELLOW}[WARN] {len(report.warnings)} warning(s):{Colors.RESET}")
+                for warn in report.warnings:
+                    print(f"  - {warn.gate_name}: {warn.message}")
+            return True
+        else:
+            print(f"{Colors.YELLOW}[WARN] Post-completion validation issues:{Colors.RESET}")
+            for failure in report.failures:
+                print(f"  - {failure.gate_name}: {failure.message}")
+            # Warn but don't fail the overall run
+            return True
 
     def start_tracking(self):
         """Initialize cost tracking."""
@@ -248,7 +370,14 @@ class NativeRunner:
         print(f"Starting story: {self.args.story_key}")
         print(f"Model: {self.args.model}")
         print(f"Budget: ${self.args.budget:.2f}")
+        if self.validation_enabled:
+            print("Validation: Enabled")
         print()
+
+        # Run pre-flight validation
+        if not self.run_preflight_validation():
+            print(f"\n{Colors.RED}[BLOCKED] Pre-flight validation failed. Aborting.{Colors.RESET}")
+            return 1
 
         self.start_tracking()
         self.start_monitor()
@@ -274,6 +403,10 @@ class NativeRunner:
                 if not self.check_budget():
                     return 1
 
+                # Validate context -> dev transition
+                if run_develop:
+                    self.run_phase_validation("CONTEXT", "DEV")
+
             # Development phase
             if run_develop:
                 print("\n[2/3] Development Phase...")
@@ -289,6 +422,10 @@ class NativeRunner:
                 if not self.check_budget():
                     return 1
 
+                # Validate dev -> review transition
+                if run_review:
+                    self.run_phase_validation("DEV", "REVIEW")
+
             # Review phase
             if run_review and not self.args.context and not self.args.develop:
                 print("\n[3/3] Review Phase...")
@@ -299,7 +436,13 @@ class NativeRunner:
                     print(f"Review phase failed: {output[:200]}")
                     return 1
 
+                # Validate review -> complete transition
+                self.run_phase_validation("REVIEW", "COMPLETE")
+
             print("\n[OK] Story automation complete!")
+
+            # Run post-completion validation
+            self.run_post_validation()
 
             # Show final costs
             if self.tracker:

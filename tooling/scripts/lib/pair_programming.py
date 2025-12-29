@@ -39,6 +39,27 @@ except ImportError:
     from lib.platform import IS_WINDOWS
     from lib.shared_memory import get_knowledge_graph, get_shared_memory
 
+# Try to import validation loop
+try:
+    from validation_loop import (
+        INTER_PHASE_GATES,
+        LoopContext,
+        ValidationLoop,
+    )
+
+    HAS_VALIDATION = True
+except ImportError:
+    try:
+        from lib.validation_loop import (
+            INTER_PHASE_GATES,
+            LoopContext,
+            ValidationLoop,
+        )
+
+        HAS_VALIDATION = True
+    except ImportError:
+        HAS_VALIDATION = False
+
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 CLAUDE_CLI = "claude.cmd" if IS_WINDOWS else "claude"
@@ -238,12 +259,14 @@ class PairConfig:
     chunk_size_hint: str = "medium"  # small, medium, large
     reviewer_model: str = "opus"
     dev_model: str = "opus"
+    validation_enabled: bool = True  # Enable validation between revisions
 
     def to_dict(self) -> dict:
         return {
             "max_revisions_per_chunk": self.max_revisions_per_chunk,
             "timeout_seconds": self.timeout_seconds,
             "auto_apply_fixes": self.auto_apply_fixes,
+            "validation_enabled": self.validation_enabled,
             "chunk_size_hint": self.chunk_size_hint,
             "reviewer_model": self.reviewer_model,
             "dev_model": self.dev_model,
@@ -267,12 +290,52 @@ class PairSession:
         self.chunk_counter = 0
         self.exchange_counter = 0
 
+        # Initialize validation loop if available and enabled
+        self.validation_loop = None
+        self.validation_context = None
+        if HAS_VALIDATION and self.config.validation_enabled:
+            self.validation_loop = ValidationLoop(
+                gates=INTER_PHASE_GATES,
+                config={"auto_fix_enabled": self.config.auto_apply_fixes},
+                story_key=story_key,
+            )
+            self.validation_context = LoopContext(
+                story_key=story_key,
+                max_iterations=self.config.max_revisions_per_chunk,
+            )
+
     def _log(self, message: str, agent: str = "SYSTEM"):
         """Log a message."""
         if self.config.verbose:
             timestamp = datetime.now().strftime("%H:%M:%S")
             emoji = {"DEV": "", "REVIEWER": "", "SYSTEM": ""}.get(agent, "•")
             print(f"[{timestamp}] {emoji} [{agent}] {message}")
+
+    def _run_revision_validation(self, chunk_id: str, revision_num: int) -> bool:
+        """Run validation between DEV revisions.
+
+        Args:
+            chunk_id: ID of the current chunk
+            revision_num: Current revision number
+
+        Returns:
+            True if validation passed
+        """
+        if not self.validation_loop or not self.validation_context:
+            return True
+
+        self.validation_context.iteration = revision_num
+        self.validation_context.phase = f"chunk_{chunk_id}_revision_{revision_num}"
+
+        report = self.validation_loop.run_gates(self.validation_context, tier=2)
+
+        if report.passed:
+            self._log(f"[VALIDATION] Revision {revision_num} passed validation")
+            return True
+        else:
+            for failure in report.failures:
+                self._log(f"[VALIDATION] {failure.gate_name}: {failure.message}", "SYSTEM")
+            return True  # Don't block, just inform
 
     def _invoke_agent(self, agent: str, prompt: str) -> str:
         """Invoke an agent with Claude CLI."""
@@ -542,6 +605,9 @@ Work in small, focused chunks. After each chunk, wait for reviewer feedback.
                 accumulated_code += (
                     f"\n\n// Revision: {revised_chunk.description}\n{revised_chunk.content}"
                 )
+
+                # Run validation between revisions
+                self._run_revision_validation(chunk.chunk_id, revision_count)
 
                 # REVIEWER re-reviews
                 self._log("Re-reviewing...", "REVIEWER")

@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.14.0] - 2025-12-29
+
+### Added
+- **Validation Loop Framework** - Three-tier automated feedback and validation system
+  - `lib/validation_loop.py` - Core validation engine with configurable gates
+  - Tier 1 (Pre-flight): Story exists, budget available, dependencies valid
+  - Tier 2 (Inter-phase): Code compiles, lint passes, phase transitions
+  - Tier 3 (Post-completion): Tests pass, types valid, version synced
+  - Auto-fix capability for lint and formatting issues
+  - Validation history tracking in shared memory/knowledge graph
+- **Validation Integration** - Added to all agent pipelines
+  - `run-story.py` - Pre-flight, inter-phase, and post-completion validation
+  - `run-collab.py` - Pre-flight and post-completion validation
+  - `swarm_orchestrator.py` - Inter-iteration validation
+  - `pair_programming.py` - Inter-revision validation
+- **Validation CLI** - New command and skill for running validation
+  - `/validate` command in `.claude/commands/validate.md`
+  - Validate skill in `.claude/skills/validate/SKILL.md`
+  - Standalone script `tooling/scripts/validate_loop.py` for CI/CLI usage
+- **Validation Configuration** - YAML-based configuration
+  - `tooling/.automation/validation-config.yaml` - Gate configuration
+  - Per-gate overrides for timeouts, commands, and auto-fix
+- **CI Integration** - Validation in CI/CD pipeline
+  - New `validation-loop` job in `.github/workflows/ci.yml`
+  - Pre-commit hooks for validation in `.pre-commit-config.yaml`
+- **Unit Tests** - Comprehensive test coverage
+  - `tests/test_validation_loop.py` - Tests for validation system
+
+### Changed
+- **SwarmConfig** - Added `validation_enabled` flag (default: true)
+- **PairConfig** - Added `validation_enabled` flag (default: true)
+
 ## [1.13.6] - 2025-12-29
 
 ### Fixed
