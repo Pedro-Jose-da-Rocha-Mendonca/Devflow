@@ -50,9 +50,8 @@ tooling/.automation/overrides/*.override.yaml
 .claude/plans/
 
 # User-specific automation data (kept local for personalization)
-tooling/.automation/memory/shared/
-tooling/.automation/memory/knowledge/
-tooling/.automation/validation/history/
-tooling/.automation/costs/sessions/
+tooling/.automation/memory/
+tooling/.automation/validation/
+tooling/.automation/costs/
 tooling/.automation/context/
 tooling/.automation/checkpoints/

@@ -6,13 +6,13 @@ repos:
   # Local Devflow validation hooks
   - repo: local
     hooks:
-      # Tier 3 validation (post-completion checks)
+      # Tier 3 validation with auto-fix
       - id: devflow-validate
         name: Devflow Validation
-        entry: python3 tooling/scripts/validate_loop.py --tier 3 --check --quiet
+        entry: python3 tooling/scripts/validate_loop.py --tier 3 --auto-fix --check --quiet
         language: system
         pass_filenames: false
-        stages: [commit]
+        stages: [pre-commit]
         always_run: false
         verbose: true
 
@@ -22,7 +22,7 @@ repos:
         entry: python3 tooling/scripts/update_version.py --check
         language: system
         pass_filenames: false
-        stages: [commit]
+        stages: [pre-commit]
         files: ^(CHANGELOG\.md|package\.json)$
 
   # Ruff - Fast Python linter and formatter
@@ -55,8 +55,9 @@ repos:
         args: [--maxkb=500]
       - id: check-merge-conflict
       - id: detect-private-key
-      - id: no-commit-to-branch
-        args: [--branch, main]
+      # Disabled for solo development - re-enable for team workflows
+      # - id: no-commit-to-branch
+      #   args: [--branch, main]
 
   # Shell script linting
   - repo: https://github.com/shellcheck-py/shellcheck-py

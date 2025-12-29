@@ -25,7 +25,7 @@ Usage:
     from lib.platform import get_platform, IS_WINDOWS
 """
 
-__version__ = "1.15.0"
+__version__ = "1.17.0"
 
 # Lazy imports to avoid circular dependencies
 __all__ = [

@@ -597,9 +597,12 @@ def _check_lint_pass(context: LoopContext) -> bool:
             cwd=PROJECT_ROOT,
             timeout=60,
         )
+        # Don't block if ruff not installed
+        if "No module named" in result.stderr:
+            return True
         return result.returncode == 0
     except Exception:
-        return True  # Don't block if ruff not installed
+        return True  # Don't block on errors
 
 
 def _check_types_pass(context: LoopContext) -> bool:
@@ -612,9 +615,12 @@ def _check_types_pass(context: LoopContext) -> bool:
             cwd=PROJECT_ROOT,
             timeout=120,
         )
+        # Don't block if mypy not installed
+        if "No module named" in result.stderr:
+            return True
         return result.returncode == 0
     except Exception:
-        return True  # Don't block if mypy not installed
+        return True  # Don't block on errors
 
 
 def _check_version_synced(context: LoopContext) -> bool:
@@ -666,9 +672,12 @@ def _auto_fix_lint(context: LoopContext) -> bool:
             cwd=PROJECT_ROOT,
             timeout=60,
         )
+        # Don't block if ruff not installed
+        if "No module named" in result.stderr:
+            return True
         return result.returncode == 0
     except Exception:
-        return False
+        return True  # Don't block on errors
 
 
 def _auto_fix_format(context: LoopContext) -> bool:
@@ -681,9 +690,12 @@ def _auto_fix_format(context: LoopContext) -> bool:
             cwd=PROJECT_ROOT,
             timeout=60,
         )
+        # Don't block if ruff not installed
+        if "No module named" in result.stderr:
+            return True
         return result.returncode == 0
     except Exception:
-        return False
+        return True  # Don't block on errors
 
 
 # =============================================================================

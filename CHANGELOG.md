@@ -5,6 +5,48 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.17.0] - 2025-12-29
+
+### Added
+- **Usage Projection & Forecasting** - Predict when subscription limits will be reached
+  - `cost_tracker.py` - `get_usage_projection()` calculates daily averages and forecasts
+  - Dashboard shows "At current rate, limit reached in X days" warnings
+  - Displays projected end-of-period usage vs limit
+  - Color-coded on-track/warning/critical status
+- **Model Efficiency Metrics** - Cost-per-output-token analysis
+  - `cost_tracker.py` - `get_model_efficiency()` ranks models by efficiency
+  - `cost_dashboard.py` - `--efficiency` / `-E` flag to display metrics
+  - Shows: $/1K output tokens, output/input ratio, calls, total cost
+  - Highlights most cost-efficient model with [BEST] badge
+- **Subscription Plan Presets** - Easy configuration with common plans
+  - `cost_config.py` - `SUBSCRIPTION_PLANS` with free/developer/pro/scale/enterprise
+  - `--set-plan` CLI flag to configure and persist plan
+  - Environment variable: `SUBSCRIPTION_PLAN=pro`
+  - Auto-saves to config.json for persistence
+- **Analytics Export System** - Comprehensive reports with trends and rankings
+  - `--schedule-export` flag generates full analytics report
+  - Daily usage trends (last 14 days with tokens, cost, sessions)
+  - Per-story cost rankings (top 10 by token consumption)
+  - Period comparison (current vs previous period with deltas)
+  - API rate statistics (calls/day, calls/hour, peak times)
+  - Export formats: JSON (full data), Markdown (formatted report)
+- **API Rate Tracking** - Monitor API call patterns
+  - `cost_tracker.py` - `get_api_rate_stats()` for call frequency analysis
+  - Tracks: total calls, calls per day/hour, peak hour, peak day
+  - Hourly and daily distribution data for pattern analysis
+
+## [1.16.0] - 2025-12-29
+
+### Added
+- **Subscription Usage Tracking** - Track token usage against API subscription limits
+  - `cost_config.py` - New `subscription_token_limit` and `subscription_billing_period_days` settings
+  - `cost_tracker.py` - `get_subscription_usage()` and `get_subscription_percentage()` methods
+  - `cost_dashboard.py` - `--subscription` / `-S` flag to display subscription usage
+  - Environment variable support: `SUBSCRIPTION_TOKEN_LIMIT`, `SUBSCRIPTION_BILLING_PERIOD_DAYS`
+  - Progress bar visualization with color-coded status (ok/warning/critical/exceeded)
+  - Subscription summary included in `--summary` view when configured
+  - Tracks: used tokens, remaining tokens, percentage, billing period, total cost
+
 ## [1.15.0] - 2025-12-29
 
 ### Added

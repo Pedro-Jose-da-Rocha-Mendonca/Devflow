@@ -25,6 +25,8 @@ Find us at our [discord](https://discord.gg/mHdyQ7VN8R)
 - **Shared Memory** - Cross-agent memory pool for context sharing and learnings
 - **Agent Handoff System** - Structured context preservation between agent transitions
 - **Multi-Currency Cost Tracking** - Customizable currency display with budget controls and alerts
+- **Persistent Status Line** - Real-time context and cost percentage display in CLI
+- **Validation Framework** - Three-tier automated validation with auto-fix capability
 - **Project Agnostic** - Works with Flutter, Node.js, Python, Rust, Go, Ruby, etc.
 - **Guided Setup** - Interactive wizard guides you through installation
 
@@ -436,6 +438,199 @@ python tooling/scripts/cost_dashboard.py --summary
 - **Set budget limits** - Prevent runaway costs with phase-specific limits
 - **Monitor the dashboard** - Track spending patterns across stories
 
+### Status Line
+
+Devflow provides a persistent status line in Claude Code that shows real-time metrics:
+
+```
+[Devflow] Claude Opus 4.5 | Context: 12.3% | Cost: $0.1234 (8.2%) | +45 -12 lines
+```
+
+**What it shows:**
+- **Model** - Current Claude model in use
+- **Context** - Percentage of context window used (with color coding)
+- **Cost** - Cumulative cost with subscription usage percentage
+- **Lines** - Lines added/removed in the session
+
+**Retroactive Cost Tracking:**
+
+The cost percentage is calculated retroactively across all sessions in your billing period:
+- Reads all session files from `tooling/.automation/costs/sessions/`
+- Sums tokens used within the billing period (default: 30 days)
+- Shows percentage of your subscription token limit used
+- Updates in real-time as you work
+
+**Color coding for cost percentage:**
+- **Green** - Under 75% of subscription limit
+- **Yellow** - 75-89% of subscription limit (warning)
+- **Red** - 90%+ of subscription limit (critical)
+
+**Configuration:**
+
+The status line reads currency settings from `tooling/.automation/costs/config.json`. To customize:
+
+```bash
+# Set display currency
+export COST_DISPLAY_CURRENCY="EUR"
+
+# Or edit config.json:
+{
+  "display_currency": "BRL",
+  "currency_rates": {
+    "USD": 1.0,
+    "BRL": 6.10,
+    "EUR": 0.92
+  }
+}
+```
+
+### Subscription Usage Tracking
+
+Track your usage against API subscription limits:
+
+```bash
+# View subscription usage
+python tooling/scripts/cost_dashboard.py --subscription
+
+# Set your plan manually
+python tooling/scripts/cost_dashboard.py --set-plan pro
+
+# View usage projection
+python tooling/scripts/cost_dashboard.py --subscription
+```
+
+**Auto-Detection:**
+
+Devflow automatically detects your subscription plan based on the model you're using:
+- **Opus** users -> Pro plan (5M tokens/month)
+- **Sonnet** users -> Developer plan (1M tokens/month)
+- **Haiku** users -> Free plan (100K tokens/month)
+
+The detected plan is saved to `tooling/.automation/costs/config.json` for future sessions.
+
+**Available plans:** free, developer, pro, scale, enterprise
+
+**Manual configuration (overrides auto-detection):**
+```bash
+export SUBSCRIPTION_PLAN="pro"           # Use a preset plan
+export SUBSCRIPTION_TOKEN_LIMIT=5000000  # Or set custom limit
+```
+
+### Model Efficiency Metrics
+
+Analyze which models give you the best value:
+
+```bash
+python tooling/scripts/cost_dashboard.py --efficiency
+```
+
+Shows cost-per-output-token for each model, helping optimize model selection.
+
+### Usage Projection & Forecasting
+
+Predict when you'll reach your subscription limits:
+
+```bash
+# View usage projection in subscription view
+python tooling/scripts/cost_dashboard.py --subscription
+```
+
+**What it shows:**
+- Daily average token consumption
+- Projected days until limit reached
+- End-of-period usage forecast vs limit
+- Color-coded status: on-track (green), warning (yellow), critical (red)
+
+### Analytics Export System
+
+Generate comprehensive analytics reports:
+
+```bash
+# Generate full analytics report (Markdown)
+python tooling/scripts/cost_dashboard.py --schedule-export report.md
+
+# Export to JSON format
+python tooling/scripts/cost_dashboard.py --schedule-export report.json
+```
+
+**Report contents:**
+- Daily usage trends (last 14 days with tokens, cost, sessions)
+- Per-story cost rankings (top 10 by token consumption)
+- Period comparison (current vs previous period with deltas)
+- API rate statistics (calls/day, calls/hour, peak times)
+
+### API Rate Tracking
+
+Monitor your API call patterns:
+
+```bash
+python tooling/scripts/cost_dashboard.py --summary
+```
+
+**Metrics tracked:**
+- Total API calls in period
+- Average calls per day/hour
+- Peak usage hour and day
+- Hourly and daily distribution data
+
+## Validation Framework
+
+Devflow includes a three-tier validation system that ensures code quality throughout the development pipeline.
+
+### Validation Tiers
+
+| Tier | Name | When | Validates |
+|------|------|------|-----------|
+| 1 | Pre-flight | Before starting | Story exists, budget available, dependencies |
+| 2 | Inter-phase | Between phases | Code compiles, lint passes, phase transitions |
+| 3 | Post-completion | After finishing | Tests pass, types valid, version synced |
+
+### Running Validation
+
+```bash
+# Validate a story
+/validate 3-5
+
+# Run specific tier
+/validate 3-5 --tier pre-flight
+
+# Run with auto-fix for lint issues
+/validate 3-5 --auto-fix
+```
+
+### Validation Gates
+
+**Pre-flight (Tier 1):**
+- Story file exists
+- Budget is available
+- Required dependencies installed
+
+**Inter-phase (Tier 2):**
+- TypeScript/Python compilation
+- Linting (with auto-fix option)
+- Phase transition rules
+
+**Post-completion (Tier 3):**
+- Test suite passes
+- Type checking passes
+- Version sync validated
+
+### Configuration
+
+Customize validation in `tooling/.automation/validation-config.yaml`:
+
+```yaml
+gates:
+  lint:
+    enabled: true
+    auto_fix: true
+    timeout: 60
+  test:
+    enabled: true
+    command: "npm test"
+    timeout: 300
+```
+
 ## Shell Completion
 
 Enable tab-completion for faster command entry.
@@ -552,7 +747,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.15.0
+**Version**: 1.17.0
 **Status**: Production Ready
 **Last Updated**: 2025-12-29
 <!-- VERSION_END -->

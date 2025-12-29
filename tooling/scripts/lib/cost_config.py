@@ -24,6 +24,36 @@ DEFAULT_WARNING_PERCENT = 75
 DEFAULT_CRITICAL_PERCENT = 90
 DEFAULT_AUTO_STOP = True
 
+# Subscription defaults (monthly token limits)
+# Set to 0 to disable subscription tracking
+DEFAULT_SUBSCRIPTION_TOKEN_LIMIT = 0  # No default limit - user must configure
+DEFAULT_SUBSCRIPTION_BILLING_PERIOD_DAYS = 30
+
+# Common subscription plan presets (tokens per month)
+# Based on typical Anthropic API plans as of December 2025
+SUBSCRIPTION_PLANS = {
+    "free": {
+        "token_limit": 100_000,  # 100K tokens/month
+        "description": "Free tier / Trial",
+    },
+    "developer": {
+        "token_limit": 1_000_000,  # 1M tokens/month
+        "description": "Developer plan",
+    },
+    "pro": {
+        "token_limit": 5_000_000,  # 5M tokens/month
+        "description": "Pro / Team plan",
+    },
+    "scale": {
+        "token_limit": 20_000_000,  # 20M tokens/month
+        "description": "Scale plan",
+    },
+    "enterprise": {
+        "token_limit": 100_000_000,  # 100M tokens/month
+        "description": "Enterprise plan",
+    },
+}
+
 DEFAULT_CURRENCY_RATES = {
     "USD": 1.0,
     "EUR": 0.92,
@@ -50,6 +80,13 @@ class CostConfig:
     warning_percent: int = DEFAULT_WARNING_PERCENT
     critical_percent: int = DEFAULT_CRITICAL_PERCENT
     auto_stop: bool = DEFAULT_AUTO_STOP
+
+    # Subscription settings (for tracking usage against API plan limits)
+    subscription_token_limit: int = DEFAULT_SUBSCRIPTION_TOKEN_LIMIT
+    subscription_billing_period_days: int = DEFAULT_SUBSCRIPTION_BILLING_PERIOD_DAYS
+    subscription_plan: str = (
+        ""  # Plan name if using preset (free, developer, pro, scale, enterprise)
+    )
 
     # Currency settings
     display_currency: str = "USD"
@@ -99,6 +136,29 @@ class CostConfig:
         if os.getenv("COST_AUTO_STOP"):
             config.auto_stop = os.getenv("COST_AUTO_STOP").lower() in ("true", "1", "yes")
 
+        # Subscription settings
+        # Check for plan preset first (e.g., SUBSCRIPTION_PLAN=pro)
+        if os.getenv("SUBSCRIPTION_PLAN"):
+            plan_name = os.getenv("SUBSCRIPTION_PLAN").lower()
+            if plan_name in SUBSCRIPTION_PLANS:
+                config.subscription_plan = plan_name
+                config.subscription_token_limit = SUBSCRIPTION_PLANS[plan_name]["token_limit"]
+            else:
+                print(
+                    f"Warning: Unknown subscription plan '{plan_name}'. "
+                    f"Valid plans: {', '.join(SUBSCRIPTION_PLANS.keys())}"
+                )
+
+        # Direct token limit overrides plan preset
+        if os.getenv("SUBSCRIPTION_TOKEN_LIMIT"):
+            config.subscription_token_limit = _safe_int(
+                "SUBSCRIPTION_TOKEN_LIMIT", config.subscription_token_limit
+            )
+        if os.getenv("SUBSCRIPTION_BILLING_PERIOD_DAYS"):
+            config.subscription_billing_period_days = _safe_int(
+                "SUBSCRIPTION_BILLING_PERIOD_DAYS", config.subscription_billing_period_days
+            )
+
         # Currency settings
         if os.getenv("COST_DISPLAY_CURRENCY"):
             config.display_currency = os.getenv("COST_DISPLAY_CURRENCY")
@@ -147,6 +207,21 @@ class CostConfig:
             if "auto_stop" in data:
                 config.auto_stop = bool(data["auto_stop"])
 
+            # Subscription settings
+            # Check for plan preset first
+            if "subscription_plan" in data:
+                plan_name = data["subscription_plan"].lower()
+                if plan_name in SUBSCRIPTION_PLANS:
+                    config.subscription_plan = plan_name
+                    config.subscription_token_limit = SUBSCRIPTION_PLANS[plan_name]["token_limit"]
+            # Direct token limit overrides plan preset
+            if "subscription_token_limit" in data:
+                config.subscription_token_limit = int(data["subscription_token_limit"])
+            if "subscription_billing_period_days" in data:
+                config.subscription_billing_period_days = int(
+                    data["subscription_billing_period_days"]
+                )
+
             # Currency settings
             if "display_currency" in data:
                 config.display_currency = data["display_currency"]
@@ -171,6 +246,9 @@ class CostConfig:
             "warning_percent": self.warning_percent,
             "critical_percent": self.critical_percent,
             "auto_stop": self.auto_stop,
+            "subscription_plan": self.subscription_plan,
+            "subscription_token_limit": self.subscription_token_limit,
+            "subscription_billing_period_days": self.subscription_billing_period_days,
             "display_currency": self.display_currency,
             "currency_rates": self.currency_rates,
             "display_currencies": self.display_currencies,
@@ -199,6 +277,110 @@ class CostConfig:
             "critical": self.critical_percent / 100.0,
             "stop": 1.0,
         }
+
+    def set_subscription_plan(self, plan_name: str) -> bool:
+        """
+        Set subscription based on a plan preset.
+
+        Args:
+            plan_name: One of: free, developer, pro, scale, enterprise
+
+        Returns:
+            True if plan was set successfully, False otherwise.
+        """
+        plan_name = plan_name.lower()
+        if plan_name not in SUBSCRIPTION_PLANS:
+            return False
+
+        self.subscription_plan = plan_name
+        self.subscription_token_limit = SUBSCRIPTION_PLANS[plan_name]["token_limit"]
+        return True
+
+    def get_subscription_plan_info(self) -> dict:
+        """Get information about the current subscription plan."""
+        if self.subscription_plan and self.subscription_plan in SUBSCRIPTION_PLANS:
+            plan = SUBSCRIPTION_PLANS[self.subscription_plan]
+            return {
+                "plan": self.subscription_plan,
+                "description": plan["description"],
+                "token_limit": self.subscription_token_limit,
+                "billing_period_days": self.subscription_billing_period_days,
+            }
+        elif self.subscription_token_limit > 0:
+            return {
+                "plan": "custom",
+                "description": "Custom token limit",
+                "token_limit": self.subscription_token_limit,
+                "billing_period_days": self.subscription_billing_period_days,
+            }
+        return {
+            "plan": "none",
+            "description": "Not configured",
+            "token_limit": 0,
+            "billing_period_days": self.subscription_billing_period_days,
+        }
+
+    @staticmethod
+    def get_available_plans() -> dict:
+        """Get all available subscription plan presets."""
+        return SUBSCRIPTION_PLANS.copy()
+
+    def auto_detect_plan(self, model: str = "sonnet") -> str:
+        """
+        Auto-detect subscription plan based on model usage.
+
+        Args:
+            model: The model being used (opus, sonnet, haiku)
+
+        Returns:
+            Detected plan name (free, developer, pro, scale, enterprise)
+        """
+        model_lower = model.lower()
+
+        # If already configured, return existing plan
+        if self.subscription_plan:
+            return self.subscription_plan
+
+        # Infer plan from model
+        if "opus" in model_lower:
+            # Opus users are typically on pro or higher
+            detected = "pro"
+        elif "sonnet" in model_lower:
+            # Sonnet could be developer or higher
+            detected = "developer"
+        elif "haiku" in model_lower:
+            # Haiku might be free tier
+            detected = "free"
+        else:
+            detected = "developer"
+
+        # Set and return the detected plan
+        self.set_subscription_plan(detected)
+        return detected
+
+    def ensure_plan_configured(
+        self, model: str = "sonnet", config_path: Optional[Path] = None
+    ) -> str:
+        """
+        Ensure a subscription plan is configured, auto-detecting if needed.
+
+        Args:
+            model: The model being used for auto-detection
+            config_path: Optional path to save config
+
+        Returns:
+            The configured or detected plan name
+        """
+        if self.subscription_plan and self.subscription_token_limit > 0:
+            return self.subscription_plan
+
+        plan = self.auto_detect_plan(model)
+
+        # Save to config file if path provided
+        if config_path:
+            self.save(config_path)
+
+        return plan
 
 
 # Global configuration instance
@@ -243,6 +425,13 @@ if __name__ == "__main__":
     print(f"Warning at:  {config.warning_percent}%")
     print(f"Critical at: {config.critical_percent}%")
     print(f"Auto-stop:   {config.auto_stop}")
+    print()
+    print("Subscription Settings:")
+    if config.subscription_token_limit > 0:
+        print(f"  Token Limit:    {config.subscription_token_limit:,} tokens")
+        print(f"  Billing Period: {config.subscription_billing_period_days} days")
+    else:
+        print("  Not configured (set SUBSCRIPTION_TOKEN_LIMIT to enable)")
     print()
     print(f"Display Currency: {config.display_currency}")
     print(f"Display Currencies: {config.display_currencies}")

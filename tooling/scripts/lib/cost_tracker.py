@@ -132,11 +132,11 @@ class CostEntry:
     """Single cost entry for a Claude API call."""
 
     timestamp: str
-    agent: str
     model: str
     input_tokens: int
     output_tokens: int
     cost_usd: float
+    agent: str = "unknown"  # Optional for backwards compatibility
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -629,6 +629,416 @@ class CostTracker:
             "average_per_session": round(total_cost / len(sessions), 2) if sessions else 0,
             "by_agent": by_agent,
             "by_model": by_model,
+        }
+
+    @staticmethod
+    def get_subscription_usage(billing_period_days: int = 30) -> dict:
+        """
+        Get subscription usage statistics for the billing period.
+
+        Args:
+            billing_period_days: Number of days in the billing period (default: 30)
+
+        Returns:
+            Dictionary with:
+            - total_tokens: Total tokens used in the billing period
+            - total_input_tokens: Input tokens used
+            - total_output_tokens: Output tokens used
+            - total_sessions: Number of sessions
+            - total_cost_usd: Total cost in USD
+        """
+        sessions = CostTracker.get_historical_sessions(days=billing_period_days)
+
+        total_input = sum(s.total_input_tokens for s in sessions)
+        total_output = sum(s.total_output_tokens for s in sessions)
+
+        return {
+            "total_tokens": total_input + total_output,
+            "total_input_tokens": total_input,
+            "total_output_tokens": total_output,
+            "total_sessions": len(sessions),
+            "total_cost_usd": round(sum(s.total_cost_usd for s in sessions), 2),
+        }
+
+    @staticmethod
+    def get_subscription_percentage(token_limit: int, billing_period_days: int = 30) -> dict:
+        """
+        Calculate subscription usage percentage.
+
+        Args:
+            token_limit: Total tokens allowed in the subscription billing period
+            billing_period_days: Number of days in the billing period
+
+        Returns:
+            Dictionary with:
+            - percentage: Usage percentage (0-100+, can exceed 100 if over limit)
+            - used_tokens: Total tokens used
+            - remaining_tokens: Tokens remaining (can be negative if over)
+            - limit_tokens: The configured limit
+            - status: "ok", "warning", "critical", or "exceeded"
+        """
+        if token_limit <= 0:
+            return {
+                "percentage": 0,
+                "used_tokens": 0,
+                "remaining_tokens": 0,
+                "limit_tokens": 0,
+                "status": "not_configured",
+            }
+
+        usage = CostTracker.get_subscription_usage(billing_period_days)
+        used_tokens = usage["total_tokens"]
+        percentage = (used_tokens / token_limit) * 100
+        remaining = token_limit - used_tokens
+
+        # Determine status
+        if percentage >= 100:
+            status = "exceeded"
+        elif percentage >= 90:
+            status = "critical"
+        elif percentage >= 75:
+            status = "warning"
+        else:
+            status = "ok"
+
+        return {
+            "percentage": round(percentage, 2),
+            "used_tokens": used_tokens,
+            "remaining_tokens": remaining,
+            "limit_tokens": token_limit,
+            "status": status,
+            "billing_period_days": billing_period_days,
+            "total_sessions": usage["total_sessions"],
+            "total_cost_usd": usage["total_cost_usd"],
+        }
+
+    @staticmethod
+    def get_usage_projection(token_limit: int, billing_period_days: int = 30) -> dict:
+        """
+        Calculate usage projection and forecast when limit will be reached.
+
+        Args:
+            token_limit: Total tokens allowed in the subscription billing period
+            billing_period_days: Number of days in the billing period
+
+        Returns:
+            Dictionary with projection data including days until limit reached.
+        """
+        if token_limit <= 0:
+            return {
+                "daily_average": 0,
+                "days_until_limit": None,
+                "projected_end_usage": 0,
+                "on_track": True,
+                "message": "Subscription tracking not configured",
+            }
+
+        sessions = CostTracker.get_historical_sessions(days=billing_period_days)
+        if not sessions:
+            return {
+                "daily_average": 0,
+                "days_until_limit": None,
+                "projected_end_usage": 0,
+                "on_track": True,
+                "message": "No usage data available",
+            }
+
+        # Calculate tokens used and days elapsed
+        total_tokens = sum(s.total_tokens for s in sessions)
+
+        # Find the earliest session to calculate actual days of usage
+        earliest = min(datetime.fromisoformat(s.start_time) for s in sessions)
+        days_elapsed = max(1, (datetime.now() - earliest).days + 1)
+
+        # Daily average based on actual usage period
+        daily_average = total_tokens / days_elapsed
+
+        # Project to end of billing period
+        projected_end_usage = daily_average * billing_period_days
+
+        # Calculate days until limit reached
+        if daily_average > 0:
+            remaining_tokens = token_limit - total_tokens
+            days_until_limit = remaining_tokens / daily_average if remaining_tokens > 0 else 0
+        else:
+            days_until_limit = None
+
+        # Determine if on track to stay within limit
+        on_track = projected_end_usage <= token_limit
+
+        # Generate message
+        if days_until_limit is not None and days_until_limit <= 0:
+            message = "Limit already exceeded"
+        elif days_until_limit is not None and days_until_limit < 7:
+            message = f"At current rate, limit reached in {days_until_limit:.0f} days"
+        elif not on_track:
+            overage_pct = ((projected_end_usage / token_limit) - 1) * 100
+            message = f"Projected to exceed limit by {overage_pct:.0f}%"
+        else:
+            message = "On track to stay within limit"
+
+        return {
+            "daily_average": round(daily_average),
+            "days_elapsed": days_elapsed,
+            "days_until_limit": round(days_until_limit, 1)
+            if days_until_limit is not None
+            else None,
+            "projected_end_usage": round(projected_end_usage),
+            "on_track": on_track,
+            "message": message,
+            "total_tokens": total_tokens,
+            "token_limit": token_limit,
+        }
+
+    @staticmethod
+    def get_model_efficiency() -> dict:
+        """
+        Calculate model efficiency metrics (cost per output token).
+
+        Returns:
+            Dictionary with efficiency data per model.
+        """
+        sessions = CostTracker.get_historical_sessions(days=30)
+
+        model_stats = {}
+        for session in sessions:
+            for entry in session.entries:
+                model = entry.model
+                if model not in model_stats:
+                    model_stats[model] = {
+                        "input_tokens": 0,
+                        "output_tokens": 0,
+                        "total_cost": 0,
+                        "calls": 0,
+                    }
+                model_stats[model]["input_tokens"] += entry.input_tokens
+                model_stats[model]["output_tokens"] += entry.output_tokens
+                model_stats[model]["total_cost"] += entry.cost_usd
+                model_stats[model]["calls"] += 1
+
+        # Calculate efficiency metrics
+        efficiency = {}
+        for model, stats in model_stats.items():
+            output_tokens = stats["output_tokens"]
+            total_cost = stats["total_cost"]
+
+            # Cost per 1K output tokens (the "value" metric)
+            cost_per_1k_output = (total_cost / output_tokens * 1000) if output_tokens > 0 else 0
+
+            # Output/Input ratio (how much output per input)
+            output_input_ratio = (
+                stats["output_tokens"] / stats["input_tokens"] if stats["input_tokens"] > 0 else 0
+            )
+
+            efficiency[model] = {
+                "cost_per_1k_output": round(cost_per_1k_output, 4),
+                "output_input_ratio": round(output_input_ratio, 2),
+                "total_cost": round(total_cost, 4),
+                "total_output_tokens": output_tokens,
+                "total_input_tokens": stats["input_tokens"],
+                "total_calls": stats["calls"],
+                "avg_output_per_call": round(output_tokens / stats["calls"])
+                if stats["calls"] > 0
+                else 0,
+            }
+
+        # Sort by cost efficiency (lowest cost per output token first)
+        sorted_efficiency = dict(
+            sorted(efficiency.items(), key=lambda x: x[1]["cost_per_1k_output"])
+        )
+
+        return sorted_efficiency
+
+    @staticmethod
+    def get_daily_usage(days: int = 30) -> list[dict]:
+        """
+        Get daily token usage breakdown for trends.
+
+        Args:
+            days: Number of days to retrieve
+
+        Returns:
+            List of daily usage dictionaries sorted by date.
+        """
+        sessions = CostTracker.get_historical_sessions(days=days)
+
+        daily = {}
+        for session in sessions:
+            date_str = session.start_time[:10]
+            if date_str not in daily:
+                daily[date_str] = {
+                    "date": date_str,
+                    "tokens": 0,
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "cost_usd": 0,
+                    "sessions": 0,
+                }
+            daily[date_str]["tokens"] += session.total_tokens
+            daily[date_str]["input_tokens"] += session.total_input_tokens
+            daily[date_str]["output_tokens"] += session.total_output_tokens
+            daily[date_str]["cost_usd"] += session.total_cost_usd
+            daily[date_str]["sessions"] += 1
+
+        # Sort by date
+        return sorted(daily.values(), key=lambda x: x["date"])
+
+    @staticmethod
+    def get_story_rankings(days: int = 30, limit: int = 10) -> list[dict]:
+        """
+        Get stories ranked by token consumption.
+
+        Args:
+            days: Number of days to look back
+            limit: Maximum number of stories to return
+
+        Returns:
+            List of stories sorted by total tokens (descending).
+        """
+        sessions = CostTracker.get_historical_sessions(days=days)
+
+        stories = {}
+        for session in sessions:
+            story = session.story_key
+            if story not in stories:
+                stories[story] = {
+                    "story_key": story,
+                    "total_tokens": 0,
+                    "total_cost_usd": 0,
+                    "sessions": 0,
+                }
+            stories[story]["total_tokens"] += session.total_tokens
+            stories[story]["total_cost_usd"] += session.total_cost_usd
+            stories[story]["sessions"] += 1
+
+        # Sort by tokens and limit
+        ranked = sorted(stories.values(), key=lambda x: -x["total_tokens"])
+        return ranked[:limit]
+
+    @staticmethod
+    def get_api_rate_stats(days: int = 7) -> dict:
+        """
+        Get API call rate statistics.
+
+        Args:
+            days: Number of days to analyze
+
+        Returns:
+            Dictionary with call rate statistics.
+        """
+        sessions = CostTracker.get_historical_sessions(days=days)
+
+        if not sessions:
+            return {
+                "total_calls": 0,
+                "calls_per_day": 0,
+                "calls_per_hour": 0,
+                "peak_hour": None,
+                "peak_day": None,
+                "hourly_distribution": {},
+                "daily_distribution": {},
+            }
+
+        # Collect all call timestamps
+        hourly = {}  # hour -> count
+        daily = {}  # date -> count
+        total_calls = 0
+
+        for session in sessions:
+            for entry in session.entries:
+                total_calls += 1
+                try:
+                    ts = datetime.fromisoformat(entry.timestamp)
+                    hour = ts.hour
+                    date_str = ts.strftime("%Y-%m-%d")
+
+                    hourly[hour] = hourly.get(hour, 0) + 1
+                    daily[date_str] = daily.get(date_str, 0) + 1
+                except (ValueError, TypeError):
+                    continue
+
+        # Calculate averages
+        actual_days = len(daily) if daily else 1
+        calls_per_day = total_calls / actual_days
+        calls_per_hour = total_calls / (actual_days * 24)
+
+        # Find peaks
+        peak_hour = max(hourly, key=hourly.get) if hourly else None
+        peak_day = max(daily, key=daily.get) if daily else None
+
+        return {
+            "total_calls": total_calls,
+            "calls_per_day": round(calls_per_day, 1),
+            "calls_per_hour": round(calls_per_hour, 2),
+            "peak_hour": peak_hour,
+            "peak_hour_calls": hourly.get(peak_hour, 0) if peak_hour is not None else 0,
+            "peak_day": peak_day,
+            "peak_day_calls": daily.get(peak_day, 0) if peak_day else 0,
+            "hourly_distribution": hourly,
+            "daily_distribution": daily,
+            "days_analyzed": actual_days,
+        }
+
+    @staticmethod
+    def get_period_comparison(current_days: int = 30) -> dict:
+        """
+        Compare current period vs previous period.
+
+        Args:
+            current_days: Number of days in current period
+
+        Returns:
+            Dictionary with current and previous period stats and deltas.
+        """
+        # Current period
+        current_sessions = CostTracker.get_historical_sessions(days=current_days)
+        current_tokens = sum(s.total_tokens for s in current_sessions)
+        current_cost = sum(s.total_cost_usd for s in current_sessions)
+
+        # Previous period (load sessions from current_days to 2*current_days ago)
+        all_sessions = CostTracker.get_historical_sessions(days=current_days * 2)
+        cutoff = datetime.now().timestamp() - (current_days * 24 * 60 * 60)
+
+        previous_sessions = [
+            s for s in all_sessions if datetime.fromisoformat(s.start_time).timestamp() < cutoff
+        ]
+        previous_tokens = sum(s.total_tokens for s in previous_sessions)
+        previous_cost = sum(s.total_cost_usd for s in previous_sessions)
+
+        # Calculate deltas
+        token_delta = current_tokens - previous_tokens
+        cost_delta = current_cost - previous_cost
+
+        token_delta_pct = (
+            ((current_tokens / previous_tokens) - 1) * 100
+            if previous_tokens > 0
+            else (100 if current_tokens > 0 else 0)
+        )
+        cost_delta_pct = (
+            ((current_cost / previous_cost) - 1) * 100
+            if previous_cost > 0
+            else (100 if current_cost > 0 else 0)
+        )
+
+        return {
+            "current_period": {
+                "days": current_days,
+                "tokens": current_tokens,
+                "cost_usd": round(current_cost, 2),
+                "sessions": len(current_sessions),
+            },
+            "previous_period": {
+                "days": current_days,
+                "tokens": previous_tokens,
+                "cost_usd": round(previous_cost, 2),
+                "sessions": len(previous_sessions),
+            },
+            "delta": {
+                "tokens": token_delta,
+                "tokens_pct": round(token_delta_pct, 1),
+                "cost_usd": round(cost_delta, 2),
+                "cost_pct": round(cost_delta_pct, 1),
+            },
         }
 
 

@@ -23,12 +23,13 @@ Thank you for your interest in contributing! This project aims to make AI-powere
 3. Make your changes following our coding standards
 4. Add tests if applicable
 5. Update documentation as needed
-6. Run the test suite: `python -m pytest tests/`
-7. Commit with conventional commit messages (e.g., `feat: add new feature`)
-8. Push to your fork and open a Pull Request
-9. Wait for review and approval (at least 1 approving review required)
-10. Address any feedback from reviewers
-11. Once approved, your PR will be merged
+6. **Run validation**: `python tooling/scripts/validate_loop.py --tier all`
+7. Run the test suite: `python -m pytest tests/`
+8. Commit with conventional commit messages (e.g., `feat: add new feature`)
+9. Push to your fork and open a Pull Request
+10. Wait for review and approval (at least 1 approving review required)
+11. Address any feedback from reviewers
+12. Once approved, your PR will be merged
 
 ### Areas for Contribution
 
@@ -57,6 +58,36 @@ We welcome contributions in these areas:
 - Unit tests for uncovered modules
 - Integration tests for shell scripts
 - End-to-end workflow tests
+
+**Validation & Quality**:
+- Validation framework improvements
+- New validation gates
+- Auto-fix capabilities
+
+## Validation Requirements
+
+Before submitting a PR, ensure your changes pass the validation framework:
+
+```bash
+# Run all validation tiers
+python tooling/scripts/validate_loop.py --tier all
+
+# Or run specific tiers
+python tooling/scripts/validate_loop.py --tier pre-flight
+python tooling/scripts/validate_loop.py --tier inter-phase
+python tooling/scripts/validate_loop.py --tier post-completion
+
+# Auto-fix lint issues
+python tooling/scripts/validate_loop.py --tier inter-phase --auto-fix
+```
+
+**Validation Gates:**
+- **Lint** - Code must pass linting (ruff for Python)
+- **Types** - Type checking must pass (mypy for Python)
+- **Tests** - Test suite must pass
+- **Version** - Version must be synced across files
+
+CI will automatically run validation on all PRs.
 
 ## Agent Persona Guidelines
 
