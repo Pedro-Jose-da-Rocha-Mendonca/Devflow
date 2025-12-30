@@ -55,3 +55,4 @@ tooling/.automation/validation/
 tooling/.automation/costs/
 tooling/.automation/context/
 tooling/.automation/checkpoints/
+tooling/.automation/.checkpoint_lock
