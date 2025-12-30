@@ -1,20 +1,24 @@
 #!/usr/bin/env python3
 """
-Swarm Orchestrator - Multi-Agent Collaboration System
+Swarm Orchestrator - Adversarial Multi-Agent Collaboration System
 
-Orchestrates multiple agents working together with:
-- Debate/consensus loops
-- Automatic iteration on feedback
-- Parallel agent execution
-- Conflict resolution
-- Convergence detection
+Orchestrates multiple agents in ADVERSARIAL debate mode where agents
+take opposing stances and challenge each other's designs. This creates
+robust solutions through competitive pressure.
 
 Features:
-- Swarm mode: Multiple agents debate until consensus
-- Iteration loops: DEV -> REVIEWER -> DEV cycles
-- Parallel execution: Independent agents run simultaneously
-- Voting mechanisms for decisions
-- Automatic termination on convergence
+- Adversarial personas: Agents are assigned opposing viewpoints
+- Dynamic personality selection: Task analysis determines best persona mix
+- Convergence detection: Hybrid token/round limits with stability checks
+- Personality handoff: Debate summary passed to implementing agent
+- Cross-challenge rounds: Agents directly challenge each other
+
+The adversarial approach:
+1. General agent (e.g., DEV) receives task
+2. Spawns sub-agents with opposing personas (e.g., Security vs Velocity)
+3. Agents debate in rounds, challenging each other's positions
+4. Convergence is forced after budget/round limits
+5. Synthesized result returned to implementing agent
 
 Usage:
     from lib.swarm_orchestrator import SwarmOrchestrator, SwarmConfig
@@ -23,8 +27,9 @@ Usage:
     result = orchestrator.run_swarm(
         agents=["ARCHITECT", "DEV", "REVIEWER"],
         task="Design and implement user authentication",
-        max_iterations=3
+        max_iterations=5
     )
+    # result includes PersonalityHandoff with debate summary
 """
 
 import re
@@ -42,10 +47,26 @@ try:
 
     from agent_handoff import HandoffGenerator
     from agent_router import AgentRouter
+    from personality_system import (
+        ConvergenceDetector,
+        DebatePosition,
+        PersonalityHandoff,
+        PersonalityProfile,
+        PersonalitySelector,
+        extract_arguments_from_response,
+    )
     from shared_memory import get_knowledge_graph, get_shared_memory
 except ImportError:
     from lib.agent_handoff import HandoffGenerator
     from lib.agent_router import AgentRouter
+    from lib.personality_system import (
+        ConvergenceDetector,
+        DebatePosition,
+        PersonalityHandoff,
+        PersonalityProfile,
+        PersonalitySelector,
+        extract_arguments_from_response,
+    )
     from lib.platform import IS_WINDOWS
     from lib.shared_memory import get_knowledge_graph, get_shared_memory
 
@@ -129,7 +150,7 @@ class ConsensusType(Enum):
 
 @dataclass
 class AgentResponse:
-    """Response from an agent."""
+    """Response from an agent in adversarial debate."""
 
     agent: str
     model: str
@@ -142,6 +163,11 @@ class AgentResponse:
     approvals: list[str] = field(default_factory=list)
     suggestions: list[str] = field(default_factory=list)
     vote: Optional[str] = None  # approve, reject, abstain
+    # Adversarial debate fields
+    persona_name: Optional[str] = None
+    challenges_raised: list[str] = field(default_factory=list)
+    concessions_made: list[str] = field(default_factory=list)
+    key_arguments: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -156,6 +182,9 @@ class AgentResponse:
             "approvals": self.approvals,
             "suggestions": self.suggestions,
             "vote": self.vote,
+            "persona_name": self.persona_name,
+            "challenges_raised": self.challenges_raised,
+            "key_arguments": self.key_arguments[:5],
         }
 
 
@@ -181,7 +210,7 @@ class SwarmIteration:
 
 @dataclass
 class SwarmResult:
-    """Result of swarm orchestration."""
+    """Result of adversarial swarm orchestration."""
 
     story_key: str
     task: str
@@ -194,6 +223,9 @@ class SwarmResult:
     start_time: str
     end_time: str
     consensus_type: ConsensusType
+    # Adversarial debate results
+    personality_handoff: Optional[PersonalityHandoff] = None
+    termination_reason: str = "max_iterations"  # consensus, convergence, budget, max_iterations
 
     def to_dict(self) -> dict:
         return {
@@ -208,25 +240,63 @@ class SwarmResult:
             "start_time": self.start_time,
             "end_time": self.end_time,
             "consensus_type": self.consensus_type.value,
+            "termination_reason": self.termination_reason,
+            "personality_handoff": (
+                self.personality_handoff.to_dict() if self.personality_handoff else None
+            ),
         }
 
     def to_summary(self) -> str:
-        """Generate a human-readable summary."""
+        """Generate a human-readable summary of the adversarial debate."""
         lines = [
-            f"## Swarm Result: {self.story_key}",
+            f"## Adversarial Swarm Result: {self.story_key}",
             "",
             f"**Task**: {self.task}",
             f"**State**: {self.state.value}",
-            f"**Iterations**: {len(self.iterations)}",
-            f"**Agents**: {', '.join(self.agents_involved)}",
+            f"**Debate Rounds**: {len(self.iterations)}",
+            f"**Termination**: {self.termination_reason}",
             f"**Total Cost**: ${self.total_cost_usd:.4f}",
             "",
         ]
 
+        # Show participating personas
+        if self.personality_handoff:
+            lines.append("### Adversarial Personas")
+            for p in self.personality_handoff.selected_personas:
+                stance = (
+                    f" [Focus: {p.adversarial_stance.primary_concern}]"
+                    if p.adversarial_stance
+                    else ""
+                )
+                lines.append(f"- **{p.name}** ({p.agent_type}){stance}")
+            lines.append("")
+
         if self.state == SwarmState.CONSENSUS:
-            lines.append(" **Consensus reached!**")
+            lines.append("[CONSENSUS] Agents reached agreement!")
+        elif self.termination_reason == "convergence":
+            lines.append("[CONVERGED] Positions stabilized - forcing consensus")
+        elif self.termination_reason == "budget":
+            lines.append("[BUDGET] Token budget reached - forcing consensus")
         elif self.state == SwarmState.MAX_ITERATIONS:
-            lines.append(" **Max iterations reached without full consensus**")
+            lines.append("[MAX ROUNDS] Iteration limit reached")
+
+        # Show consensus points and tensions
+        if self.personality_handoff:
+            if self.personality_handoff.consensus_points:
+                lines.append("")
+                lines.append("### Points of Agreement")
+                for point in self.personality_handoff.consensus_points:
+                    lines.append(f"- {point}")
+
+            if self.personality_handoff.unresolved_tensions:
+                lines.append("")
+                lines.append("### Unresolved Tensions")
+                for tension in self.personality_handoff.unresolved_tensions:
+                    lines.append(f"- [WARNING] {tension}")
+
+            lines.append("")
+            lines.append("### Recommended Approach")
+            lines.append(self.personality_handoff.recommended_approach)
 
         lines.append("")
         lines.append("### Final Output")
@@ -239,17 +309,22 @@ class SwarmResult:
 
 @dataclass
 class SwarmConfig:
-    """Configuration for swarm orchestration."""
+    """Configuration for adversarial swarm orchestration."""
 
-    max_iterations: int = 3
-    consensus_type: ConsensusType = ConsensusType.REVIEWER_APPROVAL
+    max_iterations: int = 3  # Limited to 3 rounds - diminishing returns after this
+    consensus_type: ConsensusType = ConsensusType.MAJORITY
     quorum_size: int = 2  # For QUORUM type
     timeout_seconds: int = 300
     parallel_execution: bool = False
     auto_fix_enabled: bool = True  # DEV automatically addresses REVIEWER issues
     verbose: bool = True
-    budget_limit_usd: float = 20.0
+    budget_limit_usd: float = 25.0  # Higher budget for debate
     validation_enabled: bool = True  # Enable inter-iteration validation
+    # Adversarial-specific settings
+    convergence_threshold: float = 0.8  # Position similarity to consider converged
+    stability_rounds: int = 2  # Rounds of stability before convergence
+    force_consensus_on_budget: bool = True  # Force agreement when budget exhausted
+    cross_challenge_enabled: bool = True  # Agents directly challenge each other
 
     def to_dict(self) -> dict:
         return {
@@ -261,11 +336,19 @@ class SwarmConfig:
             "auto_fix_enabled": self.auto_fix_enabled,
             "budget_limit_usd": self.budget_limit_usd,
             "validation_enabled": self.validation_enabled,
+            "convergence_threshold": self.convergence_threshold,
+            "stability_rounds": self.stability_rounds,
+            "cross_challenge_enabled": self.cross_challenge_enabled,
         }
 
 
 class SwarmOrchestrator:
-    """Orchestrates multi-agent collaboration."""
+    """Orchestrates adversarial multi-agent collaboration.
+
+    Agents are assigned opposing personas and debate until consensus
+    or convergence is reached. This creates robust solutions through
+    competitive pressure and cross-examination.
+    """
 
     def __init__(self, story_key: str, config: Optional[SwarmConfig] = None):
         self.story_key = story_key
@@ -280,8 +363,19 @@ class SwarmOrchestrator:
         self.iterations: list[SwarmIteration] = []
         self.total_tokens = 0
         self.total_cost = 0.0
+        self.termination_reason = "max_iterations"
 
-        # Agent model mapping
+        # Adversarial personality system
+        self.personality_selector = PersonalitySelector()
+        self.convergence_detector = ConvergenceDetector(
+            similarity_threshold=self.config.convergence_threshold,
+            stability_rounds=self.config.stability_rounds,
+        )
+        self.selected_personas: list[PersonalityProfile] = []
+        self.agent_personas: dict[str, PersonalityProfile] = {}
+        self.debate_positions: dict[str, DebatePosition] = {}
+
+        # Agent model mapping (can be overridden by persona)
         self.agent_models = {
             "SM": "sonnet",
             "DEV": "opus",
@@ -321,15 +415,54 @@ class SwarmOrchestrator:
             }.get(level, "•")
             print(f"[{timestamp}] {emoji} {message}")
 
+    def _select_adversarial_personas(self, agents: list[str], task: str):
+        """Select adversarial personas for the given agents and task."""
+        self._log("Selecting adversarial personas for debate...")
+
+        # Get personas from personality selector
+        self.selected_personas = self.personality_selector.select_adversarial_personas(
+            task=task,
+            num_agents=len(agents),
+            required_agents=agents,
+        )
+
+        # Map personas to agents
+        for i, agent in enumerate(agents):
+            if i < len(self.selected_personas):
+                persona = self.selected_personas[i]
+                self.agent_personas[agent] = persona
+                # Override model if persona specifies
+                if persona.model:
+                    self.agent_models[agent] = persona.model
+                self._log(
+                    f"  {agent} -> {persona.name} "
+                    f"[{persona.adversarial_stance.primary_concern if persona.adversarial_stance else 'general'}]"
+                )
+
+                # Initialize debate position tracking
+                self.debate_positions[agent] = DebatePosition(
+                    agent=agent,
+                    persona_name=persona.name,
+                )
+
     def _invoke_agent(self, agent: str, prompt: str, iteration: int = 0) -> AgentResponse:
-        """Invoke a single agent with Claude CLI."""
+        """Invoke a single agent with Claude CLI, including adversarial persona."""
         model = self.agent_models.get(agent, "sonnet")
+        persona = self.agent_personas.get(agent)
+        persona_name = persona.name if persona else None
 
-        self._log(f"Invoking {agent} (model: {model})...")
+        persona_label = f" as '{persona_name}'" if persona_name else ""
+        self._log(f"Invoking {agent}{persona_label} (model: {model})...")
 
-        # Build the full prompt with context
+        # Build the full prompt with context and persona
         context = self.handoff_generator.generate_context_for_agent(agent)
-        full_prompt = _sanitize_prompt(f"{context}\n\n---\n\n{prompt}")
+
+        # Inject persona if available
+        persona_injection = ""
+        if persona:
+            persona_injection = persona.to_prompt_injection() + "\n\n---\n\n"
+
+        full_prompt = _sanitize_prompt(f"{persona_injection}{context}\n\n---\n\n{prompt}")
 
         try:
             result = subprocess.run(
@@ -347,6 +480,18 @@ class SwarmOrchestrator:
             approvals = self._extract_approvals(content)
             suggestions = self._extract_suggestions(content)
             vote = self._determine_vote(content, issues, approvals)
+
+            # Extract adversarial elements
+            key_arguments = extract_arguments_from_response(content)
+            challenges = self._extract_challenges(content)
+            concessions = self._extract_concessions(content)
+
+            # Update debate position
+            if agent in self.debate_positions:
+                pos = self.debate_positions[agent]
+                pos.key_arguments = key_arguments
+                pos.challenges_raised = challenges
+                pos.concessions_made.extend(concessions)
 
             # Estimate tokens (rough)
             tokens = len(full_prompt.split()) + len(content.split())
@@ -367,6 +512,10 @@ class SwarmOrchestrator:
                 approvals=approvals,
                 suggestions=suggestions,
                 vote=vote,
+                persona_name=persona_name,
+                challenges_raised=challenges,
+                concessions_made=concessions,
+                key_arguments=key_arguments,
             )
 
         except subprocess.TimeoutExpired:
@@ -378,6 +527,7 @@ class SwarmOrchestrator:
                 timestamp=datetime.now().isoformat(),
                 iteration=iteration,
                 vote="abstain",
+                persona_name=persona_name,
             )
         except Exception as e:
             self._log(f"{agent} failed: {e}", "ERROR")
@@ -388,7 +538,38 @@ class SwarmOrchestrator:
                 timestamp=datetime.now().isoformat(),
                 iteration=iteration,
                 vote="abstain",
+                persona_name=persona_name,
             )
+
+    def _extract_challenges(self, content: str) -> list[str]:
+        """Extract challenges/objections from adversarial response."""
+        challenges = []
+        patterns = [
+            r"(?:I challenge|I disagree|I object|However|But|My concern is)[\s:]+(.+?)(?:\.|$)",
+            r"(?:This ignores|This overlooks|What about)[\s:]+(.+?)(?:\.|$)",
+            r"\[CHALLENGE\]\s*(.+)",
+        ]
+
+        for pattern in patterns:
+            matches = re.findall(pattern, content, re.IGNORECASE | re.MULTILINE)
+            challenges.extend(matches)
+
+        return list({c.strip() for c in challenges if len(c) > 10})[:5]
+
+    def _extract_concessions(self, content: str) -> list[str]:
+        """Extract concessions from adversarial response."""
+        concessions = []
+        patterns = [
+            r"(?:I concede|I agree that|Fair point|You're right that|I accept)[\s:]+(.+?)(?:\.|$)",
+            r"(?:On reflection|Reconsidering)[\s:]+(.+?)(?:\.|$)",
+            r"\[CONCEDE\]\s*(.+)",
+        ]
+
+        for pattern in patterns:
+            matches = re.findall(pattern, content, re.IGNORECASE | re.MULTILINE)
+            concessions.extend(matches)
+
+        return list({c.strip() for c in concessions if len(c) > 10})[:5]
 
     def _extract_issues(self, content: str) -> list[str]:
         """Extract issues/problems from response."""
@@ -551,52 +732,110 @@ class SwarmOrchestrator:
         previous_responses: list[AgentResponse],
         issues_to_fix: list[str],
     ) -> str:
-        """Build prompt for a specific iteration."""
-
-        if iteration == 0:
-            # First iteration - just the task
-            return f"""You are the {agent} agent. Your task is:
-
-{task}
-
-Please complete this task according to your role and expertise.
-At the end, clearly indicate if you APPROVE or have ISSUES with the work.
+        """Build adversarial debate prompt for a specific iteration."""
+        persona = self.agent_personas.get(agent)
+        stance_info = ""
+        if persona and persona.adversarial_stance:
+            stance = persona.adversarial_stance
+            stance_info = f"""
+Your stance in this debate:
+- Primary concern: {stance.primary_concern}
+- Challenge arguments that prioritize: {', '.join(stance.opposes) if stance.opposes else 'shortcuts or poor quality'}
+- Debate style: {stance.debate_style}
 """
 
-        # Subsequent iterations - include feedback
-        feedback_lines = []
+        if iteration == 0:
+            # First iteration - state position and challenge others
+            return f"""## ADVERSARIAL DEBATE - Round 1
+
+You are the {agent} agent participating in an adversarial design debate.
+Your goal is to advocate for your perspective while challenging others.
+
+### The Task
+{task}
+
+{stance_info}
+
+### Instructions
+1. State your position on how to approach this task
+2. Identify potential issues, risks, or overlooked concerns
+3. Be specific about what approach you advocate for and WHY
+4. Anticipate counter-arguments and address them preemptively
+
+### Response Format
+Structure your response with:
+- **My Position**: Your recommended approach
+- **Key Arguments**: Why this is the right approach (be specific)
+- **Concerns**: What could go wrong with other approaches
+- **Challenges for Others**: Questions or objections for other agents to address
+
+At the end, indicate: APPROVE (if you'd accept current direction) or ISSUES (if concerns remain)
+"""
+
+        # Subsequent iterations - adversarial cross-challenge
+        other_positions = []
         for r in previous_responses:
             if r.agent == agent:
                 continue
 
-            feedback_lines.append(f"### Feedback from {r.agent}")
+            persona_label = f" ({r.persona_name})" if r.persona_name else ""
+
+            position_block = [f"### {r.agent}{persona_label}"]
+
+            # Show their key arguments
+            if r.key_arguments:
+                position_block.append("**Their Arguments:**")
+                for arg in r.key_arguments[:3]:
+                    position_block.append(f"- {arg}")
+
+            # Show challenges they raised
+            if r.challenges_raised:
+                position_block.append("**Challenges They Raised:**")
+                for challenge in r.challenges_raised[:3]:
+                    position_block.append(f"- {challenge}")
+
+            # Show their issues
             if r.issues_found:
-                feedback_lines.append("**Issues found:**")
-                for issue in r.issues_found:
-                    feedback_lines.append(f"-  {issue}")
-            if r.suggestions:
-                feedback_lines.append("**Suggestions:**")
-                for sug in r.suggestions:
-                    feedback_lines.append(f"-  {sug}")
-            if r.approvals:
-                feedback_lines.append("**Approvals:**")
-                for app in r.approvals:
-                    feedback_lines.append(f"-  {app}")
-            feedback_lines.append("")
+                position_block.append("**Issues They Identified:**")
+                for issue in r.issues_found[:3]:
+                    position_block.append(f"- {issue}")
 
-        prompt = f"""You are the {agent} agent. This is iteration {iteration + 1}.
+            # Show their vote
+            if r.vote:
+                position_block.append(f"**Their Vote**: {r.vote.upper()}")
 
-## Original Task
+            position_block.append("")
+            other_positions.append("\n".join(position_block))
+
+        prompt = f"""## ADVERSARIAL DEBATE - Round {iteration + 1}
+
+You are the {agent} agent. This is round {iteration + 1} of the debate.
+
+### Original Task
 {task}
 
-## Feedback from Other Agents
-{chr(10).join(feedback_lines)}
+{stance_info}
 
-## Issues to Address
-{chr(10).join(f"- {issue}" for issue in issues_to_fix) if issues_to_fix else "No outstanding issues."}
+### Other Agents' Positions
+{chr(10).join(other_positions) if other_positions else "No other positions yet."}
 
-Please address the feedback and issues above.
-At the end, clearly indicate if you APPROVE the current state or have remaining ISSUES.
+### Outstanding Issues
+{chr(10).join(f"- {issue}" for issue in issues_to_fix) if issues_to_fix else "None identified."}
+
+### Your Task This Round
+1. **Respond to challenges**: Address objections raised against your position
+2. **Challenge others**: Push back on weak arguments or overlooked concerns
+3. **Find common ground**: Identify points of agreement where possible
+4. **Refine your position**: Adjust based on valid critiques (concede if warranted)
+
+### Response Format
+- **Response to Challenges**: Address specific objections to your position
+- **Counter-Arguments**: Challenge weak points in others' positions
+- **Concessions**: Points you're willing to concede (use [CONCEDE] prefix)
+- **Updated Position**: Your refined stance after this round
+- **Remaining Concerns**: Issues that still need resolution
+
+End with: APPROVE (ready to move forward) or ISSUES (significant concerns remain)
 """
 
         return prompt
@@ -604,25 +843,40 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
     def run_swarm(
         self, agents: list[str], task: str, max_iterations: Optional[int] = None
     ) -> SwarmResult:
-        """Run swarm orchestration with multiple agents."""
+        """Run adversarial swarm orchestration with multiple agents.
+
+        Agents are assigned opposing personas and debate until consensus,
+        convergence, or budget exhaustion.
+        """
 
         max_iter = max_iterations or self.config.max_iterations
         start_time = datetime.now().isoformat()
 
         self.state = SwarmState.RUNNING
-        self._log(f"Starting swarm with agents: {', '.join(agents)}")
+        self._log(f"Starting ADVERSARIAL swarm with agents: {', '.join(agents)}")
         self._log(f"Task: {task[:100]}...")
+
+        # Select adversarial personas for each agent
+        self._select_adversarial_personas(agents, task)
 
         issues_to_fix: list[str] = []
         previous_responses: list[AgentResponse] = []
 
         for iteration in range(max_iter):
-            self._log(f"=== Iteration {iteration + 1}/{max_iter} ===")
+            self._log(f"=== Debate Round {iteration + 1}/{max_iter} ===")
             self.state = SwarmState.DEBATING
 
-            # Check budget
+            # Check budget limit
             if self.total_cost >= self.config.budget_limit_usd:
-                self._log("Budget limit reached!", "WARNING")
+                self._log("[BUDGET] Budget limit reached - forcing consensus", "WARNING")
+                self.termination_reason = "budget"
+                break
+
+            # Check convergence (hybrid: positions stabilized)
+            if iteration > 0 and self.convergence_detector.has_converged():
+                self._log("[CONVERGED] Positions have stabilized - ending debate", "SUCCESS")
+                self.termination_reason = "convergence"
+                self.state = SwarmState.CONVERGING
                 break
 
             iter_responses: list[AgentResponse] = []
@@ -661,6 +915,13 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
             # Collect issues
             issues_to_fix = self._collect_issues(iter_responses)
 
+            # Record positions for convergence detection
+            round_positions = {}
+            for r in iter_responses:
+                if r.agent in self.debate_positions:
+                    round_positions[r.agent] = self.debate_positions[r.agent]
+            self.convergence_detector.record_round(round_positions)
+
             # Run validation between iterations
             self._run_iteration_validation(iteration, iter_responses)
 
@@ -678,20 +939,28 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
 
             previous_responses = iter_responses
 
+            # Log debate status
+            agreement_score = self.convergence_detector.calculate_agreement_score()
             self._log(f"Issues remaining: {len(issues_to_fix)}")
-            self._log(f"Consensus: {' Yes' if consensus else ' No'}")
+            self._log(f"Agreement score: {agreement_score:.0%}")
+            self._log(f"Consensus: {'[YES]' if consensus else '[NO]'}")
 
             if consensus:
                 self.state = SwarmState.CONSENSUS
-                self._log("Consensus reached!", "SUCCESS")
+                self.termination_reason = "consensus"
+                self._log("[CONSENSUS] Agents reached agreement!", "SUCCESS")
                 break
 
         # Determine final state
-        if self.state != SwarmState.CONSENSUS:
+        if self.state not in (SwarmState.CONSENSUS, SwarmState.CONVERGING):
             self.state = SwarmState.MAX_ITERATIONS
+            self.termination_reason = "max_iterations"
 
-        # Generate final output
+        # Generate final output and personality handoff
         final_output = self._generate_final_output(previous_responses)
+        personality_handoff = self._generate_personality_handoff(
+            task, previous_responses, final_output
+        )
 
         # Create result
         result = SwarmResult(
@@ -706,17 +975,81 @@ At the end, clearly indicate if you APPROVE the current state or have remaining 
             start_time=start_time,
             end_time=datetime.now().isoformat(),
             consensus_type=self.config.consensus_type,
+            personality_handoff=personality_handoff,
+            termination_reason=self.termination_reason,
         )
 
         # Save to knowledge graph
         self.knowledge_graph.add_decision(
             agent="SWARM",
-            topic="swarm-result",
-            decision=f"Completed with state: {self.state.value}",
-            context={"iterations": len(self.iterations), "cost": self.total_cost},
+            topic="adversarial-debate-result",
+            decision=f"Completed: {self.termination_reason} after {len(self.iterations)} rounds",
+            context={
+                "iterations": len(self.iterations),
+                "cost": self.total_cost,
+                "termination": self.termination_reason,
+                "personas": [p.name for p in self.selected_personas],
+            },
         )
 
         return result
+
+    def _generate_personality_handoff(
+        self,
+        task: str,
+        responses: list[AgentResponse],
+        final_output: str,
+    ) -> PersonalityHandoff:
+        """Generate a personality handoff summarizing the adversarial debate."""
+
+        # Extract consensus points and tensions
+        response_dicts = [{"content": r.content} for r in responses]
+        consensus_points, tensions = self.convergence_detector.extract_consensus_points(
+            response_dicts
+        )
+
+        # Generate debate summary
+        debate_summary = self.convergence_detector.summarize_debate(
+            [i.to_dict() for i in self.iterations]
+        )
+
+        # Synthesize recommended approach from final responses
+        recommended = self._synthesize_recommendation(responses)
+
+        return PersonalityHandoff(
+            spawned_by="SWARM_ORCHESTRATOR",
+            selected_personas=self.selected_personas,
+            debate_summary=debate_summary,
+            consensus_points=consensus_points,
+            unresolved_tensions=tensions,
+            recommended_approach=recommended,
+            confidence=self.convergence_detector.calculate_agreement_score(),
+            total_rounds=len(self.iterations),
+            termination_reason=self.termination_reason,
+            positions=list(self.debate_positions.values()),
+        )
+
+    def _synthesize_recommendation(self, responses: list[AgentResponse]) -> str:
+        """Synthesize a recommended approach from debate responses."""
+        # Collect all key arguments from approving agents
+        approving_args = []
+        for r in responses:
+            if r.vote == "approve" and r.key_arguments:
+                approving_args.extend(r.key_arguments[:2])
+
+        if approving_args:
+            return "Based on debate consensus: " + "; ".join(approving_args[:3])
+
+        # Fallback to general synthesis
+        all_args = []
+        for r in responses:
+            if r.key_arguments:
+                all_args.extend(r.key_arguments[:1])
+
+        if all_args:
+            return "Synthesized from debate: " + "; ".join(all_args[:3])
+
+        return "No clear recommendation emerged - human review recommended."
 
     def _generate_final_output(self, responses: list[AgentResponse]) -> str:
         """Generate consolidated final output."""

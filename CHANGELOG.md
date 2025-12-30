@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.18.0] - 2025-12-30
+
+### Added
+- **Adversarial Swarm Mode** - Multi-agent debates with opposing personas for robust designs
+  - `personality_system.py` - Dynamic persona selection and adversarial stance management
+  - `PersonalitySelector` - Analyzes tasks and selects opposing personas automatically
+  - `ConvergenceDetector` - Hybrid convergence detection (position stability + token budget)
+  - `PersonalityHandoff` - Structured handoff with debate summary for implementing agent
+  - Agents assigned adversarial stances that naturally oppose each other
+  - Cross-challenge prompts force agents to defend positions and find edge cases
+  - Automatic consensus/convergence detection ends debates efficiently
+
+- **Adversarial Stance Templates** - Added `adversarial_stance` to persona templates
+  - `primary_concern` - Agent's core focus (security, velocity, simplicity, etc.)
+  - `opposes` - Stances this persona naturally challenges
+  - `challenge_triggers` - Phrases that trigger pushback
+  - `debate_style` - How the agent argues (assertive, questioning, evidence-based)
+  - Updated templates: thorough-critic, security-focused, rapid-prototyper,
+    quick-sanity, enterprise-architect, pragmatic-minimalist, performance-engineer
+
+- **New Persona Templates** for better adversarial coverage
+  - `dev/user-advocate.yaml` - UX-focused developer who champions end users
+  - `maintainer/reliability-engineer.yaml` - Reliability/SRE perspective on failure modes
+
+- **Test Harness for Swarm Performance** - Benchmark and analyze debate effectiveness
+  - `test_adversarial_swarm.py` - Simulated testing without LLM calls
+  - Tracks per-round metrics: new arguments, challenges, concessions, agreement
+  - Calculates marginal value per round to identify diminishing returns
+  - Generates performance plots (matplotlib) showing trends over rounds
+  - Saves benchmark results to `tooling/.automation/benchmarks/`
+
+### Changed
+- **SwarmOrchestrator** - Now adversarial by default
+  - Prompts restructured for debate format with cross-challenges
+  - Agents receive opponent positions and must respond to challenges
+  - Concession tracking for convergence detection
+  - PersonalityHandoff generated with consensus points and unresolved tensions
+
 ## [1.17.0] - 2025-12-29
 
 ### Added

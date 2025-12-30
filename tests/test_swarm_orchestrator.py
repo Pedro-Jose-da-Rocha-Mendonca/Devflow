@@ -237,8 +237,8 @@ class TestSwarmResult:
         )
         summary = result.to_summary()
         assert "test-1" in summary
-        assert "Consensus reached" in summary
-        assert "DEV" in summary
+        assert "[CONSENSUS]" in summary  # Adversarial format
+        assert "consensus" in summary.lower()
 
     def test_result_summary_max_iterations(self):
         """Test summary for max iterations state."""
@@ -256,17 +256,17 @@ class TestSwarmResult:
             consensus_type=ConsensusType.MAJORITY,
         )
         summary = result.to_summary()
-        assert "Max iterations reached" in summary
+        assert "[MAX ROUNDS]" in summary  # Adversarial format
 
 
 class TestSwarmConfig:
     """Tests for SwarmConfig dataclass."""
 
     def test_default_config(self):
-        """Test default configuration values."""
+        """Test default configuration values (adversarial mode)."""
         config = SwarmConfig()
-        assert config.max_iterations == 3
-        assert config.consensus_type == ConsensusType.REVIEWER_APPROVAL
+        assert config.max_iterations == 3  # Limited rounds for diminishing returns
+        assert config.consensus_type == ConsensusType.MAJORITY  # Adversarial default
         assert config.quorum_size == 2
         assert config.timeout_seconds == 300
         assert not config.parallel_execution
@@ -608,9 +608,9 @@ class TestSwarmOrchestrator:
             issues_to_fix=["Missing tests"],
         )
         assert "DEV" in prompt
-        assert "iteration 2" in prompt.lower()
+        assert "round 2" in prompt.lower()  # Adversarial uses "round" instead of "iteration"
         assert "Missing tests" in prompt
-        assert "Feedback" in prompt
+        assert "REVIEWER" in prompt  # Shows other agent's position
 
     def test_log_verbose(self, mock_dependencies, capsys):
         """Test logging in verbose mode."""

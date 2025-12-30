@@ -366,14 +366,14 @@ class TestSwarmOrchestrator:
         return memory_dir
 
     def test_swarm_config_defaults(self):
-        """Test swarm configuration defaults."""
+        """Test swarm configuration defaults (adversarial mode)."""
         from lib.swarm_orchestrator import ConsensusType, SwarmConfig
 
         config = SwarmConfig()
 
-        assert config.max_iterations == 3
-        assert config.consensus_type == ConsensusType.REVIEWER_APPROVAL
-        assert config.budget_limit_usd == 20.0
+        assert config.max_iterations == 3  # Limited rounds for diminishing returns
+        assert config.consensus_type == ConsensusType.MAJORITY  # Adversarial default
+        assert config.budget_limit_usd == 25.0  # Higher budget for debate
 
     def test_swarm_config_custom(self):
         """Test custom swarm configuration."""
