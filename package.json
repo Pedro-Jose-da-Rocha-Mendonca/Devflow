@@ -1,6 +1,6 @@
 {
   "name": "@pjmendonca/devflow",
-  "version": "1.18.0",
+  "version": "1.19.0",
   "description": "Development workflow automation with Claude Code - agent-based development system with cost tracking",
   "keywords": [
     "devflow",

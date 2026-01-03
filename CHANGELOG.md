@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.19.0] - 2026-01-03
+
+### Added
+- **Story Discovery Phase in Init Wizard** - Optional Phase 4 for quick story brainstorming
+  - Vision discovery with problem, users, success metrics, and competitive advantage
+  - Core feature identification with comma-separated input
+  - First sprint planning with story proposals
+  - Automatic story file generation in `tooling/docs/stories/`
+  - Integration with sprint-status.yaml for backlog tracking
+
+- **Brainstorm Skill** - Full workshop for product discovery and story creation
+  - `/brainstorm` command for 30-minute comprehensive workshops
+  - `--quick` mode for 10-minute vision + features session
+  - `--journey` mode for focused user journey mapping
+  - `--features` mode for rapid feature brainstorming
+  - `--decompose EPIC` to break epics into stories
+  - `--prioritize` to re-prioritize existing backlog
+
+- **Brainstorming Techniques Guide** - Reference documentation for discovery methods
+  - Guided Discovery (Socratic method) with vision and feature questions
+  - User Journey Mapping with 5-stage framework (Trigger, Entry, Core, Success, Retention)
+  - Rapid Feature List with MoSCoW prioritization
+  - Story Decomposition with INVEST criteria
+  - RICE scoring and Impact/Effort matrix for prioritization
+
+- **Story Template** - New `tooling/docs/templates/story.md` for feature stories
+  - User story format with acceptance criteria
+  - Priority and effort sizing (XS/S/M/L/XL)
+  - Technical notes, business rules, and dependencies
+  - Testing strategy and definition of done
+
+- **Stories Directory** - `tooling/docs/stories/` for story file storage
+  - Stories use format: `STORY-{sprint}-{number}-{slug}.md`
+  - Integrated with sprint-status.yaml tracking
+
+### Changed
+- **Init Wizard** - Now 6 phases (added Story Discovery as Phase 4)
+  - Quick Mode skips story discovery, recommends `/brainstorm` after setup
+  - Phase 6 summary includes story count and brainstorm command reference
+  - Directory structure now includes `tooling/docs/stories/` and `tooling/docs/templates/`
+
 ## [1.18.0] - 2025-12-30
 
 ### Added

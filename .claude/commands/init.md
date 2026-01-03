@@ -89,7 +89,96 @@ If yes, briefly explain each agent and offer quick customization:
 
 Offer template options for each if they want customization.
 
-### Phase 4: Generate Configuration
+### Phase 4: Story Discovery (Optional)
+
+Ask if they want to brainstorm initial stories:
+```
+Would you like to brainstorm your first stories now?
+```
+
+Options:
+- **Quick Discovery** (5 min) - Vision and 3-5 key features for sprint 1
+- **Skip for now** - Run `/brainstorm` later for a full workshop session
+
+If they choose Quick Discovery, run through this flow:
+
+**Step 1: Vision (2 questions)**
+
+Use AskUserQuestion with open text:
+```
+What problem are you solving with this project?
+```
+
+Then:
+```
+Who is your primary user? (e.g., "developers", "fitness enthusiasts", "small business owners")
+```
+
+**Step 2: Core Features (1 question)**
+
+```
+What are the 3-5 core features this project needs?
+(Enter as a comma-separated list)
+```
+
+**Step 3: First Sprint Planning**
+
+Based on their answers, propose 3-5 stories for Sprint 1:
+
+```
+Based on your vision, here's a proposed Sprint 1:
+
+1-1-{feature-slug}: {Feature description}
+1-2-{feature-slug}: {Feature description}
+1-3-{feature-slug}: {Feature description}
+
+Would you like to:
+- Accept these stories
+- Modify the list
+- Add more details to each
+```
+
+**Step 4: Generate Story Files**
+
+For each accepted story, create:
+1. Entry in `tooling/docs/sprint-status.yaml`
+2. Story file in `tooling/docs/stories/STORY-{key}.md`
+
+Use the story template from `tooling/docs/templates/story.md`.
+
+Story file example:
+```markdown
+# STORY-1-1-user-login
+
+**Type**: Feature
+**Status**: backlog
+**Sprint**: 1
+**Priority**: P1 (High)
+**Effort**: M
+**Created**: {date}
+
+---
+
+## Summary
+
+{One-line based on user's feature description}
+
+## User Story
+
+As a **{user type from step 1}**,
+I want **{goal extracted from feature}**,
+So that **{benefit based on problem statement}**.
+
+## Acceptance Criteria
+
+- [ ] **AC-1**: {Generated based on feature}
+- [ ] **AC-2**: {Generated based on feature}
+- [ ] **AC-3**: {Generated based on feature}
+```
+
+**Note**: For deeper brainstorming with user journeys, prioritization frameworks, and story decomposition, recommend running `/brainstorm` after setup.
+
+### Phase 5: Generate Configuration
 
 Based on the answers, create all necessary files:
 
@@ -103,6 +192,8 @@ tooling/.automation/memory/shared/
 tooling/.automation/overrides/
 tooling/scripts/lib/
 tooling/docs/
+tooling/docs/stories/
+tooling/docs/templates/
 ```
 
 2. **Generate `tooling/.automation/config.sh`** with the collected preferences
@@ -121,7 +212,7 @@ tooling/docs/
 
 5. **Generate workflow README** in `tooling/README.md`
 
-### Phase 5: Next Steps
+### Phase 6: Next Steps
 
 After setup is complete, provide a summary:
 
@@ -133,18 +224,22 @@ Configuration created:
 - Workflow: {workflow_mode}
 - Models: {model_strategy}
 - Currency: {currency}
+- Stories: {story_count} stories in Sprint 1 (if created)
 
 Quick Start:
-1. Create your first story: /story create "Add login feature"
-2. Run development: /develop 1-1
-3. Run review: /review 1-1
-4. Check costs: /costs
+1. Brainstorm more stories: /brainstorm
+2. Run full story pipeline: /story 1-1-feature-name
+3. Development only: /develop 1-1-feature-name
+4. Review only: /review 1-1-feature-name
+5. Check costs: /costs
 
 Useful Commands:
+- /brainstorm - Full workshop for story discovery
 - /personalize - Customize agent behavior
 - /memory - View shared agent memory
 - /checkpoint - Save/restore context
 
+Your Stories: tooling/docs/stories/
 Documentation: tooling/README.md
 ```
 
@@ -156,6 +251,7 @@ If the user runs `/init --quick`, skip optional questions and use smart defaults
 - Use "Balanced" model strategy (Opus for dev, Sonnet for planning)
 - Use USD for currency
 - Skip agent personalization
+- Skip story discovery (recommend `/brainstorm` after setup)
 
 ## Important Guidelines
 
