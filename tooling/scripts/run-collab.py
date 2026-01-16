@@ -38,9 +38,9 @@ from typing import Optional
 SCRIPT_DIR = Path(__file__).parent
 sys.path.insert(0, str(SCRIPT_DIR / "lib"))
 
-from platform import IS_MACOS, IS_WINDOWS
-
 from colors import Colors
+
+from lib.platform import IS_MACOS, IS_WINDOWS
 
 
 def detect_claude_cli() -> Optional[str]:

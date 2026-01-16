@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.20.0] - 2026-01-16
+
+### Fixed
+- **Import Error** - Fixed Python stdlib `platform` module conflict in multiple scripts
+  - `run-collab.py`, `run-story.py`, `new-doc.py`, `setup-checkpoint-service.py` now use `from lib.platform import`
+  - `swarm_orchestrator.py`, `pair_programming.py`, `cost_display.py` now prioritize lib.platform over stdlib
+  - Resolves `ImportError: cannot import name 'IS_MACOS' from 'platform'` on Python 3.14+
+
+### Added
+- **Live Dashboard** - Real-time terminal status display for monitoring Devflow sessions
+  - Rich ASCII dashboard with box-drawing characters and color-coded progress bars
+  - Shows context usage, cost tracking, current agent/activity, and token history
+  - Configurable refresh rate (default 0.5s) for responsive updates
+  - Compact single-line mode with `--compact` flag
+  - Run via `devflow dashboard` or `python3 tooling/scripts/live_dashboard.py`
+  - New `/dashboard` skill with instructions for VS Code split terminal setup
+
+- **Swarm Command** - Added `devflow swarm` CLI command for multi-agent swarm mode
+  - New `bin/devflow-swarm.js` wrapper that calls run-collab.py with --swarm flag
+  - Added to devflow.js dispatcher and package.json bin entries
+
 ## [1.19.0] - 2026-01-03
 
 ### Added

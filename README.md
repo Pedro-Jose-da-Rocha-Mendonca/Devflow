@@ -747,7 +747,7 @@ Free to use in commercial and personal projects.
 
 
 <!-- VERSION_START - Auto-updated by update_version.py -->
-**Version**: 1.19.0
+**Version**: 1.20.0
 **Status**: Production Ready
-**Last Updated**: 2026-01-03
+**Last Updated**: 2026-01-16
 <!-- VERSION_END -->

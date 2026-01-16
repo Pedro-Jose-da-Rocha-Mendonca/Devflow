@@ -22,7 +22,13 @@ from typing import Optional
 # Add parent for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from platform import IS_WINDOWS
+try:
+    from lib.platform import IS_WINDOWS
+except ImportError:
+    # Fallback for when running from lib directory
+    import sys as _sys
+
+    IS_WINDOWS = _sys.platform == "win32"
 
 from colors import Colors
 from cost_tracker import PRICING, CostTracker

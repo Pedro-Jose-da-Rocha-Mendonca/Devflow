@@ -43,20 +43,6 @@ from typing import Optional
 
 # Import dependencies
 try:
-    from platform import IS_WINDOWS
-
-    from agent_handoff import HandoffGenerator
-    from agent_router import AgentRouter
-    from personality_system import (
-        ConvergenceDetector,
-        DebatePosition,
-        PersonalityHandoff,
-        PersonalityProfile,
-        PersonalitySelector,
-        extract_arguments_from_response,
-    )
-    from shared_memory import get_knowledge_graph, get_shared_memory
-except ImportError:
     from lib.agent_handoff import HandoffGenerator
     from lib.agent_router import AgentRouter
     from lib.personality_system import (
@@ -69,6 +55,22 @@ except ImportError:
     )
     from lib.platform import IS_WINDOWS
     from lib.shared_memory import get_knowledge_graph, get_shared_memory
+except ImportError:
+    # Fallback for when running from lib directory
+    import sys as _sys
+
+    IS_WINDOWS = _sys.platform == "win32"
+    from agent_handoff import HandoffGenerator
+    from agent_router import AgentRouter
+    from personality_system import (
+        ConvergenceDetector,
+        DebatePosition,
+        PersonalityHandoff,
+        PersonalityProfile,
+        PersonalitySelector,
+        extract_arguments_from_response,
+    )
+    from shared_memory import get_knowledge_graph, get_shared_memory
 
 # Try to import validation loop
 try:

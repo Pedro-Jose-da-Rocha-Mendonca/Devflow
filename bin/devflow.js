@@ -6,6 +6,8 @@ const commands = {
   'install': 'Install Devflow into your project',
   'story': 'Run full story pipeline (context + dev + review)',
   'collab': 'Run collaborative story with mode selection',
+  'swarm': 'Run multi-agent swarm mode (debate/consensus)',
+  'dashboard': 'Live status dashboard (context, cost, activity)',
   'checkpoint': 'Create or restore context checkpoints',
   'memory': 'View or query shared agent memory',
   'cost': 'View cost dashboard and spending analytics',

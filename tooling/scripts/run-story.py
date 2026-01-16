@@ -39,13 +39,13 @@ SCRIPT_DIR = Path(__file__).parent
 # Add lib directory for imports
 sys.path.insert(0, str(SCRIPT_DIR / "lib"))
 
-from platform import IS_WINDOWS, get_platform
-
 from colors import Colors
+
+from lib.platform import IS_WINDOWS, get_platform
 
 # Try to import context monitor
 try:
-    from context_monitor import ContextMonitor, StatusLine, get_status_manager
+    from context_monitor import ContextMonitor, StatusLine
 
     HAS_CONTEXT_MONITOR = True
 except ImportError:
@@ -208,11 +208,15 @@ class NativeRunner:
             print("Recommendation: Save checkpoint NOW and clear session.")
             self._trigger_auto_checkpoint("emergency")
         elif level == ContextLevel.CRITICAL:
-            print(f"\n{Colors.BOLD_RED}[CRITICAL]{Colors.RESET} Context at {state.context_usage_percent:.0f}%")
+            print(
+                f"\n{Colors.BOLD_RED}[CRITICAL]{Colors.RESET} Context at {state.context_usage_percent:.0f}%"
+            )
             print("Recommendation: Consider wrapping up and checkpointing soon.")
             self._trigger_auto_checkpoint("critical")
         elif level == ContextLevel.WARNING:
-            print(f"\n{Colors.YELLOW}[WARNING]{Colors.RESET} Context at {state.context_usage_percent:.0f}%")
+            print(
+                f"\n{Colors.YELLOW}[WARNING]{Colors.RESET} Context at {state.context_usage_percent:.0f}%"
+            )
             print(f"~{state.exchanges_remaining} exchanges remaining before compaction.")
 
     def _trigger_auto_checkpoint(self, reason: str):
@@ -223,7 +227,9 @@ class NativeRunner:
             from context_checkpoint import ContextCheckpointManager
 
             manager = ContextCheckpointManager()
-            context_level = self.context_monitor.state.context_usage_ratio if self.context_monitor else 0.0
+            context_level = (
+                self.context_monitor.state.context_usage_ratio if self.context_monitor else 0.0
+            )
             checkpoint_file = manager.create_checkpoint(context_level, reason=reason)
             print(f"[CHECKPOINT] Saved to: {checkpoint_file.name}")
 
@@ -438,11 +444,15 @@ class NativeRunner:
         # Print header with status line
         print(f"{Colors.DIM}{'─' * 70}{Colors.RESET}")
         print(f"{Colors.BOLD}DEVFLOW STORY RUNNER{Colors.RESET}")
-        print(f"Story: {self.args.story_key} | Model: {self.args.model} | Budget: ${self.args.budget:.2f}")
+        print(
+            f"Story: {self.args.story_key} | Model: {self.args.model} | Budget: ${self.args.budget:.2f}"
+        )
         if self.validation_enabled:
             print("Validation: Enabled")
         if self.context_monitor:
-            print(f"Context Monitor: Active (window: {self.context_monitor.state.context_window:,} tokens)")
+            print(
+                f"Context Monitor: Active (window: {self.context_monitor.state.context_window:,} tokens)"
+            )
         print(f"{Colors.DIM}{'─' * 70}{Colors.RESET}")
         print()
 
@@ -470,7 +480,9 @@ class NativeRunner:
 
             # Set initial activity state
             if self.context_monitor:
-                self.context_monitor.set_current_activity(total_phases=total_phases, phases_completed=0)
+                self.context_monitor.set_current_activity(
+                    total_phases=total_phases, phases_completed=0
+                )
 
             # Context phase
             if run_context:

@@ -21,7 +21,7 @@ from pathlib import Path
 SCRIPT_DIR = Path(__file__).parent
 sys.path.insert(0, str(SCRIPT_DIR / "lib"))
 
-from platform import get_platform
+from lib.platform import get_platform
 
 
 def run_windows(args):

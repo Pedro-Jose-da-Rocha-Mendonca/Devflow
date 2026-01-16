@@ -1,6 +1,6 @@
 {
   "name": "@pjmendonca/devflow",
-  "version": "1.19.0",
+  "version": "1.20.0",
   "description": "Development workflow automation with Claude Code - agent-based development system with cost tracking",
   "keywords": [
     "devflow",
@@ -33,6 +33,8 @@
     "devflow-checkpoint": "bin/devflow-checkpoint.js",
     "devflow-memory": "bin/devflow-memory.js",
     "devflow-collab": "bin/devflow-collab.js",
+    "devflow-swarm": "bin/devflow-swarm.js",
+    "devflow-dashboard": "bin/devflow-dashboard.js",
     "devflow-create-persona": "bin/devflow-create-persona.js",
     "devflow-personalize": "bin/devflow-personalize.js",
     "devflow-validate-overrides": "bin/devflow-validate-overrides.js",
