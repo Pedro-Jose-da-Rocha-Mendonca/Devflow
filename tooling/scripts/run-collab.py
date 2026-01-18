@@ -5,7 +5,6 @@ Collaborative Story Runner - Unified CLI for Agent Collaboration
 Integrates all collaboration features:
 - Agent routing (auto-select best agents)
 - Swarm mode (multi-agent debate)
-- Pair programming (DEV + REVIEWER interleaved)
 - Shared memory and knowledge graph
 - Automatic handoffs
 
@@ -15,13 +14,11 @@ Usage:
 Modes:
     --auto          Auto-route to best agents (default)
     --swarm         Multi-agent debate/consensus
-    --pair          DEV + REVIEWER pair programming
     --sequential    Traditional sequential pipeline
 
 Examples:
     python run-collab.py 3-5 --auto
     python run-collab.py 3-5 --swarm --agents ARCHITECT,DEV,REVIEWER
-    python run-collab.py 3-5 --pair
     python run-collab.py "fix login bug" --auto
 """
 
@@ -158,7 +155,6 @@ def get_cache_dir() -> Path:
 # Import collaboration modules
 from lib.agent_handoff import HandoffGenerator, create_handoff  # noqa: E402
 from lib.agent_router import AgentRouter, RoutingResult  # noqa: E402
-from lib.pair_programming import PairConfig, PairSession  # noqa: E402
 from lib.shared_memory import get_knowledge_graph, get_shared_memory, share_learning  # noqa: E402
 from lib.swarm_orchestrator import ConsensusType, SwarmConfig, SwarmOrchestrator  # noqa: E402
 
@@ -182,7 +178,7 @@ def print_banner():
 {Colors.CYAN}╔═══════════════════════════════════════════════════════════════╗
 ║        DEVFLOW COLLABORATIVE STORY RUNNER                     ║
 ╠═══════════════════════════════════════════════════════════════╣
-║  Multi-agent collaboration with swarm, pair, and auto-routing ║
+║  Multi-agent collaboration with swarm and auto-routing        ║
 ╚═══════════════════════════════════════════════════════════════╝{Colors.END}
 """)
 
@@ -213,9 +209,6 @@ def run_auto_mode(story_key: str, task: str, args: argparse.Namespace):
     if result.workflow == "swarm":
         print(f"\n{Colors.YELLOW}-> Using swarm mode for multi-agent collaboration{Colors.END}")
         return run_swarm_mode(story_key, task, result.agents, args)
-    elif result.workflow == "pair":
-        print(f"\n{Colors.YELLOW}-> Using pair programming mode{Colors.END}")
-        return run_pair_mode(story_key, task, args)
     else:
         print(f"\n{Colors.YELLOW}-> Using sequential execution{Colors.END}")
         return run_sequential_mode(story_key, task, result.agents, args)
@@ -241,29 +234,6 @@ def run_swarm_mode(story_key: str, task: str, agents: list[str], args: argparse.
 
     # Save result
     save_result(story_key, "swarm", result.to_dict())
-
-    return result
-
-
-def run_pair_mode(story_key: str, task: str, args: argparse.Namespace):
-    """Run pair programming mode."""
-    print_section("Pair Programming Mode", "DEV + REVIEWER interleaved")
-
-    config = PairConfig(
-        max_revisions_per_chunk=args.max_revisions,
-        verbose=not args.quiet,
-        dev_model=args.model,
-        reviewer_model=args.model,
-    )
-
-    session = PairSession(story_key, task, config)
-    result = session.run()
-
-    # Print result
-    print(f"\n{Colors.GREEN}{result.to_summary()}{Colors.END}")
-
-    # Save result
-    save_result(story_key, "pair", result.to_dict())
 
     return result
 
@@ -400,7 +370,6 @@ def parse_args():
 Examples:
   python run-collab.py 3-5 --auto
   python run-collab.py 3-5 --swarm --agents ARCHITECT,DEV,REVIEWER
-  python run-collab.py 3-5 --pair --max-revisions 3
   python run-collab.py "fix login bug" --auto
   python run-collab.py 3-5 --memory      # Show shared memory
   python run-collab.py 3-5 --query "What did ARCHITECT decide about auth?"
@@ -416,7 +385,6 @@ Examples:
         "--auto", action="store_true", default=True, help="Auto-route to best agents (default)"
     )
     mode_group.add_argument("--swarm", action="store_true", help="Multi-agent swarm/debate mode")
-    mode_group.add_argument("--pair", action="store_true", help="DEV + REVIEWER pair programming")
     mode_group.add_argument(
         "--sequential", action="store_true", help="Traditional sequential pipeline"
     )
@@ -447,14 +415,6 @@ Examples:
         help="Consensus type (default: reviewer_approval)",
     )
     parser.add_argument("--parallel", action="store_true", help="Enable parallel agent execution")
-
-    # Pair programming options
-    parser.add_argument(
-        "--max-revisions",
-        type=int,
-        default=3,
-        help="Max revisions per chunk in pair mode (default: 3)",
-    )
 
     # General options
     parser.add_argument(
@@ -600,10 +560,6 @@ def main():
             if not agents:
                 agents = ["ARCHITECT", "DEV", "REVIEWER"]
             run_swarm_mode(story_key, task, agents, args)
-
-        elif args.pair:
-            print("Pair Programming")
-            run_pair_mode(story_key, task, args)
 
         elif args.sequential:
             print("Sequential")

@@ -373,7 +373,7 @@ class TestSwarmOrchestrator:
 
         assert config.max_iterations == 3  # Limited rounds for diminishing returns
         assert config.consensus_type == ConsensusType.MAJORITY  # Adversarial default
-        assert config.budget_limit_usd == 25.0  # Higher budget for debate
+        assert config.budget_limit_usd == 10.0  # Budget for debate
 
     def test_swarm_config_custom(self):
         """Test custom swarm configuration."""
@@ -481,121 +481,6 @@ class TestSwarmOrchestrator:
 
         responses[1].vote = "reject"
         assert orchestrator._check_consensus(responses) is False
-
-
-# ============================================================================
-# Pair Programming Tests
-# ============================================================================
-
-
-class TestPairProgramming:
-    """Tests for pair programming mode."""
-
-    @pytest.fixture
-    def mock_pair_env(self, tmp_path, monkeypatch):
-        """Mock environment for pair programming testing."""
-        from lib import shared_memory
-
-        memory_dir = tmp_path / "memory"
-        memory_dir.mkdir(parents=True)
-        (memory_dir / "shared").mkdir()
-        (memory_dir / "knowledge").mkdir()
-        monkeypatch.setattr(shared_memory, "MEMORY_DIR", memory_dir)
-        monkeypatch.setattr(shared_memory, "SHARED_MEMORY_DIR", memory_dir / "shared")
-        monkeypatch.setattr(shared_memory, "KNOWLEDGE_GRAPH_DIR", memory_dir / "knowledge")
-        return memory_dir
-
-    def test_pair_config_defaults(self):
-        """Test pair programming config defaults."""
-        from lib.pair_programming import PairConfig
-
-        config = PairConfig()
-
-        assert config.max_revisions_per_chunk == 3
-        assert config.dev_model == "opus"
-        assert config.reviewer_model == "opus"
-
-    def test_parse_dev_output(self, mock_pair_env):
-        """Test parsing DEV output into code chunk."""
-        from lib.pair_programming import ChunkType, PairSession
-
-        session = PairSession("test-story", "Test task")
-
-        output = """
-        # Implementing user service
-
-        File: src/services/user.py
-
-        ```python
-        class UserService:
-            def get_user(self, user_id):
-                return self.db.find(user_id)
-        ```
-        """
-
-        chunk = session._parse_dev_output(output)
-
-        assert chunk.chunk_type == ChunkType.IMPLEMENTATION
-        assert "UserService" in chunk.content
-
-    def test_parse_reviewer_output_approve(self, mock_pair_env):
-        """Test parsing REVIEWER approval."""
-        from lib.pair_programming import FeedbackType, PairSession
-
-        session = PairSession("test-story", "Test task")
-
-        output = """
-        LGTM! The implementation looks good.
-
-        - Clean code structure
-        - Good naming conventions
-
-        Approved for merge.
-        """
-
-        feedback = session._parse_reviewer_output(output, "chunk_001")
-
-        assert feedback.approved is True
-        assert feedback.feedback_type == FeedbackType.APPROVE
-
-    def test_parse_reviewer_output_issues(self, mock_pair_env):
-        """Test parsing REVIEWER with issues."""
-        from lib.pair_programming import FeedbackType, PairSession
-
-        session = PairSession("test-story", "Test task")
-
-        output = """
-        Major issues found:
-
-        Must fix:
-        - Missing input validation
-        - No error handling
-
-        Suggestions:
-        - Add logging
-        - Consider caching
-        """
-
-        feedback = session._parse_reviewer_output(output, "chunk_001")
-
-        assert feedback.approved is False
-        assert feedback.feedback_type == FeedbackType.MAJOR
-        assert len(feedback.must_fix) >= 1
-
-    def test_has_blocking_issues(self, mock_pair_env):
-        """Test checking for blocking issues."""
-        from lib.pair_programming import FeedbackType, ReviewFeedback
-
-        blocking = ReviewFeedback(
-            chunk_id="test", feedback_type=FeedbackType.BLOCKING, comments=["Critical issue"]
-        )
-
-        minor = ReviewFeedback(
-            chunk_id="test", feedback_type=FeedbackType.MINOR, comments=["Small issue"]
-        )
-
-        assert blocking.has_blocking_issues() is True
-        assert minor.has_blocking_issues() is False
 
 
 # ============================================================================

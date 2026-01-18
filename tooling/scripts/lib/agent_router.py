@@ -629,10 +629,6 @@ class AgentRouter:
         if len(agents) == 1:
             return "single"
 
-        # If includes REVIEWER and DEV, could use pair mode
-        if "DEV" in agents and "REVIEWER" in agents and len(agents) == 2:
-            return "pair"
-
         # If includes ARCHITECT, likely needs sequential
         if "ARCHITECT" in agents:
             return "sequential"

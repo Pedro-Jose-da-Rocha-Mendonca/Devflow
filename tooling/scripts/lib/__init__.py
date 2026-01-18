@@ -14,7 +14,6 @@ This package provides:
 - agent_handoff: Structured agent transitions
 - shared_memory: Cross-agent knowledge sharing
 - swarm_orchestrator: Multi-agent collaboration
-- pair_programming: DEV + REVIEWER collaboration
 - validation_loop: Three-tier validation framework
 
 Usage:
@@ -41,6 +40,5 @@ __all__ = [
     "agent_handoff",
     "shared_memory",
     "swarm_orchestrator",
-    "pair_programming",
     "validation_loop",
 ]

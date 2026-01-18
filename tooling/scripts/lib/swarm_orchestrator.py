@@ -320,7 +320,7 @@ class SwarmConfig:
     parallel_execution: bool = False
     auto_fix_enabled: bool = True  # DEV automatically addresses REVIEWER issues
     verbose: bool = True
-    budget_limit_usd: float = 25.0  # Higher budget for debate
+    budget_limit_usd: float = 10.0  # Budget for debate
     validation_enabled: bool = True  # Enable inter-iteration validation
     # Adversarial-specific settings
     convergence_threshold: float = 0.8  # Position similarity to consider converged

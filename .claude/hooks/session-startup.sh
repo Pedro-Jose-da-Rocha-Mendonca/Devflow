@@ -424,4 +424,24 @@ echo "  /develop      - Development phase only"
 echo "  /review       - Code review only"
 echo "  /costs        - View cost dashboard"
 
+# ============================================================================
+# AUTO-LAUNCH LIVE DASHBOARD
+# ============================================================================
+
+DASHBOARD_SCRIPT="$PROJECT_DIR/tooling/scripts/live_dashboard.py"
+
+if [ -f "$DASHBOARD_SCRIPT" ]; then
+    # Launch dashboard in a new terminal window (macOS)
+    if [ "$(uname)" = "Darwin" ]; then
+        osascript -e "tell application \"Terminal\"
+            do script \"cd '$PROJECT_DIR' && python3 '$DASHBOARD_SCRIPT' --compact\"
+        end tell" >/dev/null 2>&1 &
+    # Linux with common terminal emulators
+    elif command -v gnome-terminal >/dev/null 2>&1; then
+        gnome-terminal -- bash -c "cd '$PROJECT_DIR' && python3 '$DASHBOARD_SCRIPT'; exec bash" >/dev/null 2>&1 &
+    elif command -v xterm >/dev/null 2>&1; then
+        xterm -e "cd '$PROJECT_DIR' && python3 '$DASHBOARD_SCRIPT'" >/dev/null 2>&1 &
+    fi
+fi
+
 exit 0

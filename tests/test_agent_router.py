@@ -340,10 +340,10 @@ class TestAgentRouterWorkflow:
         workflow = router.get_workflow_for_agents(["DEV"])
         assert workflow == "single"
 
-    def test_pair_workflow(self, router):
-        """Test DEV+REVIEWER gets pair workflow."""
+    def test_two_agent_workflow(self, router):
+        """Test DEV+REVIEWER gets sequential workflow."""
         workflow = router.get_workflow_for_agents(["DEV", "REVIEWER"])
-        assert workflow == "pair"
+        assert workflow == "sequential"
 
     def test_architect_sequential_workflow(self, router):
         """Test ARCHITECT forces sequential workflow."""
